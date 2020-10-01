@@ -1,0 +1,51 @@
+﻿@using ControlCaducidadesPromotor.Basicos
+@model List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/MiLayout.cshtml";
+}
+
+
+@section MisFuncionesJavaScript
+{
+}
+
+@section Contenido{
+
+    <h3>Ver productos</h3>
+
+
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Codigo de barras</th>
+                    <th>Nombre</th>
+                    <th>Activo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Producto_Id.ToString()</td>
+                            <td>@item.Producto_CodigoBarras</td>
+                            <td>@item.DetalleProducto_Nombre</td>
+                            <td>@item.Producto_Activo</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+}
+
+@section Footer{
+    <h5>El footer</h5>
+}
+
+

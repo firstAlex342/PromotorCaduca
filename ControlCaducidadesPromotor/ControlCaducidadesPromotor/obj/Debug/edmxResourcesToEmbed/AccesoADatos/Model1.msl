@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="palominoModelStoreContainer" CdmEntityContainer="palominoEntities">
+    <EntitySetMapping Name="Producto">
+      <EntityTypeMapping TypeName="palominoModel.Producto">
+        <MappingFragment StoreEntitySet="Producto">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="CodigoBarras" ColumnName="CodigoBarras" />
+          <ScalarProperty Name="IdUsuarioAlta" ColumnName="IdUsuarioAlta" />
+          <ScalarProperty Name="FechaAlta" ColumnName="FechaAlta" />
+          <ScalarProperty Name="IdUsuarioModifico" ColumnName="IdUsuarioModifico" />
+          <ScalarProperty Name="FechaModificacion" ColumnName="FechaModificacion" />
+          <ScalarProperty Name="Activo" ColumnName="Activo" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="DetalleProducto">
+      <EntityTypeMapping TypeName="palominoModel.DetalleProducto">
+        <MappingFragment StoreEntitySet="DetalleProducto">
+          <ScalarProperty Name="Activo" ColumnName="Activo" />
+          <ScalarProperty Name="FechaModificacion" ColumnName="FechaModificacion" />
+          <ScalarProperty Name="IdUsuarioModifico" ColumnName="IdUsuarioModifico" />
+          <ScalarProperty Name="FechaAlta" ColumnName="FechaAlta" />
+          <ScalarProperty Name="IdUsuarioAlta" ColumnName="IdUsuarioAlta" />
+          <ScalarProperty Name="Nombre" ColumnName="Nombre" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="ProductoConDetalles">
+      <EntityTypeMapping TypeName="palominoModel.ProductoConDetalles">
+        <MappingFragment StoreEntitySet="ProductoConDetalles">
+          <ScalarProperty Name="Activo" ColumnName="Activo" />
+          <ScalarProperty Name="FechaModificacion" ColumnName="FechaModificacion" />
+          <ScalarProperty Name="IdUsuarioModifico" ColumnName="IdUsuarioModifico" />
+          <ScalarProperty Name="FechaAlta" ColumnName="FechaAlta" />
+          <ScalarProperty Name="IdUsuarioAlta" ColumnName="IdUsuarioAlta" />
+          <ScalarProperty Name="IdDetalleProducto" ColumnName="IdDetalleProducto" />
+          <ScalarProperty Name="IdProducto" ColumnName="IdProducto" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Caduca">
+      <EntityTypeMapping TypeName="palominoModel.Caduca">
+        <MappingFragment StoreEntitySet="Caduca">
+          <ScalarProperty Name="IdTienda" ColumnName="IdTienda" />
+          <ScalarProperty Name="Activo" ColumnName="Activo" />
+          <ScalarProperty Name="FechaModificacion" ColumnName="FechaModificacion" />
+          <ScalarProperty Name="IdUsuarioModifico" ColumnName="IdUsuarioModifico" />
+          <ScalarProperty Name="FechaAlta" ColumnName="FechaAlta" />
+          <ScalarProperty Name="IdUsuarioAlta" ColumnName="IdUsuarioAlta" />
+          <ScalarProperty Name="IdPeriodo" ColumnName="IdPeriodo" />
+          <ScalarProperty Name="IdDetalleProducto" ColumnName="IdDetalleProducto" />
+          <ScalarProperty Name="IdProducto" ColumnName="IdProducto" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Periodo">
+      <EntityTypeMapping TypeName="palominoModel.Periodo">
+        <MappingFragment StoreEntitySet="Periodo">
+          <ScalarProperty Name="Activo" ColumnName="Activo" />
+          <ScalarProperty Name="FechaModificacion" ColumnName="FechaModificacion" />
+          <ScalarProperty Name="IdUsuarioModifico" ColumnName="IdUsuarioModifico" />
+          <ScalarProperty Name="FechaAlta" ColumnName="FechaAlta" />
+          <ScalarProperty Name="IdUsuarioAlta" ColumnName="IdUsuarioAlta" />
+          <ScalarProperty Name="NumeroUnidades" ColumnName="NumeroUnidades" />
+          <ScalarProperty Name="FechaCaducidad" ColumnName="FechaCaducidad" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Almacena">
+      <EntityTypeMapping TypeName="palominoModel.Almacena">
+        <MappingFragment StoreEntitySet="Almacena">
+          <ScalarProperty Name="Activo" ColumnName="Activo" />
+          <ScalarProperty Name="FechaModificacion" ColumnName="FechaModificacion" />
+          <ScalarProperty Name="IdUsuarioModifico" ColumnName="IdUsuarioModifico" />
+          <ScalarProperty Name="FechaAlta" ColumnName="FechaAlta" />
+          <ScalarProperty Name="IdUsuarioAlta" ColumnName="IdUsuarioAlta" />
+          <ScalarProperty Name="IdProducto" ColumnName="IdProducto" />
+          <ScalarProperty Name="IdTienda" ColumnName="IdTienda" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Tienda">
+      <EntityTypeMapping TypeName="palominoModel.Tienda">
+        <MappingFragment StoreEntitySet="Tienda">
+          <ScalarProperty Name="Activo" ColumnName="Activo" />
+          <ScalarProperty Name="FechaModificacion" ColumnName="FechaModificacion" />
+          <ScalarProperty Name="IdUsuarioModifico" ColumnName="IdUsuarioModifico" />
+          <ScalarProperty Name="FechaAlta" ColumnName="FechaAlta" />
+          <ScalarProperty Name="IdUsuarioAlta" ColumnName="IdUsuarioAlta" />
+          <ScalarProperty Name="Nombre" ColumnName="Nombre" />
+          <ScalarProperty Name="Calle" ColumnName="Calle" />
+          <ScalarProperty Name="Lote" ColumnName="Lote" />
+          <ScalarProperty Name="Manzana" ColumnName="Manzana" />
+          <ScalarProperty Name="Supmza" ColumnName="Supmza" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Usuario">
+      <EntityTypeMapping TypeName="palominoModel.Usuario">
+        <MappingFragment StoreEntitySet="Usuario">
+          <ScalarProperty Name="Activo" ColumnName="Activo" />
+          <ScalarProperty Name="Nombre" ColumnName="Nombre" />
+          <ScalarProperty Name="Password" ColumnName="Password" />
+          <ScalarProperty Name="Usuario1" ColumnName="Usuario" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+  </EntityContainerMapping>
+</Mapping>

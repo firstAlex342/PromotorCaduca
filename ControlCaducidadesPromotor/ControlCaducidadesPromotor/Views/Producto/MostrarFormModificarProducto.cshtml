@@ -1,0 +1,208 @@
+﻿
+@{
+    ViewBag.Title = "MostrarFormModificarProducto";
+    Layout = "~/Views/Shared/MiLayout.cshtml";
+}
+
+@section MisFuncionesJavaScript
+{
+    <script type="text/javascript">
+        var x;
+        x = $(document);
+        x.ready(InicializarEventos);
+
+        function InicializarEventos() {
+            var z;
+            z = $("#boton1");
+            z.click(PresionoBotonBuscar);
+
+            z = $("#boton2");
+            z.click(PresionoBotonActualizar);
+
+            z = $("#boton3");
+            z.click(PresionoBotonCancelar);
+        }
+
+        function PresionoBotonBuscar() {
+            var codigoBarras = $('#codigoBarras').val();
+
+            $.ajax({
+                url: "/Producto/BuscarProductoxCodigoBarras",
+                data: { 'codigoBarrasBuscado': codigoBarras },
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var id = parseInt(result.Producto_Id);
+                    if (id == 0) {
+                        $('#errorSpan').html('<ul><li>No se encontro el codigo de barras</li></ul>');
+                        LimpiarContenidoDeFormularioDetalles();
+                    }
+
+                    else {
+                        $('#errorSpan').empty();                       
+                        LimpiarContenidoDeFormularioDetalles();
+                        DeshabilitarBotonBuscarYTextBoxBuscar();
+                        HabilitarBotonActualizarYCancelar();
+                        $("#NombreRecuperado").removeAttr("disabled");
+
+                        $('#IdRecuperado').val(result.Producto_Id);
+                        $('#CodigoBarrasRecuperado').val(result.Producto_CodigoBarras);
+                        $('#IdDetalleProducto').val(result.DetalleProducto_Id)
+                        $('#NombreRecuperado').val(result.DetalleProducto_Nombre);
+                    }
+                },
+
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+
+            return false;
+        }
+
+
+        function PresionoBotonActualizar() {
+            var productoObj = {
+                Producto_Id: $("#IdRecuperado").val(),
+                Producto_CodigoBarras: $("#CodigoBarrasRecuperado").val(),/*document.getElementById("codigoBarras").value,*/
+                DetalleProducto_Id: $('#IdDetalleProducto').val(),
+                DetalleProducto_Nombre: $("#NombreRecuperado").val(),
+                DetalleProducto_IdUsuarioAlta: 0,
+                DetalleProducto_FechaAlta: new Date(),
+                DetalleProducto_IdUsuarioModifico: 0,
+                DetalleProducto_FechaModificacion: new Date(),
+                DetalleProducto_Activo: true
+            };
+            $.ajax({
+                url: "/Producto/ModificarProducto",
+                data: JSON.stringify(productoObj),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    if (result == "ok") {
+                        $("#errorSpan").empty();
+                        $("#codigoBarras").val("");
+                        LimpiarContenidoDeFormularioDetalles();
+                        HabilitarBotonBuscarYTextBoxBuscar();
+                        DeshabilitarBotonActualizarYCancelar();
+                        $("#NombreRecuperado").attr("disabled", "disabled");
+                    }
+
+                    else {
+                        $('#errorSpan').html(result);
+                    }
+                },
+
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+
+            return false;
+        }
+
+
+        function PresionoBotonCancelar() {
+            $("#errorSpan").empty();
+            HabilitarBotonBuscarYTextBoxBuscar();
+            $('#codigoBarras').val('');
+            LimpiarContenidoDeFormularioDetalles();
+            $('#NombreRecuperado').removeAttr('disabled')
+            $('#NombreRecuperado').attr('disabled', 'disabled')
+            DeshabilitarBotonActualizarYCancelar();
+        }
+
+        function LimpiarContenidoDeFormularioDetalles() {
+            $('#IdRecuperado').val('');
+            $('#CodigoBarrasRecuperado').val('');
+            $('#IdDetalleProducto').val('');
+            $('#NombreRecuperado').val('');
+        }
+
+        function HabilitarBotonActualizarYCancelar() {
+            $("#boton2").removeAttr("disabled");
+            $("#boton3").removeAttr("disabled");
+        }
+
+        function DeshabilitarBotonBuscarYTextBoxBuscar() {
+            $("#codigoBarras").attr("disabled", "disabled");
+            $("#boton1").attr("disabled", "disabled");
+        }
+
+        function DeshabilitarBotonActualizarYCancelar() {
+            $("#boton2").attr("disabled", "disabled");
+            $("#boton3").attr("disabled", "disabled");
+        }
+
+        function HabilitarBotonBuscarYTextBoxBuscar() {
+            $("#codigoBarras").removeAttr("disabled");
+            $("#boton1").removeAttr("disabled");
+        }
+    </script>
+}
+
+@section Contenido
+{
+    <h3>Modificar producto</h3>
+
+    <span class="text-danger" id="errorSpan"></span>
+
+
+    <div class="form-inline">
+        <div class="form-group">
+            <label for="codigoBarras">Código de barras</label>
+            <input type="text" class="form-control" id="codigoBarras">
+        </div>
+
+        <div class="form-group">
+            <button id="boton1" type="submit" class="btn btn-primary">Buscar</button>
+        </div>
+    </div>
+
+
+
+    
+        <div class="form-group">
+            <label for="IdRecuperado">Id</label>
+            <input type="text" class="form-control" id="IdRecuperado"  disabled="disabled"/>
+        </div>
+
+        <div class="form-group">
+            <label for="CodigoBarrasRecuperado">Codigo de barras</label>
+            <input type="text" class="form-control" id="CodigoBarrasRecuperado" disabled="disabled" />
+        </div>
+
+        <div class="form-group">
+            <label for="IdDetalleProducto">IdDetalleProducto</label>
+            <input type="text" class="form-control" id="IdDetalleProducto" disabled="disabled"/>
+        </div>
+
+        <div class="form-group">
+            <label for="NombreRecuperado">Nombre</label>
+            <input type="text" class="form-control" id="NombreRecuperado" disabled="disabled" />
+        </div>
+
+
+
+        <div class="btn-toolbar">
+            <div class="btn-group">
+                <div class="form-group">
+                    <button id="boton2" type="submit" class="btn btn-primary" disabled="disabled">Actualizar</button>
+                </div>
+            </div>
+            <div class="btn-group">
+                <div class="form-group">
+                    <button id="boton3" type="submit" class="btn btn-primary" disabled="disabled">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    
+}
+
+
+
+@section Footer
+{
+}

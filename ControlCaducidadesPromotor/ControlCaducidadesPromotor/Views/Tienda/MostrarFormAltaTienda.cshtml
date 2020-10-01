@@ -1,0 +1,80 @@
+﻿@using ControlCaducidadesPromotor.Basicos
+@model TiendaViewModel
+@{
+    ViewBag.Title = "AgregarTienda";
+    Layout = "~/Views/Shared/MiLayout.cshtml";
+}
+
+@section MisFuncionesJavaScript
+{
+}
+
+
+@section Contenido
+{
+    <h3>Nueva tienda</h3>
+    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+    <form role="form" method="post" action="/Tienda/CrearTienda">
+        <div class="row">
+            <div class="col-sm-2"></div>
+
+            <div class="col-sm-7">
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" class="form-control" id="nombre"  name="tiendaViewModel.Nombre" value="@Model.Nombre" />
+                    @Html.ValidationMessage("tiendaViewModel.Nombre", new { @class="text-danger"})
+                </div>
+
+                <div class="form-group">
+                    <label for="supermanzana">Supermanza</label>
+                    <input type="text" class="form-control" id="supermanzana" name="tiendaViewModel.Supmza" value="@Model.Supmza" />
+                    @Html.ValidationMessage("tiendaViewModel.Supmza", new { @class="text-danger"})
+                </div>
+
+                <div class="form-group">
+                    <label for="manzana">Manzana</label>
+                    <input type="text" class="form-control" id="manzana" name="tiendaViewModel.Manzana" value="@Model.Manzana" />
+                    @Html.ValidationMessage("tiendaViewModel.Manzana", new { @class="text-danger"})
+                </div>
+
+                <div class="form-group">
+                    <label for="lote">Lote</label>
+                    <input type="text" class="form-control" id="lote" name="tiendaViewModel.Lote" value="@Model.Lote" />
+                    @Html.ValidationMessage("tiendaViewModel.Lote", new { @class="text-danger"})
+                </div>
+
+                <div class="form-group">
+                    <label for="calle">Calle</label>
+                    <input type="text" class="form-control" id="calle" name="tiendaViewModel.Calle" value="@Model.Calle" />
+                    @Html.ValidationMessage("tiendaViewModel.Calle", new { @class = "text-danger"})
+                </div>
+
+
+                <div class="form-group">
+                    @*@Html.AntiForgeryToken()*@
+                    <button type="submit" class="btn btn-primary pull-right">Entrar</button>
+                </div>
+            </div>
+
+            <div class="col-sm-3"></div>
+        </div>
+    </form>
+}
+
+
+
+@section Footer
+{
+
+
+}
+
+
+
+
+
+
+
+
+
+

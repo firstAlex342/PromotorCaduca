@@ -1,0 +1,55 @@
+﻿@using ControlCaducidadesPromotor.Basicos
+@model List<TiendaViewModel>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/MiLayout.cshtml";
+}
+
+<h3>Mis tiendas</h3>
+
+@section MisFuncionesJavaScript
+{
+}
+
+
+@section Contenido
+{
+    <h3>Ver tiendas</h3>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nombre</th>
+                    <th>Supermanzana</th>
+                    <th>Manzana</th>
+                    <th>Lote</th>
+                    <th>Calle</th>
+                    <th>Activo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td>@item.Nombre</td>
+                            <td>@item.Supmza</td>
+                            <td>@item.Manzana</td>
+                            <td>@item.Lote</td>
+                            <td>@item.Calle</td>
+                            <td>@item.Activo</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+
+
+@section Footer
+{
+}

@@ -1,0 +1,263 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="palominoModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+  <EntityType Name="Producto">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="None" />
+    <Property Name="CodigoBarras" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="Int32" Nullable="false" />
+    <Property Name="FechaAlta" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="IdUsuarioModifico" Type="Int32" Nullable="false" />
+    <Property Name="FechaModificacion" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="Activo" Type="Boolean" Nullable="false" />
+    <NavigationProperty Name="ProductoConDetalles" Relationship="palominoModel.fk_ProductoConDetalles_IdProducto" FromRole="Producto" ToRole="ProductoConDetalles" />
+    <NavigationProperty Name="Caduca" Relationship="palominoModel.fk_Caduca_Producto_Id" FromRole="Producto" ToRole="Caduca" />
+    <NavigationProperty Name="Almacena" Relationship="palominoModel.fk_Almacena_Producto" FromRole="Producto" ToRole="Almacena" />
+  </EntityType>
+  <EntityContainer Name="palominoEntities" annotation:LazyLoadingEnabled="true">
+    <EntitySet Name="Producto" EntityType="Self.Producto" />
+    <EntitySet Name="DetalleProducto" EntityType="palominoModel.DetalleProducto" />
+    <EntitySet Name="ProductoConDetalles" EntityType="palominoModel.ProductoConDetalles" />
+    <AssociationSet Name="fk_ProductoConDetalles_IdDetalleProducto" Association="palominoModel.fk_ProductoConDetalles_IdDetalleProducto">
+      <End Role="DetalleProducto" EntitySet="DetalleProducto" />
+      <End Role="ProductoConDetalles" EntitySet="ProductoConDetalles" />
+    </AssociationSet>
+    <AssociationSet Name="fk_ProductoConDetalles_IdProducto" Association="palominoModel.fk_ProductoConDetalles_IdProducto">
+      <End Role="Producto" EntitySet="Producto" />
+      <End Role="ProductoConDetalles" EntitySet="ProductoConDetalles" />
+    </AssociationSet>
+    <EntitySet Name="Caduca" EntityType="palominoModel.Caduca" />
+    <EntitySet Name="Periodo" EntityType="palominoModel.Periodo" />
+    <AssociationSet Name="fk_Caduca_DetalleProducto_Id" Association="palominoModel.fk_Caduca_DetalleProducto_Id">
+      <End Role="DetalleProducto" EntitySet="DetalleProducto" />
+      <End Role="Caduca" EntitySet="Caduca" />
+    </AssociationSet>
+    <AssociationSet Name="fk_Caduca_Periodo_Id" Association="palominoModel.fk_Caduca_Periodo_Id">
+      <End Role="Periodo" EntitySet="Periodo" />
+      <End Role="Caduca" EntitySet="Caduca" />
+    </AssociationSet>
+    <AssociationSet Name="fk_Caduca_Producto_Id" Association="palominoModel.fk_Caduca_Producto_Id">
+      <End Role="Producto" EntitySet="Producto" />
+      <End Role="Caduca" EntitySet="Caduca" />
+    </AssociationSet>
+    <EntitySet Name="Almacena" EntityType="palominoModel.Almacena" />
+    <EntitySet Name="Tienda" EntityType="palominoModel.Tienda" />
+    <AssociationSet Name="fk_Almacena_Producto" Association="palominoModel.fk_Almacena_Producto">
+      <End Role="Producto" EntitySet="Producto" />
+      <End Role="Almacena" EntitySet="Almacena" />
+    </AssociationSet>
+    <AssociationSet Name="fk_Almacena_Tienda" Association="palominoModel.fk_Almacena_Tienda">
+      <End Role="Tienda" EntitySet="Tienda" />
+      <End Role="Almacena" EntitySet="Almacena" />
+    </AssociationSet>
+    <AssociationSet Name="fk_Caduca_Tienda_Id" Association="palominoModel.fk_Caduca_Tienda_Id">
+      <End Role="Tienda" EntitySet="Tienda" />
+      <End Role="Caduca" EntitySet="Caduca" />
+    </AssociationSet>
+    <EntitySet Name="Usuario" EntityType="palominoModel.Usuario" />
+  </EntityContainer>
+  <EntityType Name="DetalleProducto">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="Int32" Nullable="false" />
+    <Property Name="Nombre" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="IdUsuarioAlta" Type="Int32" Nullable="false" />
+    <Property Name="FechaAlta" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="IdUsuarioModifico" Type="Int32" Nullable="false" />
+    <Property Name="FechaModificacion" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="Activo" Type="Boolean" Nullable="false" />
+    <NavigationProperty Name="ProductoConDetalles" Relationship="palominoModel.fk_ProductoConDetalles_IdDetalleProducto" FromRole="DetalleProducto" ToRole="ProductoConDetalles" />
+    <NavigationProperty Name="Caduca" Relationship="palominoModel.fk_Caduca_DetalleProducto_Id" FromRole="DetalleProducto" ToRole="Caduca" />
+  </EntityType>
+  <EntityType Name="ProductoConDetalles">
+    <Key>
+      <PropertyRef Name="IdProducto" />
+      <PropertyRef Name="IdDetalleProducto" />
+    </Key>
+    <Property Name="IdProducto" Type="Int32" Nullable="false" />
+    <Property Name="IdDetalleProducto" Type="Int32" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="Int32" Nullable="false" />
+    <Property Name="FechaAlta" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="IdUsuarioModifico" Type="Int32" Nullable="false" />
+    <Property Name="FechaModificacion" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="Activo" Type="Boolean" Nullable="false" />
+    <NavigationProperty Name="DetalleProducto" Relationship="palominoModel.fk_ProductoConDetalles_IdDetalleProducto" FromRole="ProductoConDetalles" ToRole="DetalleProducto" />
+    <NavigationProperty Name="Producto" Relationship="palominoModel.fk_ProductoConDetalles_IdProducto" FromRole="ProductoConDetalles" ToRole="Producto" />
+  </EntityType>
+  <Association Name="fk_ProductoConDetalles_IdDetalleProducto">
+    <End Type="palominoModel.DetalleProducto" Role="DetalleProducto" Multiplicity="1" />
+    <End Type="palominoModel.ProductoConDetalles" Role="ProductoConDetalles" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="DetalleProducto">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="ProductoConDetalles">
+        <PropertyRef Name="IdDetalleProducto" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="fk_ProductoConDetalles_IdProducto">
+    <End Type="palominoModel.Producto" Role="Producto" Multiplicity="1" />
+    <End Type="palominoModel.ProductoConDetalles" Role="ProductoConDetalles" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Producto">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="ProductoConDetalles">
+        <PropertyRef Name="IdProducto" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityType Name="Caduca">
+    <Key>
+      <PropertyRef Name="IdProducto" />
+      <PropertyRef Name="IdDetalleProducto" />
+      <PropertyRef Name="IdPeriodo" />
+      <PropertyRef Name="IdTienda" />
+    </Key>
+    <Property Name="IdProducto" Type="Int32" Nullable="false" />
+    <Property Name="IdDetalleProducto" Type="Int32" Nullable="false" />
+    <Property Name="IdPeriodo" Type="Int32" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="Int32" Nullable="false" />
+    <Property Name="FechaAlta" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="IdUsuarioModifico" Type="Int32" Nullable="false" />
+    <Property Name="FechaModificacion" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="Activo" Type="Boolean" Nullable="false" />
+    <NavigationProperty Name="DetalleProducto" Relationship="palominoModel.fk_Caduca_DetalleProducto_Id" FromRole="Caduca" ToRole="DetalleProducto" />
+    <NavigationProperty Name="Periodo" Relationship="palominoModel.fk_Caduca_Periodo_Id" FromRole="Caduca" ToRole="Periodo" />
+    <NavigationProperty Name="Producto" Relationship="palominoModel.fk_Caduca_Producto_Id" FromRole="Caduca" ToRole="Producto" />
+    <Property Name="IdTienda" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="Tienda" Relationship="palominoModel.fk_Caduca_Tienda_Id" FromRole="Caduca" ToRole="Tienda" />
+  </EntityType>
+  <EntityType Name="Periodo">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="Int32" Nullable="false" />
+    <Property Name="FechaCaducidad" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="NumeroUnidades" Type="Int32" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="Int32" Nullable="false" />
+    <Property Name="FechaAlta" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="IdUsuarioModifico" Type="Int32" Nullable="false" />
+    <Property Name="FechaModificacion" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="Activo" Type="Boolean" Nullable="false" />
+    <NavigationProperty Name="Caduca" Relationship="palominoModel.fk_Caduca_Periodo_Id" FromRole="Periodo" ToRole="Caduca" />
+  </EntityType>
+  <Association Name="fk_Caduca_DetalleProducto_Id">
+    <End Type="palominoModel.DetalleProducto" Role="DetalleProducto" Multiplicity="1" />
+    <End Type="palominoModel.Caduca" Role="Caduca" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="DetalleProducto">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Caduca">
+        <PropertyRef Name="IdDetalleProducto" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="fk_Caduca_Periodo_Id">
+    <End Type="palominoModel.Periodo" Role="Periodo" Multiplicity="1" />
+    <End Type="palominoModel.Caduca" Role="Caduca" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Periodo">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Caduca">
+        <PropertyRef Name="IdPeriodo" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="fk_Caduca_Producto_Id">
+    <End Type="palominoModel.Producto" Role="Producto" Multiplicity="1" />
+    <End Type="palominoModel.Caduca" Role="Caduca" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Producto">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Caduca">
+        <PropertyRef Name="IdProducto" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityType Name="Almacena">
+    <Key>
+      <PropertyRef Name="IdTienda" />
+      <PropertyRef Name="IdProducto" />
+    </Key>
+    <Property Name="IdTienda" Type="Int32" Nullable="false" />
+    <Property Name="IdProducto" Type="Int32" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="Int32" Nullable="false" />
+    <Property Name="FechaAlta" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="IdUsuarioModifico" Type="Int32" Nullable="false" />
+    <Property Name="FechaModificacion" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="Activo" Type="Boolean" Nullable="false" />
+    <NavigationProperty Name="Producto" Relationship="palominoModel.fk_Almacena_Producto" FromRole="Almacena" ToRole="Producto" />
+    <NavigationProperty Name="Tienda" Relationship="palominoModel.fk_Almacena_Tienda" FromRole="Almacena" ToRole="Tienda" />
+  </EntityType>
+  <EntityType Name="Tienda">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="Int32" Nullable="false" />
+    <Property Name="Supmza" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="Manzana" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="Lote" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="Calle" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="Nombre" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="IdUsuarioAlta" Type="Int32" Nullable="false" />
+    <Property Name="FechaAlta" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="IdUsuarioModifico" Type="Int32" Nullable="false" />
+    <Property Name="FechaModificacion" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="Activo" Type="Boolean" Nullable="false" />
+    <NavigationProperty Name="Almacena" Relationship="palominoModel.fk_Almacena_Tienda" FromRole="Tienda" ToRole="Almacena" />
+    <NavigationProperty Name="Caduca" Relationship="palominoModel.fk_Caduca_Tienda_Id" FromRole="Tienda" ToRole="Caduca" />
+  </EntityType>
+  <Association Name="fk_Almacena_Producto">
+    <End Type="palominoModel.Producto" Role="Producto" Multiplicity="1" />
+    <End Type="palominoModel.Almacena" Role="Almacena" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Producto">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Almacena">
+        <PropertyRef Name="IdProducto" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="fk_Almacena_Tienda">
+    <End Type="palominoModel.Tienda" Role="Tienda" Multiplicity="1" />
+    <End Type="palominoModel.Almacena" Role="Almacena" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Tienda">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Almacena">
+        <PropertyRef Name="IdTienda" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="fk_Caduca_Tienda_Id">
+    <End Type="palominoModel.Tienda" Role="Tienda" Multiplicity="1" />
+    <End Type="palominoModel.Caduca" Role="Caduca" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Tienda">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Caduca">
+        <PropertyRef Name="IdTienda" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityType Name="Usuario">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="Int32" Nullable="false" />
+    <Property Name="Usuario1" Type="String" Nullable="false" MaxLength="30" FixedLength="false" Unicode="false" />
+    <Property Name="Password" Type="String" Nullable="false" MaxLength="30" FixedLength="false" Unicode="false" />
+    <Property Name="Nombre" Type="String" Nullable="false" MaxLength="60" FixedLength="false" Unicode="false" />
+    <Property Name="Activo" Type="Boolean" Nullable="false" />
+  </EntityType>
+</Schema>

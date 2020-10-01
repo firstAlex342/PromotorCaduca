@@ -1,0 +1,247 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="palominoModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+  <EntityType Name="Almacena">
+    <Key>
+      <PropertyRef Name="IdTienda" />
+      <PropertyRef Name="IdProducto" />
+    </Key>
+    <Property Name="IdTienda" Type="int" Nullable="false" />
+    <Property Name="IdProducto" Type="int" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="int" Nullable="false" />
+    <Property Name="FechaAlta" Type="datetime" Nullable="false" />
+    <Property Name="IdUsuarioModifico" Type="int" Nullable="false" />
+    <Property Name="FechaModificacion" Type="datetime" Nullable="false" />
+    <Property Name="Activo" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Caduca">
+    <Key>
+      <PropertyRef Name="IdProducto" />
+      <PropertyRef Name="IdDetalleProducto" />
+      <PropertyRef Name="IdPeriodo" />
+      <PropertyRef Name="IdTienda" />
+    </Key>
+    <Property Name="IdProducto" Type="int" Nullable="false" />
+    <Property Name="IdDetalleProducto" Type="int" Nullable="false" />
+    <Property Name="IdPeriodo" Type="int" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="int" Nullable="false" />
+    <Property Name="FechaAlta" Type="datetime" Nullable="false" />
+    <Property Name="IdUsuarioModifico" Type="int" Nullable="false" />
+    <Property Name="FechaModificacion" Type="datetime" Nullable="false" />
+    <Property Name="Activo" Type="bit" Nullable="false" />
+    <Property Name="IdTienda" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="DetalleProducto">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="Nombre" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="int" Nullable="false" />
+    <Property Name="FechaAlta" Type="datetime" Nullable="false" />
+    <Property Name="IdUsuarioModifico" Type="int" Nullable="false" />
+    <Property Name="FechaModificacion" Type="datetime" Nullable="false" />
+    <Property Name="Activo" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Periodo">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="FechaCaducidad" Type="datetime" Nullable="false" />
+    <Property Name="NumeroUnidades" Type="int" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="int" Nullable="false" />
+    <Property Name="FechaAlta" Type="datetime" Nullable="false" />
+    <Property Name="IdUsuarioModifico" Type="int" Nullable="false" />
+    <Property Name="FechaModificacion" Type="datetime" Nullable="false" />
+    <Property Name="Activo" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Producto">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="CodigoBarras" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="int" Nullable="false" />
+    <Property Name="FechaAlta" Type="datetime" Nullable="false" />
+    <Property Name="IdUsuarioModifico" Type="int" Nullable="false" />
+    <Property Name="FechaModificacion" Type="datetime" Nullable="false" />
+    <Property Name="Activo" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="ProductoConDetalles">
+    <Key>
+      <PropertyRef Name="IdProducto" />
+      <PropertyRef Name="IdDetalleProducto" />
+    </Key>
+    <Property Name="IdProducto" Type="int" Nullable="false" />
+    <Property Name="IdDetalleProducto" Type="int" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="int" Nullable="false" />
+    <Property Name="FechaAlta" Type="datetime" Nullable="false" />
+    <Property Name="IdUsuarioModifico" Type="int" Nullable="false" />
+    <Property Name="FechaModificacion" Type="datetime" Nullable="false" />
+    <Property Name="Activo" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Tienda">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="Supmza" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="Manzana" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="Lote" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="Calle" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="Nombre" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="int" Nullable="false" />
+    <Property Name="FechaAlta" Type="datetime" Nullable="false" />
+    <Property Name="IdUsuarioModifico" Type="int" Nullable="false" />
+    <Property Name="FechaModificacion" Type="datetime" Nullable="false" />
+    <Property Name="Activo" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Usuario">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
+    <Property Name="Usuario" Type="varchar" MaxLength="30" Nullable="false" />
+    <Property Name="Password" Type="varchar" MaxLength="30" Nullable="false" />
+    <Property Name="Nombre" Type="varchar" MaxLength="60" Nullable="false" />
+    <Property Name="Activo" Type="bit" Nullable="false" />
+  </EntityType>
+  <Association Name="fk_Almacena_Producto">
+    <End Role="Producto" Type="Self.Producto" Multiplicity="1" />
+    <End Role="Almacena" Type="Self.Almacena" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Producto">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Almacena">
+        <PropertyRef Name="IdProducto" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="fk_Almacena_Tienda">
+    <End Role="Tienda" Type="Self.Tienda" Multiplicity="1" />
+    <End Role="Almacena" Type="Self.Almacena" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Tienda">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Almacena">
+        <PropertyRef Name="IdTienda" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="fk_Caduca_DetalleProducto_Id">
+    <End Role="DetalleProducto" Type="Self.DetalleProducto" Multiplicity="1" />
+    <End Role="Caduca" Type="Self.Caduca" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="DetalleProducto">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Caduca">
+        <PropertyRef Name="IdDetalleProducto" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="fk_Caduca_Periodo_Id">
+    <End Role="Periodo" Type="Self.Periodo" Multiplicity="1" />
+    <End Role="Caduca" Type="Self.Caduca" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Periodo">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Caduca">
+        <PropertyRef Name="IdPeriodo" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="fk_Caduca_Producto_Id">
+    <End Role="Producto" Type="Self.Producto" Multiplicity="1" />
+    <End Role="Caduca" Type="Self.Caduca" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Producto">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Caduca">
+        <PropertyRef Name="IdProducto" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="fk_Caduca_Tienda_Id">
+    <End Role="Tienda" Type="Self.Tienda" Multiplicity="1" />
+    <End Role="Caduca" Type="Self.Caduca" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Tienda">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Caduca">
+        <PropertyRef Name="IdTienda" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="fk_ProductoConDetalles_IdDetalleProducto">
+    <End Role="DetalleProducto" Type="Self.DetalleProducto" Multiplicity="1" />
+    <End Role="ProductoConDetalles" Type="Self.ProductoConDetalles" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="DetalleProducto">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="ProductoConDetalles">
+        <PropertyRef Name="IdDetalleProducto" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="fk_ProductoConDetalles_IdProducto">
+    <End Role="Producto" Type="Self.Producto" Multiplicity="1" />
+    <End Role="ProductoConDetalles" Type="Self.ProductoConDetalles" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Producto">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="ProductoConDetalles">
+        <PropertyRef Name="IdProducto" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityContainer Name="palominoModelStoreContainer">
+    <EntitySet Name="Almacena" EntityType="Self.Almacena" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Caduca" EntityType="Self.Caduca" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="DetalleProducto" EntityType="Self.DetalleProducto" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Periodo" EntityType="Self.Periodo" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Producto" EntityType="Self.Producto" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="ProductoConDetalles" EntityType="Self.ProductoConDetalles" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Tienda" EntityType="Self.Tienda" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Usuario" EntityType="Self.Usuario" Schema="dbo" store:Type="Tables" />
+    <AssociationSet Name="fk_Almacena_Producto" Association="Self.fk_Almacena_Producto">
+      <End Role="Producto" EntitySet="Producto" />
+      <End Role="Almacena" EntitySet="Almacena" />
+    </AssociationSet>
+    <AssociationSet Name="fk_Almacena_Tienda" Association="Self.fk_Almacena_Tienda">
+      <End Role="Tienda" EntitySet="Tienda" />
+      <End Role="Almacena" EntitySet="Almacena" />
+    </AssociationSet>
+    <AssociationSet Name="fk_Caduca_DetalleProducto_Id" Association="Self.fk_Caduca_DetalleProducto_Id">
+      <End Role="DetalleProducto" EntitySet="DetalleProducto" />
+      <End Role="Caduca" EntitySet="Caduca" />
+    </AssociationSet>
+    <AssociationSet Name="fk_Caduca_Periodo_Id" Association="Self.fk_Caduca_Periodo_Id">
+      <End Role="Periodo" EntitySet="Periodo" />
+      <End Role="Caduca" EntitySet="Caduca" />
+    </AssociationSet>
+    <AssociationSet Name="fk_Caduca_Producto_Id" Association="Self.fk_Caduca_Producto_Id">
+      <End Role="Producto" EntitySet="Producto" />
+      <End Role="Caduca" EntitySet="Caduca" />
+    </AssociationSet>
+    <AssociationSet Name="fk_Caduca_Tienda_Id" Association="Self.fk_Caduca_Tienda_Id">
+      <End Role="Tienda" EntitySet="Tienda" />
+      <End Role="Caduca" EntitySet="Caduca" />
+    </AssociationSet>
+    <AssociationSet Name="fk_ProductoConDetalles_IdDetalleProducto" Association="Self.fk_ProductoConDetalles_IdDetalleProducto">
+      <End Role="DetalleProducto" EntitySet="DetalleProducto" />
+      <End Role="ProductoConDetalles" EntitySet="ProductoConDetalles" />
+    </AssociationSet>
+    <AssociationSet Name="fk_ProductoConDetalles_IdProducto" Association="Self.fk_ProductoConDetalles_IdProducto">
+      <End Role="Producto" EntitySet="Producto" />
+      <End Role="ProductoConDetalles" EntitySet="ProductoConDetalles" />
+    </AssociationSet>
+  </EntityContainer>
+</Schema>

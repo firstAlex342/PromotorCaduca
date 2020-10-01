@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="e2ee0396e712481b97373fb94be7e592" Name="Diagram1" ZoomLevel="82">
+        <EntityTypeShape EntityType="palominoModel.Producto" Width="1.5" PointX="8" PointY="1.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="palominoModel.DetalleProducto" Width="1.5" PointX="9.125" PointY="4.75" />
+        <EntityTypeShape EntityType="palominoModel.ProductoConDetalles" Width="1.5" PointX="5.75" PointY="5.125" />
+        <AssociationConnector Association="palominoModel.fk_ProductoConDetalles_IdDetalleProducto" />
+        <AssociationConnector Association="palominoModel.fk_ProductoConDetalles_IdProducto" ManuallyRouted="false" >
+        </AssociationConnector>
+        <EntityTypeShape EntityType="palominoModel.Caduca" Width="1.5" PointX="10.375" PointY="0.625" />
+        <EntityTypeShape EntityType="palominoModel.Periodo" Width="1.5" PointX="12.375" PointY="2.125" />
+        <AssociationConnector Association="palominoModel.fk_Caduca_DetalleProducto_Id" ManuallyRouted="false" >
+        </AssociationConnector>
+        <AssociationConnector Association="palominoModel.fk_Caduca_Periodo_Id" />
+        <AssociationConnector Association="palominoModel.fk_Caduca_Producto_Id" />
+        <EntityTypeShape EntityType="palominoModel.Almacena" Width="1.5" PointX="5.5" PointY="1.5" />
+        <EntityTypeShape EntityType="palominoModel.Tienda" Width="1.5" PointX="2.875" PointY="0.5" />
+        <AssociationConnector Association="palominoModel.fk_Almacena_Producto" />
+        <AssociationConnector Association="palominoModel.fk_Almacena_Tienda" />
+        <AssociationConnector Association="palominoModel.fk_Caduca_Tienda_Id" ManuallyRouted="false" >
+        </AssociationConnector>
+        <EntityTypeShape EntityType="palominoModel.Usuario" Width="1.5" PointX="0.625" PointY="1" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

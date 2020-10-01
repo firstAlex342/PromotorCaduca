@@ -1,0 +1,51 @@
+﻿@using ControlCaducidadesPromotor.Basicos
+@model ProductoViewModel
+@{
+    ViewBag.Title = "MostrarFormAltaProducto";
+    Layout = "~/Views/Shared/MiLayout.cshtml";
+}
+
+@section MisFuncionesJavaScript
+{
+}
+
+@section Contenido
+{
+    <h3>Nuevo producto</h3>
+    @Html.ValidationSummary(false,"",new { @class="text-danger" })
+    <form role="form" method="post" action="/Producto/AniadirProducto">
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label for="codigoBarras">Código de barras</label>
+                    <input type="text" class="form-control" id="codigoBarras" name="productoViewModel.CodigoBarras" value="@Model.CodigoBarras">
+                    @Html.ValidationMessage("productoViewModel.CodigoBarras", new { @class="text-danger"})
+
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" class="form-control" id="nombre" name="productoViewModel.Nombre" value="@Model.Nombre">
+                    @Html.ValidationMessage("productoViewModel.Nombre", new { @class="text-danger"})
+                </div>
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            @*@Html.AntiForgeryToken()*@
+            <button type="submit" class="btn btn-primary pull-right">Entrar</button>
+        </div>
+    </form>
+}
+
+
+@section Footer
+{
+    el footer
+}
+
+
+
+

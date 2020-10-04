@@ -11,6 +11,7 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
 {
     public class ProductoAPIController : ApiController
     {
+
         [HttpGet]
         public IHttpActionResult MostrarTodosRegistradosDeOperador(int idUsuarioOperador)
         {

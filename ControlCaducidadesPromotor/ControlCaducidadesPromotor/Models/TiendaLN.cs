@@ -18,41 +18,46 @@ namespace ControlCaducidadesPromotor.Models
                 using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
                 {
                     try
-                    {   //Obtengo el id del usuario del que necesitare info
+                    {
+                        //Obtengo el id del usuario del que necesitare info y veo si esta activo al momento de esta consulta
                         var resumenUsuarios = (from s in ctx.Usuario.AsNoTracking()
-                                           select new { s.Id, s.Usuario1 }).ToList();
+                                           select new { s.Id, s.Usuario1, s.Activo }).ToList();
 
-                        var usuarioBuscado = resumenUsuarios.Single(item => item.Usuario1 == usuario);
-                        var idUsuario = usuarioBuscado.Id;
+                        var usuarioBuscado = resumenUsuarios.SingleOrDefault(item => (item.Usuario1 == usuario)   &&  (item.Activo == true));
 
-                        //Operaciones comunes
-                        var lista = (from x in ctx.Tienda.AsNoTracking()
-                                 select new 
-                                 {
-                                     x.Id,
-                                     x.IdUsuarioAlta                                    
-                                 }).ToList();
+                        if(usuarioBuscado != null)
+                        {
+                            var idUsuario = usuarioBuscado.Id;
 
-                        var idsNecesitados = (from item in lista
-                                      where item.IdUsuarioAlta == idUsuario
-                                      select item.Id).ToList();
+                            //Operaciones comunes
+                            var lista = (from x in ctx.Tienda.AsNoTracking()
+                                         select new
+                                         {
+                                             x.Id,
+                                             x.IdUsuarioAlta
+                                         }).ToList();
 
-                       tiendasViewModel = (from s in ctx.Tienda
-                                            where idsNecesitados.Contains(s.Id)
-                                            select new TiendaViewModel
-                                            {
-                                                Id = s.Id,
-                                                Supmza = s.Supmza,
-                                                Manzana = s.Manzana,
-                                                Lote = s.Lote,
-                                                Calle = s.Calle,
-                                                Nombre = s.Nombre,
-                                                IdUsuarioAlta = s.IdUsuarioAlta,
-                                                FechaAlta = s.FechaAlta,
-                                                IdUsuarioModifico = s.IdUsuarioModifico,
-                                                FechaModificacion = s.FechaModificacion,
-                                                Activo = s.Activo
-                                            }).ToList();
+                            var idsNecesitados = (from item in lista
+                                                  where item.IdUsuarioAlta == idUsuario
+                                                  select item.Id).ToList();
+
+                            tiendasViewModel = (from s in ctx.Tienda
+                                                where idsNecesitados.Contains(s.Id)
+                                                select new TiendaViewModel
+                                                {
+                                                    Id = s.Id,
+                                                    Supmza = s.Supmza,
+                                                    Manzana = s.Manzana,
+                                                    Lote = s.Lote,
+                                                    Calle = s.Calle,
+                                                    Nombre = s.Nombre,
+                                                    IdUsuarioAlta = s.IdUsuarioAlta,
+                                                    FechaAlta = s.FechaAlta,
+                                                    IdUsuarioModifico = s.IdUsuarioModifico,
+                                                    FechaModificacion = s.FechaModificacion,
+                                                    Activo = s.Activo
+                                                }).ToList();
+                        }
 
                         dbContextTransaction.Commit();
                     }

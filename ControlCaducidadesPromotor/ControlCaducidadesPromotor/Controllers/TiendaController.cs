@@ -51,6 +51,7 @@ namespace ControlCaducidadesPromotor.Controllers
             return View("MostrarFormAltaTienda", new TiendaViewModel());
         }
 
+
         [Authorize]
         [HttpPost]
         public ActionResult CrearTienda(TiendaViewModel tiendaViewModel)

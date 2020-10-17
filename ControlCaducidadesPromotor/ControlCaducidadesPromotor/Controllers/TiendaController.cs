@@ -118,6 +118,97 @@ namespace ControlCaducidadesPromotor.Controllers
 
 
 
+        [Authorize]
+        [HttpGet]
+        public ActionResult MostrarFormModificarTienda()
+        {
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            Response.Cache.SetNoStore();
+            return (View("MostrarFormModificarTienda"));
+        }
+
+
+        [Authorize]
+        public JsonResult BuscarTiendaXNombreDeTienda(string nombreDeTienda)
+        {
+            TiendaViewModel tiendaBuscadaViewModel = new TiendaViewModel();
+            UsuarioViewModel usuarioViewModel = LLamarApiBuscarUsuarioXUsuario(User.Identity.Name);
+
+
+            if(ModelState.IsValid)
+            {
+                if(usuarioViewModel!=null)
+                {
+                    using (var cliente = new HttpClient())
+                    {
+                        cliente.BaseAddress = new Uri("http://localhost:51339/");
+                        var responseTask = cliente.GetAsync("api/TiendaAPI/Get_BuscarTiendaDeUsuarioXNombre?nombreTienda=" + nombreDeTienda + "&idUsuarioOperador=" + usuarioViewModel.Id.ToString());
+                        responseTask.Wait();
+
+                        var result = responseTask.Result;
+                        if (result.IsSuccessStatusCode)
+                        {
+                            var readTask = result.Content.ReadAsAsync<TiendaViewModel>();
+                            readTask.Wait();
+
+                            tiendaBuscadaViewModel = readTask.Result;
+                        }
+                        else //web api sent error response 
+                        {
+                            var x = result.Content.ReadAsStringAsync();
+                            x.Wait(); //x.Result tiene el resultado
+                            ModelState.AddModelError(string.Empty, x.Result);   //Falta agregar el ModelState.Summary en la GUI
+                        }
+                    }
+                }
+            }
+
+            //La GUI evalua el objeto json regresado, lo interpreta
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            Response.Cache.SetNoStore();
+            return (Json(tiendaBuscadaViewModel.MostrarEnTiposPrimitivos(), JsonRequestBehavior.AllowGet));
+        }
+
+
+        [Authorize]
+        public JsonResult ActualizarTiendaDeUsuario(TiendaViewModel tiendaViewModel)
+        {
+            string respuesta = "";
+            if (ModelState.IsValid)
+            {
+                UsuarioViewModel usuarioViewModel = LLamarApiBuscarUsuarioXUsuario(User.Identity.Name);
+                tiendaViewModel.IdUsuarioAlta = usuarioViewModel.Id;
+                tiendaViewModel.IdUsuarioModifico = usuarioViewModel.Id;
+
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri("http://localhost:51339/");
+
+                    //HTTP PUT
+                    var putTask = client.PutAsJsonAsync<TiendaViewModel>("api/TiendaAPI/Put_ActualizarTiendaDeUsuario", tiendaViewModel);
+                    putTask.Wait();
+                    var result = putTask.Result;
+                    if (result.IsSuccessStatusCode)
+                    {
+                        respuesta = "ok";
+                    }
+
+                    else
+                    {
+                        var x = result.Content.ReadAsStringAsync();
+                        x.Wait(); // x.Result tiene el resultado
+                        respuesta = x.Result;
+                    }
+                }
+            }
+
+            else
+            { respuesta="No se pudo enlazar los datos para actualizar"; }
+
+            return (Json(respuesta, JsonRequestBehavior.AllowGet));
+        }
+
+
         //---------------------------Methods
         private UsuarioViewModel LLamarApiBuscarUsuarioXUsuario(string usuario)
         {

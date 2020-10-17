@@ -1,0 +1,297 @@
+﻿
+@{
+    ViewBag.Title = "MostrarFormModificarTienda";
+    Layout = "~/Views/Shared/MiLayout.cshtml";
+}
+
+
+@section MisFuncionesJavaScript
+{
+    <script type="text/javascript">
+        'use strict';
+        var x = $(document);
+        x.ready(InicializarEventos);
+
+
+        function InicializarEventos() {
+            var z;
+            z = $("#boton1");
+            z.click(PresionoBotonBuscar);
+
+            $('#boton3').click(PresionoBotonCancelar);
+            $('#boton2').click(PresionoBotonActualizar);
+        }
+
+
+
+        function PresionoBotonBuscar() {
+            var nombreTienda = $('#nombreT').val();
+
+            $.ajax({
+                url: "/Tienda/BuscarTiendaXNombreDeTienda",
+                data: { 'nombreDeTienda': nombreTienda },
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var id = parseInt(result.Id);
+                    if (id == 0) {
+                        $('#errorSpan').html('<ul><li>No se encontro ese nombre</li></ul>');
+                        LimpiarContenidoDeFormularioDetalles();
+                    }
+
+                    else {
+                        $('#errorSpan').empty();
+                        LimpiarContenidoDeFormularioDetalles();
+                        DeshabilitarBotonBuscarYTextBoxBuscar();
+                        HabilitarBotonActualizarYCancelar();
+                        HabilitarInputsParaModificacion();
+
+                        $('#idTienda').val(result.Id);
+                        $('#nombreTienda').val(result.Nombre);
+                        $('#supermanzana').val(result.Supmza);
+                        $('#manzana').val(result.Manzana);
+                        $('#lote').val(result.Lote);
+                        $('#calle').val(result.Calle);
+                        $('#idUsuarioAlta').val(result.IdUsuarioAlta);
+                        $('#idUsuarioModifico').val(result.IdUsuarioModifico);
+
+                        if (result.Activo == true) {
+                            $('#activo').attr('checked', 'true');
+                        }
+
+                        $('#fechaAlta').html(result.FechaAlta);
+                        $('#fechaModificacion').html(result.FechaModificacion);
+                    }
+                },
+
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+
+            return false;
+        }
+
+        function LimpiarContenidoDeFormularioDetalles() {
+            var x = $('#cuadroDetalles input');
+            x.each(LimpiarInputText);
+
+            $('#fechaAlta').empty();
+            $('#fechaModificacion').empty();
+            $('#activo').removeAttr('checked');
+        }
+
+        function LimpiarInputText() {
+            var m = $(this);
+
+            if (m.attr('type') == 'text') {
+                m.val('');
+            }
+        }
+
+        function DeshabilitarBotonBuscarYTextBoxBuscar() {
+            $('#nombreT').attr('disabled', 'disabled');
+            $('#boton1').attr('disabled', 'disabled');
+        }
+
+        function HabilitarBotonActualizarYCancelar() {
+            $('#boton2').removeAttr('disabled');
+            $('#boton3').removeAttr('disabled');
+        }
+
+
+        function HabilitarInputsParaModificacion() {
+            var lista = ['#nombreTienda', '#supermanzana', '#manzana', '#lote', '#calle'];
+            var i;
+            for (i = 0; i < lista.length; i++) {
+                var elemento = $(lista[i]);
+                elemento.removeAttr('disabled');
+            }
+        }
+
+        function PresionoBotonCancelar() {
+            $("#errorSpan").empty();
+            HabilitarBotonBuscarYTextBoxBuscar();
+            $('#nombreT').val('');
+            LimpiarContenidoDeFormularioDetalles();
+            DeshabilitarControlesEnDetalles();
+            DeshabilitarBotonActualizarYCancelar();
+        }
+
+
+        function HabilitarBotonBuscarYTextBoxBuscar() {
+            $('#nombreT').removeAttr('disabled');
+            $('#boton1').removeAttr('disabled');
+        }
+
+
+        function DeshabilitarControlesEnDetalles() {
+            var elementos = ['#nombreTienda', '#supermanzana', '#manzana', '#lote', '#calle'];
+            var i;
+            for (i = 0; i < elementos.length; i++) {
+                $(elementos[i]).removeAttr('disabled');
+                $(elementos[i]).attr('disabled', 'disabled');
+            }
+        }
+
+        function DeshabilitarBotonActualizarYCancelar() {
+            $('#boton2').removeAttr('disabled');
+            $('#boton3').removeAttr('disabled');
+            $('#boton2').attr('disabled', 'disabled');
+            $('#boton3').attr('disabled', 'disabled');
+        }
+
+
+        function PresionoBotonActualizar() {           
+            var miFechaAltaEnSpan = new FechaHoraSinMiliSegundos(   $('#fechaAlta').text()  );
+            var miFechaModificacionEnSpan = new FechaHoraSinMiliSegundos($('#fechaModificacion').text()); 
+
+            var tiendaObj = {
+                Id: $("#idTienda").val(),
+                Supmza: $("#supermanzana").val(),/*document.getElementById("codigoBarras").value,*/
+                Manzana: $('#manzana').val(),
+                Lote: $("#lote").val(),
+                Calle: $("#calle").val(),
+                Nombre: $("#nombreTienda").val(),
+                IdUsuarioAlta: 0 ,
+                FechaAlta: miFechaAltaEnSpan.GenerarObjetoDateSinMilisegs(),   //esta es el formato que se ve en la view   FechaAlta 30/09/2020 09:50:47 p.m. 
+                IdUsuarioModifico: 0,
+                FechaModificacion: miFechaModificacionEnSpan.GenerarObjetoDateSinMilisegs(),
+                Activo: true
+            }; 
+
+            $.ajax({
+                url: "/Tienda/ActualizarTiendaDeUsuario",
+                data: JSON.stringify(tiendaObj),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    if (result == "ok") {
+                        $("#errorSpan").empty();
+                        $("#nombreT").val("");
+                        HabilitarBotonBuscarYTextBoxBuscar();
+                        LimpiarContenidoDeFormularioDetalles();                        
+                        DeshabilitarBotonActualizarYCancelar();                       
+                    }
+
+                    else {                        
+                        $('#errorSpan').html(result);
+                    }
+                },
+
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+
+            return false;
+        }
+
+    </script>
+}
+
+
+@section Contenido
+{  
+    <h3>Modificar tienda</h3>
+
+    <span class="text-danger" id="errorSpan"></span>
+
+    <div class="form-inline">
+        <div class="form-group">
+            <label for="nombreT">Nombre</label>
+            <input type="text" class="form-control" id="nombreT">
+        </div>
+
+        <div class="form-group">
+            <button id="boton1" type="submit" class="btn btn-primary">Buscar</button>           
+        </div>
+    </div>
+
+
+    <div class="row" id="cuadroDetalles">
+        <div class="col-sm-3"></div>
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label for="idTienda">Id tienda</label>
+                <input type="text" class="form-control" id="idTienda" disabled="disabled" />
+            </div>
+            <div class="form-group">
+                <label for="nombreTienda">Nombre</label>
+                <input type="text" class="form-control" id="nombreTienda" disabled="disabled" />
+            </div>
+
+            <div class="form-group">
+                <label for="supermanzana">Supermanzana</label>
+                <input type="text" class="form-control" id="supermanzana" disabled="disabled" />
+            </div>
+
+            <div class="form-group">
+                <label for="manzana">Manzana</label>
+                <input type="text" class="form-control" id="manzana" disabled="disabled" />
+            </div>
+
+            <div class="form-group">
+                <label for="lote">Lote</label>
+                <input type="text" class="form-control" id="lote" disabled="disabled" />
+            </div>
+
+            <div class="form-group">
+                <label for="calle">Calle</label>
+                <input type="text" class="form-control" id="calle" disabled="disabled" />
+            </div>
+
+            <div class="form-group">
+                <label for="idUsuarioAlta">IdUsuarioAlta</label>
+                <input type="text" class="form-control" id="idUsuarioAlta" disabled="disabled" />
+            </div>
+
+            <div class="form-group">
+                <label for="idUsuarioModifico">IdUsuarioModifico</label>
+                <input type="text" class="form-control" id="idUsuarioModifico" disabled="disabled" />
+            </div>
+
+            <div class="form-group">
+                <label>FechaAlta</label>
+                <span id="fechaAlta" disabled="disabled"></span>
+            </div>
+
+            <div class="form-group">
+                <label>FechaModificacion</label>
+                <span id="fechaModificacion" disabled="disabled"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="activo" disabled="disabled" />Activo
+                    </label>
+                </div>
+            </div>
+
+            <div class="btn-toolbar">
+                <div class="btn-group">
+                    <div class="form-group">
+                        <button id="boton2" type="submit" class="btn btn-primary" disabled="disabled">Actualizar</button>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <div class="form-group">
+                        <button id="boton3" type="submit" class="btn btn-primary" disabled="disabled">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-3">
+        </div>
+    </div>
+
+
+}
+
+@section Footer
+{   <h5>El footer</h5>
+}

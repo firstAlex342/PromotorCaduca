@@ -47,5 +47,29 @@ namespace ControlCaducidadesPromotor.Basicos
             tiendaViewModel.FechaModificacion = fechaHora;
         }
 
+
+        /// <summary>
+        /// Compara 2 DateTime, la fecha, parte de la hora HH:MM:SS (observa no compara los milisegundos). True sin son
+        /// iguales, false en caso de no ser iguales.
+        /// </summary>
+        /// <param name="fechaHora1"></param>
+        /// <param name="fechaHora2"></param>
+        /// <returns>bool</returns>
+        public bool EsMismaFechaYHoraSinMilisegundos(DateTime fechaHora1, DateTime fechaHora2)
+        {
+            bool respuesta = false;
+
+            bool esMismoAño = fechaHora1.Year == fechaHora2.Year;
+            bool esMismoMes = fechaHora1.Month == fechaHora2.Month;
+            bool esMismoDia = fechaHora1.Day == fechaHora2.Day;
+
+            bool esMismaHora = fechaHora1.Hour == fechaHora2.Hour;
+            bool sonMismosMinutos = fechaHora1.Minute == fechaHora2.Minute;
+            bool sonMismosSegundos = fechaHora1.Second == fechaHora2.Second;
+
+            respuesta = esMismoAño && esMismoMes && esMismoDia && esMismaHora && sonMismosMinutos && sonMismosSegundos;
+            return (respuesta);
+        }
+
     }
 }

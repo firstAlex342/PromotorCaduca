@@ -50,5 +50,29 @@ namespace ControlCaducidadesPromotor.Basicos
             this.Activo = false;
         }//parameterless constructor
 
+
+        //--------------Methods
+        /// <summary>
+        /// Regresa una representacion del objeto en tipos primitivos. La FechaAlta y FechaModificacion los muestra como string
+        /// no como DateTime
+        /// </summary>
+        /// <returns>Object</returns>
+        public object MostrarEnTiposPrimitivos()
+        {
+            var c = new { this.Id,
+                this.Nombre,
+                this.Supmza,
+                this.Manzana,
+                this.Lote,
+                this.Calle,
+                this.IdUsuarioAlta,
+                FechaAlta = this.FechaAlta.ToString(),
+                this.IdUsuarioModifico,
+                FechaModificacion = this.FechaModificacion.ToString(),
+                this.Activo };
+
+            return (c);
+        }
+       
     }
 }

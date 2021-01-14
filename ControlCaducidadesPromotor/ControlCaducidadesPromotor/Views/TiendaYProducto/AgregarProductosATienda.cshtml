@@ -1,0 +1,224 @@
+﻿
+@{
+    ViewBag.Title = "AgregarProductosATienda";
+    Layout = "~/Views/Shared/MiLayout.cshtml";
+}
+
+
+@section MisFuncionesJavaScript
+{
+    <script type="text/javascript">
+        'use strict';
+        var x = $(document);
+        x.ready(InicializarEventos);
+
+        function InicializarEventos() {
+            RecuperarYMostrarTiendasDeUsuario();
+            EstilizarConDataTables('#miTablaProductosEnTienda');
+            EstilizarConDataTables('#miTablaProductosDisponibles');
+        }
+
+
+        function RecuperarYMostrarTiendasDeUsuario() {
+            //solicutud ajax sin parametros
+            $.ajax({
+                url: "/Tienda/RecuperarTiendasDeUsuario",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var html = '';
+                    $.each(result, function (key, item) {
+                        html = '<div class="radio">';
+                        html += '<label>';
+                        html += '<input type="radio" ';
+                        html += 'onclick="RecuperarProductosDeTiendaYProductosKNOPertenecenATienda(this)" ';
+                        html += 'name = "radioTiendas" value = "' + item.Id + '"/>' + item.Nombre;                       
+                        html += '</label> </div>';
+                        $('#tiendasRecuperadas').append(html);
+                    });
+                    
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+
+
+        function RecuperarProductosDeTiendaYProductosKNOPertenecenATienda(control) {
+            RecuperarProductosDeTienda(control);
+            RecuperarProductosKNoPertenecenATienda(control);
+        }
+
+
+        function RecuperarProductosDeTienda(control) {
+            //alert(control.value);            
+            $.ajax({
+                url: "/Tienda/RecuperarProductosDeTiendaXId?idTienda=" + control.value,
+                //data: { 'idTienda': control.value },  // asegurate que asi se serialize un entero
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var objetoDataTable = $('#miTablaProductosEnTienda').DataTable();  //Genero un objeto dataTable
+                    objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+                    $('#miTablaProductosEnTienda tbody').empty();  //destruyo el contenido
+                    var html = '';
+
+                    $.each(result, function (key, item){
+                        html = '<tr>';
+                        html += '<td style="display:none;">' + item.Almacena_IdTienda + '</td>';
+                        html += '<td style="display:none;">' + item.Almacena_IdProducto + '</td>';
+                        html += '<td style="display:none;">' + item.Producto_Id + '</td>';
+                        html += '<td>' + item.Producto_CodigoBarras + '</td>';
+                        html += '<td style="display:none;">' + item.ProductoConDetalles_IdProducto + '</td>';
+                        html += '<td style="display:none;">' + item.ProductoConDetalles_IdDetalleProducto + '</td>';
+                        html += '<td style="display:none;">' + item.DetalleProducto_Id + '</td>';
+                        html += '<td>' + item.DetalleProducto_Nombre + '</td>';
+
+                        html += '</tr>';
+
+                        $('#miTablaProductosEnTienda tbody').append(html);
+                    });
+
+                    //https://datatables.net/manual/data/
+                    $('#miTablaProductosEnTienda').DataTable({
+                        language: {
+                            url: '../Scripts/DataTables/Spanish.json'
+                        }
+                    });                    
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            })
+        }
+
+
+        function RecuperarProductosKNoPertenecenATienda(control) {
+            $.ajax({
+                url: "/Tienda/RecuperarProductosKNoPertenecenATienda?idTienda=" + control.value,
+                //data: { 'idTienda': control.value },  // asegurate que asi se serialize un entero
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var objetoDataTable = $('#miTablaProductosDisponibles').DataTable();  //Genero un objeto dataTable
+                    objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+                    $('#miTablaProductosDisponibles tbody').empty();  //destruyo el contenido
+
+                    var html = '';
+                    
+                    $.each(result, function (key, item) {   
+                        html = '<tr>';
+                        html += '<td><input type="checkbox" id="idCheckBox' + item.Id + '"</td>'; 
+                        html += '<td>' + item.Producto_Id + '</td>';
+                        html += '<td>' + item.Producto_CodigoBarras + '</td>';
+                        html += '<td>' + item.ProductoConDetalles_IdProducto + '</td>';
+                        html += '<td>' + item.ProductoConDetalles_IdDetalleProducto + '</td>';
+                        html += '<td>' + item.ProductoConDetalles_Activo+'</td>';
+                        html += '<td>' + item.DetalleProducto_Id + '</td>';
+                        html += '<td>' + item.DetalleProducto_Nombre + '</td>';
+                        html += '<td>' + item.DetalleProducto_Activo+'</td>';
+
+                        html += '</tr>';
+
+                        $('#miTablaProductosDisponibles tbody').append(html);
+                    });
+
+                    $('#miTablaProductosDisponibles').DataTable({
+                        language: {
+                            url: '../Scripts/DataTables/Spanish.json'
+                        }
+                    });
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            })
+        }
+
+        function EstilizarConDataTables(nomTabla) {
+            var objetoDataTable = $(nomTabla).DataTable();
+            objetoDataTable.destroy();
+            $(nomTabla).DataTable({
+                language: {
+                    url: '../Scripts/DataTables/Spanish.json'
+                }
+            });
+        }
+
+    </script>
+}
+
+@section Contenido
+{
+    <h3>Agregar productos a tienda</h3>
+
+    <div class="row">
+        <div class="col-sm-2">
+            <h4>Mis tiendas</h4>
+            <div id="tiendasRecuperadas"></div>
+        </div>
+
+        <div class="col-sm-5">
+            <h4>Productos en tienda</h4>
+
+            <div class="table-responsive">
+                <table id="miTablaProductosEnTienda" class="" style="width:100%"> @*NO le asignes clases bootstrap a la table porque DataTables la personalizara*@
+                    <thead>
+                        <tr>
+                            <th style="display:none;">Almacena_IdTienda</th>
+                            <th style="display:none;">Almacena_IdProducto</th>
+                            <th style="display:none;">Producto_Id</th>
+                            <th>Producto_CodigoBarras</th>
+                            <th style="display:none;">ProductoConDetalles_IdProducto</th>
+                            <th style="display:none;">ProductoConDetalles_IdDetalleProducto</th>
+                            <th style="display:none;">DetalleProducto_Id</th>
+                            <th>Producto_Nombre </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <div class="col-sm-5">
+            <h4> Productos disponibles</h4>
+            <div class="table-responsive">
+                <table id="miTablaProductosDisponibles" class="" style="width:100%">                    
+                    <thead>
+                        <tr>
+                            <th>Selección</th>
+                            <th>Producto_Id</th>
+                            <th>Producto_CodigoBarras</th>
+                            <th>ProductoConDetalles_IdProducto</th>
+                            <th>ProductoConDetalles_IdDetalleProducto</th>
+                            <th>ProductoConDetalles_Activo</th>
+                            <th>DetalleProducto_Id</th>
+                            <th>DetalleProducto_Nombre</th>
+                            <th>DetalleProducto_Activo</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="margin-top:30px">
+        <div class="col-sm-12">
+            <div class="pull-right">
+                <button type="button" class="btn btn-primary">Agregar a tienda</button>
+            </div>
+        </div>
+    </div>
+}
+
+
+@section Footer
+{
+}
+

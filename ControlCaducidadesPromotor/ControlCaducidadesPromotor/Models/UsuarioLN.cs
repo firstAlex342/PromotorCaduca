@@ -85,5 +85,33 @@ namespace ControlCaducidadesPromotor.Models
 
             return (usuarioBuscadoVM);
         }
+
+
+        public UsuarioViewModel Get_DetallesDeUsuarioXId(int idUsuarioOperador)
+        {
+            UsuarioViewModel usuarioBuscadoVM = null;
+
+            using (var ctx = new palominoEntities())
+            {
+                using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                {
+                    try
+                    {
+                        Usuario usuarioQueNecesito = ctx.Usuario.Find(idUsuarioOperador);
+                        usuarioBuscadoVM = new UsuarioViewModel(usuarioQueNecesito.Id, usuarioQueNecesito.Nombre, usuarioQueNecesito.Usuario1, usuarioQueNecesito.Password, usuarioQueNecesito.Activo);
+
+                        dbContextTransaction.Commit();
+                    }
+
+                    catch (Exception ex)
+                    {
+                        dbContextTransaction.Rollback();
+                        throw new Exception("Excepcion lanzada y cachada en Usuario.Get_DetallesDeUsuarioXId");
+                    }
+                }
+            }
+
+            return (usuarioBuscadoVM);
+        }
     }
 }

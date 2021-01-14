@@ -315,5 +315,217 @@ namespace ControlCaducidadesPromotor.Models
 
             return (respuesta);
         }
+
+
+
+        public List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM>  Get_RecuperarProductosDeTienda(int idTienda, string usuario)
+        {
+            List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM> resViewModel = new List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM>();
+
+            using (var ctx = new palominoEntities())
+            {
+                using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                {
+                    try
+                    {
+                        //Obtengo el id del usuario del que necesitare info y veo si esta activo al momento de esta consulta
+                        var resumenUsuarios = (from s in ctx.Usuario.AsNoTracking()
+                                               select new { s.Id, s.Usuario1, s.Activo }).ToList();
+
+                        var usuarioBuscado = resumenUsuarios.SingleOrDefault(item => (item.Usuario1 == usuario) && (item.Activo == true));
+
+                        //Verifico que la tienda este activa al momento de esta consulta
+                        Tienda tiendaBuscada = ctx.Tienda.Find(idTienda);
+
+                        if ((usuarioBuscado != null) && (tiendaBuscada.Activo == true)) //Aqui se comprueba
+                        {
+                            var idUsuario = usuarioBuscado.Id;
+                            var idsDeProductosMeInteresan = (from s in ctx.Almacena
+                                                             where (s.IdTienda == idTienda) && (s.Activo == true)
+                                                             select s.IdProducto).ToList();  //obtengo los ids de los productos de la tienda requerida
+
+                            var resumenProductos = (from s in ctx.Producto
+                                                    where idsDeProductosMeInteresan.Contains(s.Id)
+                                                    select new { s.Id, s.CodigoBarras, s.Activo }).ToList();  //De la tabla Producto obtengo el Id y el codigoBarras de los productos que me interesan
+
+                            var resumenProductoConDetalles = (from s in ctx.ProductoConDetalles
+                                                             where idsDeProductosMeInteresan.Contains(s.IdProducto)   //De la tabla ProductoConDetalles obtengo los IdProducto e IdDetalleProducto que me interesan 
+                                                             select new { s.IdProducto, s.IdDetalleProducto, s.Activo }).ToList();
+
+
+                            var idsDetalleProductoMeInteresan = (from s in resumenProductoConDetalles
+                                                                select s.IdDetalleProducto).ToList();
+
+                            var resumenDetalleProducto = (from s in ctx.DetalleProducto
+                                                          where idsDetalleProductoMeInteresan.Contains(s.Id)
+                                                          select new { s.Id, s.Nombre, s.Activo }).ToList();    //De la tabla DetalleProducto obtengo las filas que me interesan
+
+                            //Ya esta la info de las tablas fuera de EntityFramework, esta ahora en la memoria, asi que procedo a enlazar
+                            //los registros tomados de las tablas Producto, ProductoConDetalles Y DetallesProducto; todos tiene el campo Activo = 1
+                            var resumenProductosJOINresumenProductoConDetalles = (from s in resumenProductos
+                                                                                  join x in resumenProductoConDetalles
+                                                                                   on s.Id equals x.IdProducto
+                                                                                  where (s.Activo == true) && (x.Activo == true)
+                                                                                 select new { s.Id, s.CodigoBarras, x.IdProducto, x.IdDetalleProducto }).ToList();
+
+                            var resumenProductosJOINresumenProductoConDetallesJOINresumenDetalleProducto = (from s in resumenProductosJOINresumenProductoConDetalles
+                                                                                                            join x in resumenDetalleProducto
+                                                                                                            on s.IdDetalleProducto equals x.Id
+                                                                                                            where x.Activo == true
+                                                                                                            select new 
+                                                                                                            { s.Id, s.CodigoBarras, s.IdProducto, s.IdDetalleProducto,
+                                                                                                            DetalleProd_Id = x.Id, x.Nombre
+                                                                                                            }).ToList();
+
+                            resViewModel = (from s in resumenProductosJOINresumenProductoConDetallesJOINresumenDetalleProducto
+                                            select new AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM
+                                            {  Almacena_IdTienda = idTienda,
+                                               Almacena_IdProducto = s.Id,
+                                               Producto_Id = s.Id,
+                                               Producto_CodigoBarras = s.CodigoBarras,
+                                               ProductoConDetalles_IdProducto = s.IdProducto,
+                                               ProductoConDetalles_IdDetalleProducto = s.IdDetalleProducto,
+                                               DetalleProducto_Id = s.DetalleProd_Id,
+                                               DetalleProducto_Nombre = s.Nombre
+                                           }).ToList();  //coloco el resultado en un objetoViewModel
+                        }
+
+                        dbContextTransaction.Commit();
+                    }
+
+                    catch (Exception ex)
+                    {
+                        dbContextTransaction.Rollback();
+                        throw new Exception("Excepcion cachada y lanzada en TiendaLN.Get_RecuperarProductosDeTienda", ex);
+                    }
+                }
+            }
+
+            return (resViewModel);
+        }
+
+
+        public List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel> Get_RecuperarProductosNoPertenecenATienda(int idTienda, string usuario)
+        {
+            List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel> resViewModel = new List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel>();
+
+            using (var ctx = new palominoEntities())
+            {
+                using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                {
+                    try
+                    {
+                        //Obtengo el id del usuario del que necesitare info y veo si esta activo al momento de esta consulta
+                        var resumenUsuarios = (from s in ctx.Usuario.AsNoTracking()
+                                               select new { s.Id, s.Usuario1, s.Activo }).ToList();
+
+                        var usuarioBuscado = resumenUsuarios.SingleOrDefault(item => (item.Usuario1 == usuario) && (item.Activo == true));
+
+                        //Verifico que la tienda este activa al momento de esta consulta
+                        Tienda tiendaBuscada = ctx.Tienda.Find(idTienda);
+
+                        if ((usuarioBuscado != null) && (tiendaBuscada.Activo == true)) //Aqui se comprueba
+                        {   //Extraigo todos los productos que estan enlazados a la tienda en la tabla Almacena
+                            var resumenActivosEInactivos = (from s in ctx.Almacena
+                                                            where s.IdTienda == idTienda
+                                                            select new { s.IdTienda, s.IdProducto, s.Activo }).ToList();
+
+                            //Extraigo los ids delos productos que están activos en la tienda
+                            var resumenIdsActivos = (from s in resumenActivosEInactivos
+                                                     where s.Activo == true
+                                                     select s.IdProducto).ToList();
+
+                            //Extraigo los ids de los productos activos en la tabla Producto que pertenecen al usuario
+                            var resumenTodosProductos = (from s in ctx.Producto
+                                                         select new { s.Id, s.IdUsuarioAlta, s.Activo }).ToList();
+
+                            var idsProductosActivos = (from s in resumenTodosProductos
+                                                       where (s.Activo == true) && (s.IdUsuarioAlta == usuarioBuscado.Id)
+                                                       select s.Id).ToList();
+
+                            //Realizo una operacion para conocer los ids de los productos de los que necesito sus detalles
+                            var idsProductoQueNoEstanEnTienda = (idsProductosActivos.Except(resumenIdsActivos)).ToList();
+
+                            //Comienzo a obtener los detalles de los productos que necesitare
+                            var resumenProductosAEnlazar = (from s in ctx.Producto
+                                                            where idsProductoQueNoEstanEnTienda.Contains(s.Id)
+                                                            select new { s.Id, s.CodigoBarras, s.FechaAlta, s.FechaModificacion }).ToList();
+                        
+                            var resumenProductoConDetallesAEnlazar = (from s in ctx.ProductoConDetalles
+                                                         where idsProductoQueNoEstanEnTienda.Contains(s.IdProducto)
+                                                         select new { s.IdProducto, s.IdDetalleProducto, s.Activo }).ToList();
+
+                            var idsDetallesProductoNecesitare = (from s in resumenProductoConDetallesAEnlazar
+                                                                 select s.IdDetalleProducto).ToList();
+
+                            var resumenDetalleProductoAEnlazar = (from s in ctx.DetalleProducto
+                                                                  where idsDetallesProductoNecesitare.Contains(s.Id)
+                                                                  select new { s.Id, s.Nombre, s.FechaAlta, s.FechaModificacion, s.Activo }).ToList();
+
+                            var productoJOINproductoConDetalles = (from a in resumenProductosAEnlazar
+                                             join b in resumenProductoConDetallesAEnlazar
+                                             on a.Id equals b.IdProducto
+                                             select new
+                                             {
+                                                 a.Id,
+                                                 a.CodigoBarras,
+                                                 a.FechaAlta,
+                                                 a.FechaModificacion,
+                                                 b.IdProducto,
+                                                 b.IdDetalleProducto,
+                                                 b.Activo
+                                             }).ToList();
+
+                            var productoJOINproductoConDetallesJOINDetalleProducto = (from a in productoJOINproductoConDetalles
+                                                                                      join b in resumenDetalleProductoAEnlazar
+                                                                                      on a.IdDetalleProducto equals b.Id
+                                                                                      where b.Activo == true
+                                                                                      select new
+                                                                                      {
+                                                                                          a.Id,
+                                                                                          a.CodigoBarras,
+                                                                                          a.FechaAlta,
+                                                                                          a.FechaModificacion,
+                                                                                          a.IdProducto,
+                                                                                          a.IdDetalleProducto,
+                                                                                          a.Activo,
+                                                                                          DetalleProducto_Id = b.Id,
+                                                                                          DetalleProducto_Nombre = b.Nombre,
+                                                                                          DetalleProducto_FechaAlta = b.FechaAlta,
+                                                                                          DetalleProducto_FechaModificacion = b.FechaModificacion,
+                                                                                          DetalleProducto_Activo = b.Activo
+                                                                                      }).ToList();
+                            //falta vaciar resultado en resViewModel
+                            resViewModel = (from s in productoJOINproductoConDetallesJOINDetalleProducto
+                                            select new ProductoJoinProductoConDetallesJoinDetalleProductoViewModel
+                                            {
+                                                Producto_Id = s.Id,
+                                                Producto_CodigoBarras = s.CodigoBarras,
+                                                Producto_FechaAlta = s.FechaAlta,
+                                                Producto_FechaModificacion = s.FechaModificacion,
+                                                ProductoConDetalles_IdProducto = s.IdProducto,
+                                                ProductoConDetalles_IdDetalleProducto = s.IdDetalleProducto,
+                                                ProductoConDetalles_Activo = s.Activo,
+                                                DetalleProducto_Id = s.DetalleProducto_Id,
+                                                DetalleProducto_Nombre = s.DetalleProducto_Nombre,
+                                                DetalleProducto_FechaAlta = s.DetalleProducto_FechaAlta,
+                                                DetalleProducto_FechaModificacion = s.DetalleProducto_FechaModificacion,
+                                                DetalleProducto_Activo = s.DetalleProducto_Activo
+                                            }).ToList();
+                        }
+
+                        dbContextTransaction.Commit();
+                    }
+
+                    catch(Exception ex)
+                    {
+                        dbContextTransaction.Rollback();
+                        throw new Exception("Excepcion lanzada y cachada en TiendaLN.Get_RecuperarProductosNoPertenecenATienda",ex);
+                    }
+                }
+            }
+
+            return (resViewModel);
+        }
     }
 }

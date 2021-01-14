@@ -209,6 +209,113 @@ namespace ControlCaducidadesPromotor.Controllers
         }
 
 
+
+        /// <summary>
+        /// Se invoca este metodo mediante AJAX en cliente, regresa un objeto JSON con las tiendas del usuario operador
+        /// </summary>
+        /// <returns>Json</returns>
+        [Authorize]
+        public JsonResult RecuperarTiendasDeUsuario()
+        {
+            List<TiendaViewModel> respuesta = new List<TiendaViewModel>();
+            using (var cliente = new HttpClient())
+            {
+
+                cliente.BaseAddress = new Uri("http://localhost:51339/");
+                var responseTask = cliente.GetAsync("api/TiendaAPI/Get_MostrarTodasTiendasDeUsuario?usuario=" + User.Identity.Name);
+
+                responseTask.Wait();
+
+                var result = responseTask.Result;
+                if (result.IsSuccessStatusCode)
+                {
+                    var readTask = result.Content.ReadAsAsync<List<TiendaViewModel>>();
+                    readTask.Wait();
+
+                    respuesta = readTask.Result;
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                }
+            }
+
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            Response.Cache.SetNoStore();
+            return (Json(respuesta, JsonRequestBehavior.AllowGet));
+        }
+
+
+
+        [Authorize]
+        public JsonResult RecuperarProductosDeTiendaXId(int idTienda)
+        {
+            List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM> respuesta = new List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM>();
+            using (var cliente = new HttpClient())
+            {
+
+                cliente.BaseAddress = new Uri("http://localhost:51339/");
+                var responseTask = cliente.GetAsync("api/TiendaAPI/Get_RecuperarProductosDeTiendaXId?idTienda=" + idTienda + "&usuario=" + User.Identity.Name);
+
+                responseTask.Wait();
+
+                var result = responseTask.Result;
+                if (result.IsSuccessStatusCode)
+                {
+                    var readTask = result.Content.ReadAsAsync<List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM>>();
+                    readTask.Wait();
+
+                    respuesta = readTask.Result;
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                }
+            }
+
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            Response.Cache.SetNoStore();
+            return (Json(respuesta, JsonRequestBehavior.AllowGet));
+        }
+
+
+
+        [Authorize]
+        public JsonResult RecuperarProductosKNoPertenecenATienda(int idTienda)
+        {
+            List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel> respuesta = new List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel>();
+
+            using (var cliente = new HttpClient())
+            {
+                cliente.BaseAddress = new Uri("http://localhost:51339/");
+                var responseTask = cliente.GetAsync("api/TiendaAPI/Get_RecuperarProductosNoPertenecenATienda?idTienda=" + idTienda + "&usuario=" + User.Identity.Name + "&dummy=" + idTienda);
+
+                responseTask.Wait();
+
+                var result = responseTask.Result;
+                if (result.IsSuccessStatusCode)
+                {
+                    var readTask = result.Content.ReadAsAsync<List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel>>();
+                    readTask.Wait();
+
+                    respuesta = readTask.Result;
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                }
+            }
+
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            Response.Cache.SetNoStore();
+            return (Json(respuesta, JsonRequestBehavior.AllowGet));
+        }
+
+
+
+
+
+
         //---------------------------Methods
         private UsuarioViewModel LLamarApiBuscarUsuarioXUsuario(string usuario)
         {

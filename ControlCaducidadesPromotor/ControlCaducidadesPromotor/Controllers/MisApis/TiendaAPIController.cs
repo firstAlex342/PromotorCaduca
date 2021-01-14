@@ -23,6 +23,17 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         }
 
 
+        [HttpGet]
+        public IHttpActionResult Get_RecuperarProductosDeTiendaXId(int idTienda, string usuario)
+        {
+            TiendaLN tiendaLN = new TiendaLN();
+            IList<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM> res;
+            res = tiendaLN.Get_RecuperarProductosDeTienda(idTienda, usuario);
+
+            return (Ok(res));
+        }
+
+
         [HttpPost]
         public IHttpActionResult Post_CrearTienda(TiendaViewModel tiendaViewModel)
         {
@@ -103,6 +114,35 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
             else
             {
                 return (BadRequest("Fallo el model binder en TiendaAPIController.Put_ActualizarTiendaDeUsuario"));
+            }
+        }
+
+
+        [HttpGet]
+        public IHttpActionResult Get_RecuperarProductosNoPertenecenATienda(int idTienda, string usuario, int dummy)
+        { //El parametro dummy solo es para que la firma de este metodo sea diferente a cualquier otro metodo de este mismo
+            //controlador, ya que si 2 metodos de este controlador tiene la misma firma y son del mismo tipo de solocitud (get,put,delete, etc)
+            //falla el controlador
+            if (ModelState.IsValid)
+            {
+                List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel> resViewModel = null;
+                TiendaLN tiendaLN = new TiendaLN();
+
+                resViewModel = tiendaLN.Get_RecuperarProductosNoPertenecenATienda(idTienda, usuario);
+                if (resViewModel != null)
+                {
+                    return (Ok(resViewModel));
+                }
+
+                else
+                {
+                    return (BadRequest("No fue posible obtener la lista de productos buscada"));
+                }
+            }
+
+            else
+            {
+                return BadRequest("Fallo en model binder en TiendaAPIController.Get_RecuperarProductosNoPertenecenATienda");
             }
         }
     }

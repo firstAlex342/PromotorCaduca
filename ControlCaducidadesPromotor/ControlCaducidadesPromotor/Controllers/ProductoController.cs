@@ -79,7 +79,7 @@ namespace WebApplication3.Controllers
                         client.BaseAddress = new Uri("http://localhost:51339/");
 
                         //HTTP POST
-                        var postTask = client.PostAsJsonAsync<ProductoViewModel>("api/ProductoAPI", productoViewModel);
+                        var postTask = client.PostAsJsonAsync<ProductoViewModel>("api/ProductoAPI/CrearProducto", productoViewModel);
 
                         postTask.Wait();
 
@@ -191,7 +191,7 @@ namespace WebApplication3.Controllers
                     client.BaseAddress = new Uri("http://localhost:51339/");
 
                     //HTTP PUT
-                    var putTask = client.PutAsJsonAsync<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel>("api/ProductoAPI", pJoinViewModel);
+                    var putTask = client.PutAsJsonAsync<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel>("api/ProductoAPI/ProductoActualizar", pJoinViewModel);
                     putTask.Wait();
                     var result = putTask.Result;
                     if (result.IsSuccessStatusCode)

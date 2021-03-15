@@ -14,9 +14,18 @@ namespace ControlCaducidadesPromotor
             // Rutas de API web
             config.MapHttpAttributeRoutes();
 
+            //Este era lo que estaba originalmente
+            //config.Routes.MapHttpRoute(
+            //    name: "DefaultApi",
+            //    routeTemplate: "api/{controller}/{id}",
+            //    defaults: new { id = RouteParameter.Optional }
+            //);
+
+            //Asi se debe de ver para que un controlador de web api pueda tener varios
+            //metodos post y put
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",
-                routeTemplate: "api/{controller}/{id}",
+                routeTemplate: "api/{controller}/{action}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
         }

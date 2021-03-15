@@ -12,7 +12,12 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
 {
     public class TiendaAPIController : ApiController
     {
-        [HttpGet]
+        /// <summary>
+        /// Recupera todas las tiendas ACTIVAS de un usuario
+        /// </summary>
+        /// <param name="usuario"></param>
+        /// <returns></returns>
+        [System.Web.Http.HttpGet]
         public IHttpActionResult Get_MostrarTodasTiendasDeUsuario(string usuario)
         {
             TiendaLN tiendaLN = new TiendaLN();
@@ -23,7 +28,7 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         }
 
 
-        [HttpGet]
+        [System.Web.Http.HttpGet]
         public IHttpActionResult Get_RecuperarProductosDeTiendaXId(int idTienda, string usuario)
         {
             TiendaLN tiendaLN = new TiendaLN();
@@ -34,17 +39,17 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         }
 
 
-        [HttpPost]
+        [System.Web.Http.HttpPost]
         public IHttpActionResult Post_CrearTienda(TiendaViewModel tiendaViewModel)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 RelojServidor relojServidor = new RelojServidor();
                 relojServidor.ColocarMismaFechaHoraEnCamposFechaAltaYFechaModificacion(tiendaViewModel);
                 TiendaLN tiendaLN = new TiendaLN();
 
                 string respuesta = tiendaLN.PostCrearTienda(tiendaViewModel);
-                if(respuesta.Contains("ok"))
+                if (respuesta.Contains("ok"))
                 {
                     return (Ok(respuesta));
                 }
@@ -63,7 +68,7 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
 
 
 
-        [HttpGet]
+        [System.Web.Http.HttpGet]
         public IHttpActionResult Get_BuscarTiendaDeUsuarioXNombre(string nombreTienda, int idUsuarioOperador)
         {
             if(ModelState.IsValid)
@@ -92,7 +97,7 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
 
 
 
-        [HttpPut]
+        [System.Web.Http.HttpPut]
         public IHttpActionResult Put_ActualizarTiendaDeUsuario(TiendaViewModel tiendaViewModel)
         {
             if(ModelState.IsValid)
@@ -118,7 +123,7 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         }
 
 
-        [HttpGet]
+        [System.Web.Http.HttpGet]
         public IHttpActionResult Get_RecuperarProductosNoPertenecenATienda(int idTienda, string usuario, int dummy)
         { //El parametro dummy solo es para que la firma de este metodo sea diferente a cualquier otro metodo de este mismo
             //controlador, ya que si 2 metodos de este controlador tiene la misma firma y son del mismo tipo de solocitud (get,put,delete, etc)
@@ -143,6 +148,33 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
             else
             {
                 return BadRequest("Fallo en model binder en TiendaAPIController.Get_RecuperarProductosNoPertenecenATienda");
+            }
+        }
+
+
+        [System.Web.Http.HttpPost]
+        public IHttpActionResult Post_AgregarProductosATienda(List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM> coleccion)
+        {
+            if (ModelState.IsValid)
+            {
+                TiendaLN tiendaLN = new TiendaLN();
+                string respuesta = tiendaLN.Post_AgregarProductosATienda(coleccion);
+
+                if(respuesta.Contains("ok"))
+                {
+                    return (Ok(respuesta));
+                }
+
+                else
+                {
+                    return BadRequest(respuesta);
+                }
+                
+            }
+
+            else
+            {
+                return BadRequest("Fallo en el model binder TiendaAPIController.Post_AgregarProductosATienda");
             }
         }
     }

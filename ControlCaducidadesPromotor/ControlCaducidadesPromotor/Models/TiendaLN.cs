@@ -34,11 +34,12 @@ namespace ControlCaducidadesPromotor.Models
                                          select new
                                          {
                                              x.Id,
-                                             x.IdUsuarioAlta
+                                             x.IdUsuarioAlta, 
+                                             x.Activo
                                          }).ToList();
 
                             var idsNecesitados = (from item in lista
-                                                  where item.IdUsuarioAlta == idUsuario
+                                                  where (item.IdUsuarioAlta == idUsuario) && (item.Activo == true)
                                                   select item.Id).ToList();
 
                             tiendasViewModel = (from s in ctx.Tienda
@@ -358,7 +359,7 @@ namespace ControlCaducidadesPromotor.Models
 
                             var resumenDetalleProducto = (from s in ctx.DetalleProducto
                                                           where idsDetalleProductoMeInteresan.Contains(s.Id)
-                                                          select new { s.Id, s.Nombre, s.Activo }).ToList();    //De la tabla DetalleProducto obtengo las filas que me interesan
+                                                          select new { s.Id, s.Nombre, s.IdUsuarioAlta, s.Activo }).ToList();    //De la tabla DetalleProducto obtengo las filas que me interesan
 
                             //Ya esta la info de las tablas fuera de EntityFramework, esta ahora en la memoria, asi que procedo a enlazar
                             //los registros tomados de las tablas Producto, ProductoConDetalles Y DetallesProducto; todos tiene el campo Activo = 1
@@ -374,7 +375,7 @@ namespace ControlCaducidadesPromotor.Models
                                                                                                             where x.Activo == true
                                                                                                             select new 
                                                                                                             { s.Id, s.CodigoBarras, s.IdProducto, s.IdDetalleProducto,
-                                                                                                            DetalleProd_Id = x.Id, x.Nombre
+                                                                                                            DetalleProd_Id = x.Id, x.Nombre, x.IdUsuarioAlta
                                                                                                             }).ToList();
 
                             resViewModel = (from s in resumenProductosJOINresumenProductoConDetallesJOINresumenDetalleProducto
@@ -386,7 +387,8 @@ namespace ControlCaducidadesPromotor.Models
                                                ProductoConDetalles_IdProducto = s.IdProducto,
                                                ProductoConDetalles_IdDetalleProducto = s.IdDetalleProducto,
                                                DetalleProducto_Id = s.DetalleProd_Id,
-                                               DetalleProducto_Nombre = s.Nombre
+                                               DetalleProducto_Nombre = s.Nombre,
+                                               DetalleProducto_IdUsuarioAlta = s.IdUsuarioAlta
                                            }).ToList();  //coloco el resultado en un objetoViewModel
                         }
 
@@ -526,6 +528,304 @@ namespace ControlCaducidadesPromotor.Models
             }
 
             return (resViewModel);
+        }
+
+
+        public string Post_AgregarProductosATienda(List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM>  elementosOrigen)
+        {
+            string respuesta = "inicializar..";
+
+            using (var ctx = new palominoEntities())
+            {
+                using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                {
+                    try
+                    {
+                        //Ver que la tienda este activa 
+                        AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM filaUnica = elementosOrigen.First();
+                        var idsTienda = (from s in ctx.Tienda
+                                        select new { s.Id, s.Activo }).ToList();
+
+                        var idsTiendaActivos = (from s in idsTienda
+                                               where s.Activo.Equals(true)
+                                               select s.Id).ToList();
+
+                        bool esTiendaActiva = idsTiendaActivos.Contains(filaUnica.Almacena_IdTienda);
+
+                        //Ver que el usuario operador este activo
+                        var resumenUsuarios = (from x in ctx.Usuario
+                                               select new { x.Id, x.Usuario1, x.Activo }).ToList();
+
+                        var resumenUsuariosActivos = (from s in resumenUsuarios
+                                                      where s.Activo == true
+                                                      select s.Id).ToList();
+
+                        bool esUsuarioOperadorActivo = resumenUsuariosActivos.Contains(filaUnica.DetalleProducto_IdUsuarioAlta);
+
+                        if(esTiendaActiva && esUsuarioOperadorActivo) //Aqui compruebo que la tienda y el usuario operador están activos
+                        {   
+                            //Extraigo de la tabla Almacena las relaciones activas que pertenezcan al usuario operador
+                            var resumenAlmacena = (from s in ctx.Almacena
+                                                  select new { s.IdTienda, s.IdProducto, s.IdUsuarioAlta, s.Activo }).ToList();
+
+                            var resumenRelacionesUsuarioOperadorEnAlmacena = (from s in resumenAlmacena
+                                                                              where (s.IdUsuarioAlta == filaUnica.DetalleProducto_IdUsuarioAlta) && (s.Activo == true)
+                                                                              select s).ToList();
+
+
+                            for (int i=0; i< elementosOrigen.Count; i++)
+                            {
+                                var itemDeOrigen = elementosOrigen[i];
+
+                                //Verifico que en la tabla Almacena lo que el usuario ve, sea lo que esta al momento de ejecutar esta consulta
+                                var elementoBuscado = resumenRelacionesUsuarioOperadorEnAlmacena.FirstOrDefault(s=> {
+                                    return ((s.IdTienda == itemDeOrigen.Almacena_IdTienda) && (s.IdProducto == itemDeOrigen.Almacena_IdProducto) 
+                                    && (s.Activo == true)
+                                    );
+                                });
+
+
+                                if (elementoBuscado != null)  
+                                {
+                                    //Verifico ahora que en la tabla Producto, lo que ve el usuario sea lo que este al momento de realizar la consulta
+                                    var idsProductos = (from s in ctx.Producto
+                                                       select new { s.Id, s.Activo }).ToList();
+
+                                    var idsProductosActivos = (from s in idsProductos
+                                                               where s.Activo == true
+                                                               select s.Id).ToList();
+
+                                    bool esProductoActivo = idsProductosActivos.Contains(itemDeOrigen.Producto_Id);
+                                    if(esProductoActivo == true)
+                                    {
+                                        //Verifico que en la tabla ProductoConDetalles, lo que ve el usuario sea lo que este al momento de realizar la consulta
+                                        var resumenProductoConDetalles = (from s in ctx.ProductoConDetalles
+                                                select new { s.IdProducto, s.IdDetalleProducto, s.Activo }).ToList();
+
+                                        var resumenActivosProductoConDetalles = (from s in resumenProductoConDetalles
+                                                                                 where s.Activo == true
+                                                                                 select s).ToList();
+
+                                        var relacionBuscadaEnProductoConDetalles = resumenActivosProductoConDetalles.FirstOrDefault(s => 
+                                        (s.IdProducto == itemDeOrigen.ProductoConDetalles_IdProducto) && (s.IdDetalleProducto == itemDeOrigen.ProductoConDetalles_IdDetalleProducto)  );
+
+                                        if(relacionBuscadaEnProductoConDetalles != null)
+                                        {
+                                            //Verifico que en la tabla DetalleProducto, lo que ve el usuario sea lo que este al momento de realizar la consulta
+                                            var resumenDetalleProducto = (from s in ctx.DetalleProducto
+                                                                          select new { s.Id, s.Activo }).ToList();
+
+                                            var idsDetalleProductoActivos = (from s in resumenDetalleProducto
+                                                                             where s.Activo == true
+                                                                             select s.Id).ToList();
+
+                                            bool esDetalleProductoElCorrecto = idsDetalleProductoActivos.Contains(itemDeOrigen.DetalleProducto_Id);
+                                            if(esDetalleProductoElCorrecto)
+                                            {
+                                                //Todo esta bien los valores del objeto itemDeOrigen, coinciden los que el usuario ve en su pantalla con los
+                                                //que estan en la BD
+                                            }
+
+                                            else
+                                            {
+                                                respuesta = "La información que usted ve en pantalla ha sido actualizada, recargue la página";
+                                                break;
+                                            }
+                                        }
+
+                                        else
+                                        {
+                                            respuesta = "La información que usted ve en pantalla ha sido actualizada, recargue la página";
+                                            break;
+                                        }
+                                    }
+
+                                    else
+                                    {
+                                        respuesta = "La información que usted ve en pantalla ha sido actualizada, recargue la página";
+                                        break;
+                                    }
+                                }
+
+                                else
+                                {
+                                    //No existe la relacion ó existe y esta inactiva  averiguarlo.....
+
+                                    //Existe la relación, pero esta inactiva
+                                    var resumenTodasRelacionesEnAlmacena = (from s in ctx.Almacena
+                                                                          select new { s.IdTienda, s.IdProducto, s.Activo }).ToList();
+
+                                    var relacionBuscadaEnAlmacena = resumenTodasRelacionesEnAlmacena.FirstOrDefault(s =>
+                                    (s.IdTienda == itemDeOrigen.Almacena_IdTienda) && (s.IdProducto == itemDeOrigen.Almacena_IdProducto) && (s.Activo == false) );
+
+                                    if(relacionBuscadaEnAlmacena != null) //Se comprueba que la relación esta inactiva
+                                    {
+                                        //Verifico que lo que ve el usuario en pantalla de la tabla Producto, este activo al moment de esta consulta
+                                        var resumenEnProducto = (from s in ctx.Producto
+                                                                 select new { s.Id, s.Activo }).ToList();
+
+                                        var idsActivosEnProducto = (from s in resumenEnProducto
+                                                                    where s.Activo == true
+                                                                    select s.Id).ToList();
+
+                                        if( (idsActivosEnProducto.Contains(itemDeOrigen.Producto_Id)) == true )
+                                        {
+                                            //Verifico que lo que ve en pantalla el usuario de la tabla ProductoConDetalles, este activo al momento de la consulta
+                                            var resumenProductoConDetalles = (from s in ctx.ProductoConDetalles
+                                                                              select new { s.IdProducto, s.IdDetalleProducto, s.Activo }).ToList();
+
+                                            var idsActivosProductoConDetalles = (from s in resumenProductoConDetalles
+                                                                                 where s.Activo == true
+                                                                                 select new { s.IdProducto, s.IdDetalleProducto }).ToList();
+
+                                            var relacionBuscadaEnProductoConDetalles = idsActivosProductoConDetalles.FirstOrDefault(s =>
+                                            (s.IdProducto == itemDeOrigen.ProductoConDetalles_IdProducto) && (s.IdDetalleProducto == itemDeOrigen.ProductoConDetalles_IdDetalleProducto));
+
+                                            if(relacionBuscadaEnProductoConDetalles != null)
+                                            {
+                                                //Verifico que lo que ve en pantalla el usuario de la tabla DetalleProducto, ese activo al momento de la consulta
+                                                var resumenDetalleProducto = (from s in ctx.DetalleProducto
+                                                                              select new { s.Id, s.Activo }).ToList();
+
+                                                var idsActivosDetalleProducto = (from s in resumenDetalleProducto
+                                                                                 where s.Activo == true
+                                                                                 select s.Id).ToList();
+
+                                                if(  idsActivosDetalleProducto.Contains(itemDeOrigen.DetalleProducto_Id) )
+                                                {
+                                                    //Todo esta bien, ahora solo se activo en la tabla Almacena
+                                                    var itemsDeAlmacena = (from s in ctx.Almacena
+                                                                           select s).ToList();
+
+                                                    var relacionAActivarEnAlmacena = itemsDeAlmacena.First(s => (s.IdTienda == itemDeOrigen.Almacena_IdTienda) && (s.IdProducto == itemDeOrigen.Almacena_IdProducto) );
+                                                    relacionAActivarEnAlmacena.Activo = true;
+                                                    relacionAActivarEnAlmacena.FechaModificacion = DateTime.Now;
+                                                    ctx.SaveChanges();
+                                                    respuesta = "ok";
+                                                }
+
+                                                else
+                                                {
+                                                    respuesta = "La información que usted ve en pantalla ha sido actualizada, recargue la página";
+                                                    break;
+                                                }
+                                            }
+
+                                            else
+                                            {
+                                                respuesta = "La información que usted ve en pantalla ha sido actualizada, recargue la página";
+                                                break;
+                                            }
+                                        }
+
+                                        else
+                                        {
+                                            respuesta = "La información que usted ve en pantalla ha sido actualizada, recargue la página";
+                                            break;
+                                        }
+                                    }
+
+                                    else
+                                    {
+                                        //No existe la relacion, se crea aqui...
+
+                                        //Verifico que en Producto este activo al momento de la consulta
+                                        var idsProductos = (from s in ctx.Producto
+                                                            select new { s.Id, s.Activo }).ToList();
+
+                                        var idsActivosProductos = (from s in idsProductos
+                                                                   where s.Activo == true
+                                                                   select s.Id).ToList();
+
+                                        if(idsActivosProductos.Contains(itemDeOrigen.Producto_Id))
+                                        {
+                                            //Verifico que en ProductoConDetalles lo que el usuario esta viendo al momento en la pantalla sea lo que este al momento de la consulta
+                                            var resumProductoConDetalles = (from s in ctx.ProductoConDetalles
+                                                                            select new { s.IdProducto, s.IdDetalleProducto, s.Activo }).ToList();
+
+                                            var activosResumProductoConDetalles = (from s in resumProductoConDetalles
+                                                                                   where s.Activo == true
+                                                                                   select new { s.IdProducto, s.IdDetalleProducto }).ToList();
+
+                                            var relBuscada = activosResumProductoConDetalles.FirstOrDefault(s =>
+                                                (s.IdProducto == itemDeOrigen.ProductoConDetalles_IdProducto) && (s.IdDetalleProducto == itemDeOrigen.ProductoConDetalles_IdDetalleProducto));
+
+                                            if(relBuscada != null)
+                                            {
+                                                //reviso en DetalleProducto para verficar que lo que ve el uuario en pantalla al momento de la consulta sea lo que este.
+                                                var idsDetalleProducto = (from s in ctx.DetalleProducto
+                                                                          select new { s.Id, s.Activo }).ToList();
+
+                                                var idsActivosDetalleProducto = (from s in idsDetalleProducto
+                                                                                 where s.Activo == true
+                                                                                 select s.Id).ToList();
+                                                if(idsActivosDetalleProducto.Contains(itemDeOrigen.DetalleProducto_Id))
+                                                {
+                                                    // se procede a crear la relacion
+                                                    DateTime fechaHoraActual = DateTime.Now;
+
+                                                    Almacena almacena = new Almacena();
+                                                    almacena.IdTienda = itemDeOrigen.Almacena_IdTienda;
+                                                    almacena.IdProducto = itemDeOrigen.Almacena_IdProducto;
+                                                    almacena.IdUsuarioAlta = itemDeOrigen.DetalleProducto_IdUsuarioAlta;
+                                                    almacena.FechaAlta = fechaHoraActual;
+                                                    almacena.IdUsuarioModifico = itemDeOrigen.DetalleProducto_IdUsuarioAlta;
+                                                    almacena.FechaModificacion = fechaHoraActual;
+                                                    almacena.Activo = true;
+
+                                                    ctx.Almacena.Add(almacena);
+                                                    ctx.SaveChanges();
+                                                    respuesta = "ok";
+                                                }
+
+                                                else
+                                                {
+                                                    respuesta = "La información que usted ve en pantalla ha sido actualizada, recargue la página";
+                                                    break;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                respuesta = "La información que usted ve en pantalla ha sido actualizada, recargue la página";
+                                                break;
+                                            }
+                                        }
+
+                                        else
+                                        {
+                                            respuesta = "La información que usted ve en pantalla ha sido actualizada, recargue la página";
+                                            break;
+                                        }
+                                    }
+                                }                                                               
+                            }//for
+                        }
+
+                        else
+                        {
+                            respuesta = "La tienda o el usuario ya no estan activos";
+                        }
+
+                        if(respuesta.Contains("ok"))
+                        {
+                            dbContextTransaction.Commit();
+                        }
+
+                        else
+                        {
+                            dbContextTransaction.Rollback();
+                        }
+                    }
+
+                    catch(Exception ex)
+                    {
+                        dbContextTransaction.Rollback();
+                        throw new Exception("Excepcion lanzada y cachada en TiendaLN.Post_AgregarProductosATienda",ex);
+                    }
+                }
+            }
+
+            return (respuesta);
         }
     }
 }

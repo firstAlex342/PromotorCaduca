@@ -221,6 +221,7 @@
     <Compile Include="Controllers\MisApis\TiendaAPIController.cs" />
     <Compile Include="Controllers\MisApis\TiendaYProductoAPIController.cs" />
     <Compile Include="Controllers\MisApis\UsuarioAPIController.cs" />
+    <Compile Include="Controllers\MisApis\ValuesController1.cs" />
     <Compile Include="Controllers\ProductoController.cs" />
     <Compile Include="Controllers\TiendaController.cs" />
     <Compile Include="Controllers\TiendaYProductoController.cs" />

@@ -53,7 +53,7 @@ namespace ControlCaducidadesPromotor.Controllers
 
 
         [Authorize]
-        [HttpPost]
+        [System.Web.Mvc.HttpPost]
         public ActionResult CrearTienda(TiendaViewModel tiendaViewModel)
         {
             if (ModelState.IsValid)
@@ -119,7 +119,7 @@ namespace ControlCaducidadesPromotor.Controllers
 
 
         [Authorize]
-        [HttpGet]
+        [System.Web.Mvc.HttpGet]
         public ActionResult MostrarFormModificarTienda()
         {
             Response.Cache.SetCacheability(HttpCacheability.NoCache);
@@ -304,13 +304,65 @@ namespace ControlCaducidadesPromotor.Controllers
                 {
                     ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
                 }
-            }
+            } 
 
             Response.Cache.SetCacheability(HttpCacheability.NoCache);
             Response.Cache.SetNoStore();
             return (Json(respuesta, JsonRequestBehavior.AllowGet));
         }
 
+        
+        /// <summary>
+        /// Agrega productos a la tienda desde una list, el id del usuario lo asigna esta función
+        /// </summary>
+        /// <param name="tiendaYProductosColecc"></param>
+        /// <returns></returns>
+        [Authorize]
+        [System.Web.Mvc.HttpPost]
+        public JsonResult AgregarProductosATienda(List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM> tiendaYProductosColecc)
+        {
+            string respuesta="";
+
+            if(ModelState.IsValid)
+            {
+                //crear api y llamarla
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri("http://localhost:51339/");
+
+                    AgregarUserIdACadaObjeto(tiendaYProductosColecc);
+
+                    //HTTP POST
+                    var postTask = client.PostAsJsonAsync<List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM>>("api/TiendaAPI/Post_AgregarProductosATienda", tiendaYProductosColecc);
+                    postTask.Wait();
+
+                    var result = postTask.Result;
+                    if (result.IsSuccessStatusCode)
+                    {
+                        respuesta = "ok";
+                    }
+
+                    else
+                    {
+                        //https://www.thetopsites.net/article/53008477.shtml
+                        var x = result.Content.ReadAsStringAsync();
+                        x.Wait(); //x.Result tiene el resultado
+
+                        ModelState.AddModelError(string.Empty, x.Result);
+                        Response.Cache.SetCacheability(HttpCacheability.NoCache);
+                        Response.Cache.SetNoStore();
+                        respuesta = x.Result;
+                    }
+                }
+            }
+
+            else
+            {
+                respuesta = "Fallo en el model binder en Tienda.AgregarProductosATienda";
+            }
+
+            return (Json(respuesta, JsonRequestBehavior.AllowGet));
+        }
 
 
 
@@ -349,6 +401,16 @@ namespace ControlCaducidadesPromotor.Controllers
             tiendaVM.Manzana = ModelState["tiendaViewModel.Manzana"].Value.AttemptedValue;
             tiendaVM.Lote = ModelState["tiendaViewModel.Lote"].Value.AttemptedValue;
             tiendaVM.Calle = ModelState["tiendaViewModel.Calle"].Value.AttemptedValue;
+        }
+
+
+        private void AgregarUserIdACadaObjeto(List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM> tiendaYProductosColecc)
+        {
+            UsuarioViewModel usuarioViewModel = LLamarApiBuscarUsuarioXUsuario(User.Identity.Name);
+
+            Action<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM> funcion = s => { s.DetalleProducto_IdUsuarioAlta = usuarioViewModel.Id;  };
+
+            tiendaYProductosColecc.ForEach(funcion);
         }
 
     }

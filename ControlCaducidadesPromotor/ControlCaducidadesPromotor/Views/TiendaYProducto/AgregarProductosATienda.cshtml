@@ -14,12 +14,16 @@
 
         function InicializarEventos() {
             RecuperarYMostrarTiendasDeUsuario();
-            EstilizarConDataTables('#miTablaProductosEnTienda');
+            EstilizarConDataTables('#miTablaProductosEnTienda');  
             EstilizarConDataTables('#miTablaProductosDisponibles');
+            DeshabilitarBtnAgregar();
+            $('#btnAgregarTienda').click(AgregarProductosATienda);
         }
 
 
         function RecuperarYMostrarTiendasDeUsuario() {
+            $('#tiendasRecuperadas').empty();
+
             //solicutud ajax sin parametros
             $.ajax({
                 url: "/Tienda/RecuperarTiendasDeUsuario",
@@ -40,6 +44,11 @@
                     
                 },
                 error: function (errormessage) {
+                    QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
+                    QuitarPropsDataTableYVaciar('#miTablaProductosDisponibles');
+                    $('#tiendasRecuperadas').html('');
+
+                    DeshabilitarBtnAgregar();
                     alert(errormessage.responseText);
                 }
             });
@@ -49,6 +58,7 @@
         function RecuperarProductosDeTiendaYProductosKNOPertenecenATienda(control) {
             RecuperarProductosDeTienda(control);
             RecuperarProductosKNoPertenecenATienda(control);
+            DeshabilitarBtnAgregar();
         }
 
 
@@ -63,33 +73,36 @@
                 success: function (result) {
                     var objetoDataTable = $('#miTablaProductosEnTienda').DataTable();  //Genero un objeto dataTable
                     objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+                    $('#miTablaProductosEnTienda').hide();  
                     $('#miTablaProductosEnTienda tbody').empty();  //destruyo el contenido
                     var html = '';
 
                     $.each(result, function (key, item){
                         html = '<tr>';
-                        html += '<td style="display:none;">' + item.Almacena_IdTienda + '</td>';
-                        html += '<td style="display:none;">' + item.Almacena_IdProducto + '</td>';
-                        html += '<td style="display:none;">' + item.Producto_Id + '</td>';
+                        html += '<td>' + item.Almacena_IdTienda + '</td>'; /*era style="display:none;"*/
+                        html += '<td>' + item.Almacena_IdProducto + '</td>'; /*style = "display:none;"*/
+                        html += '<td>' + item.Producto_Id + '</td>';  /*style = "display:none;"*/
                         html += '<td>' + item.Producto_CodigoBarras + '</td>';
-                        html += '<td style="display:none;">' + item.ProductoConDetalles_IdProducto + '</td>';
-                        html += '<td style="display:none;">' + item.ProductoConDetalles_IdDetalleProducto + '</td>';
-                        html += '<td style="display:none;">' + item.DetalleProducto_Id + '</td>';
+                        html += '<td>' + item.ProductoConDetalles_IdProducto + '</td>'; /*style = "display:none;"*/
+                        html += '<td>' + item.ProductoConDetalles_IdDetalleProducto + '</td>'; /*style = "display:none;"*/
+                        html += '<td>' + item.DetalleProducto_Id + '</td>'; /*style = "display:none;"*/
                         html += '<td>' + item.DetalleProducto_Nombre + '</td>';
+                        html += '<td>' + item.DetalleProducto_IdUsuarioAlta + '</td>';  /*style = "display:none;"*/
 
                         html += '</tr>';
 
                         $('#miTablaProductosEnTienda tbody').append(html);
                     });
 
-                    //https://datatables.net/manual/data/
-                    $('#miTablaProductosEnTienda').DataTable({
-                        language: {
-                            url: '../Scripts/DataTables/Spanish.json'
-                        }
-                    });                    
+                    $('#miTablaProductosEnTienda').show(); 
+                    EstilizarConDataTables('#miTablaProductosEnTienda');
                 },
                 error: function (errormessage) {
+                    QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
+                    QuitarPropsDataTableYVaciar('#miTablaProductosDisponibles');
+                    $('#tiendasRecuperadas').html('');
+
+                    DeshabilitarBtnAgregar();
                     alert(errormessage.responseText);
                 }
             })
@@ -106,13 +119,14 @@
                 success: function (result) {
                     var objetoDataTable = $('#miTablaProductosDisponibles').DataTable();  //Genero un objeto dataTable
                     objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+                    $('#miTablaProductosDisponibles').hide();  
                     $('#miTablaProductosDisponibles tbody').empty();  //destruyo el contenido
 
                     var html = '';
-                    
+
                     $.each(result, function (key, item) {   
                         html = '<tr>';
-                        html += '<td><input type="checkbox" id="idCheckBox' + item.Id + '"</td>'; 
+                        html += '<td><input type="checkbox" id="idCheckBox' + item.Producto_Id + '" onClick="onClickEnCheckBox(this)"/></td>'; 
                         html += '<td>' + item.Producto_Id + '</td>';
                         html += '<td>' + item.Producto_CodigoBarras + '</td>';
                         html += '<td>' + item.ProductoConDetalles_IdProducto + '</td>';
@@ -127,27 +141,224 @@
                         $('#miTablaProductosDisponibles tbody').append(html);
                     });
 
-                    $('#miTablaProductosDisponibles').DataTable({
-                        language: {
-                            url: '../Scripts/DataTables/Spanish.json'
-                        }
-                    });
+                    $('#miTablaProductosDisponibles').show(); 
+                    EstilizarConDataTables('#miTablaProductosDisponibles');
                 },
                 error: function (errormessage) {
+                    QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
+                    QuitarPropsDataTableYVaciar('#miTablaProductosDisponibles');
+                    $('#tiendasRecuperadas').html('');
+
+                    DeshabilitarBtnAgregar();
                     alert(errormessage.responseText);
                 }
             })
         }
 
         function EstilizarConDataTables(nomTabla) {
-            var objetoDataTable = $(nomTabla).DataTable();
-            objetoDataTable.destroy();
-            $(nomTabla).DataTable({
-                language: {
-                    url: '../Scripts/DataTables/Spanish.json'
+            //https://datatables.net/manual/data/
+            var objetoDataTable = $(nomTabla).DataTable();  //Genero un objeto dataTable
+            objetoDataTable.destroy(); //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+            
+            if (nomTabla === '#miTablaProductosEnTienda') {
+                $(nomTabla).DataTable({
+                    language: {
+                        url: '../Scripts/DataTables/Spanish.json'
+                    },
+                    columnDefs: [{ visible: false, targets: [0, 1, 2, 4, 5, 6, 8] },
+                    { searchable: false, targets: [0, 1, 2, 4, 5, 6, 8] }] //https://datatables.net/reference/option/columns.searchable                    
+                });
+            }
+
+            if (nomTabla === '#miTablaProductosDisponibles') {
+                $(nomTabla).DataTable({
+                    language: {
+                        url: '../Scripts/DataTables/Spanish.json'
+                    },
+                    columnDefs: [{ visible: false, targets: [1, 3, 4, 5, 6, 8] },
+                                 { searchable: false, targets: [0, 1, 3, 4, 5, 6, 8] }] //https://datatables.net/reference/option/columns.searchable
+                });
+            }
+
+        }
+
+        function DeshabilitarBtnAgregar() {
+            $('#btnAgregarTienda').attr('disabled', 'disabled');
+        }
+
+        function HabilitarBtnAgregar() {
+            $('#btnAgregarTienda').removeAttr('disabled');
+        }
+
+        function onClickEnCheckBox(control) {
+            //http://www.forosdelweb.com/f179/delimitar-funcion-jquery-each-recorrer-tablas-1106756/
+            var numChkBoxesSeleccionados = 0;
+            var i;
+            for (i = 1; i < document.getElementById('miTablaProductosDisponibles').rows.length; i++) {
+                if (document.getElementById('miTablaProductosDisponibles').rows[i].cells[0].childNodes[0].checked) {
+                    numChkBoxesSeleccionados++;
+                }
+            }
+
+            if (numChkBoxesSeleccionados > 0) {
+                HabilitarBtnAgregar();
+            }
+
+            else {
+                DeshabilitarBtnAgregar();
+            }
+            
+        }
+
+
+        function AgregarProductosATienda() {
+            AniadirFilasATablaProductosEnTienda();
+
+            //Recorrer la tabla de los productos que ya están en tienda
+            var i;
+            var numeroDeFilasEnTablaProductosEnTienda;
+            numeroDeFilasEnTablaProductosEnTienda = document.getElementById('miTablaProductosEnTienda').rows.length;
+
+            var arregloProductosEnTienda = new Array();
+            for (i = 1; i < numeroDeFilasEnTablaProductosEnTienda; i++) {  //la fila 0 de la tabla viene siendo la del titulo de la columna
+                var item = {
+                    Almacena_IdTienda: document.getElementById('miTablaProductosEnTienda').rows[i].cells[0].childNodes[0].nodeValue,
+                    Almacena_IdProducto: document.getElementById('miTablaProductosEnTienda').rows[i].cells[1].childNodes[0].nodeValue,
+                    Producto_Id: document.getElementById('miTablaProductosEnTienda').rows[i].cells[2].childNodes[0].nodeValue,
+                    Producto_CodigoBarras: document.getElementById('miTablaProductosEnTienda').rows[i].cells[3].childNodes[0].nodeValue,
+                    ProductoConDetalles_IdProducto: document.getElementById('miTablaProductosEnTienda').rows[i].cells[4].childNodes[0].nodeValue,
+                    ProductoConDetalles_IdDetalleProducto: document.getElementById('miTablaProductosEnTienda').rows[i].cells[5].childNodes[0].nodeValue,
+                    DetalleProducto_Id: document.getElementById('miTablaProductosEnTienda').rows[i].cells[6].childNodes[0].nodeValue,
+                    DetalleProducto_Nombre: document.getElementById('miTablaProductosEnTienda').rows[i].cells[7].childNodes[0].nodeValue,
+                    DetalleProducto_IdUsuarioAlta: document.getElementById('miTablaProductosEnTienda').rows[i].cells[8].childNodes[0].nodeValue
+                };
+
+                arregloProductosEnTienda.push(item);
+            }
+
+
+            $.ajax({
+                url: "/Tienda/AgregarProductosATienda",
+                data: JSON.stringify(arregloProductosEnTienda),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    if (result == "ok") {
+                         //Obtengo el control radio seleccionado
+                        var inputsRadioConNameRadioTienda = document.getElementsByName("radioTiendas");
+                        var j;
+                        for (j = 0; j < inputsRadioConNameRadioTienda.length; j++) {
+                            var itemRadio = inputsRadioConNameRadioTienda[j];
+                            if (itemRadio.checked) {
+                                RecuperarProductosDeTiendaYProductosKNOPertenecenATienda(itemRadio);
+                                break;
+                            }
+                        }
+                    }
+
+                    else {
+                        QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
+                        QuitarPropsDataTableYVaciar('#miTablaProductosDisponibles');                        
+                        $('#tiendasRecuperadas').html('');
+
+                        DeshabilitarBtnAgregar();
+                        alert(result);
+                    }
+                },
+                beforeSend: function () {
+                    //$('#miTablaProductosEnTienda').DataTable().destroy();
+                    ////$('#miTablaProductosEnTienda tbody').empty();
+                    //$('#miTablaProductosEnTienda').hide();
+
+                    //$('#miTablaProductosDisponibles').DataTable().destroy();
+                    ////$('#miTablaProductosDisponibles tbody').empty();
+                    //$('#miTablaProductosDisponibles').hide();
+                },
+
+                complete: function () {
+                    //$('#miTablaProductosEnTienda').show();
+                    //$('#miTablaProductosDisponibles').show();
+                },
+                error: function (errormessage) {
+                    QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
+                    QuitarPropsDataTableYVaciar('#miTablaProductosDisponibles');
+                    $('#tiendasRecuperadas').html('');
+
+                    DeshabilitarBtnAgregar();
+                    alert(errormessage.responseText);                   
                 }
             });
+
+            return false;
         }
+
+
+        function AniadirFilasATablaProductosEnTienda() {
+            //Desconectar de las propiedades dataTable para agregar mas adelante filas a la tabla
+            var objetoDataTable = $('#miTablaProductosEnTienda').DataTable(); //Genero un objeto dataTable
+            objetoDataTable.destroy(); //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+            $('#miTablaProductosEnTienda').hide(); 
+
+            //Desconecto de las propiedades dataTable 
+            $('#miTablaProductosDisponibles').DataTable().destroy();
+            $('#miTablaProductosDisponibles').hide(); 
+
+            //recuperar idTienda
+            var idTiendaActual;
+            var inputsRadioConNameRadioTienda = document.getElementsByName("radioTiendas");
+            var j;
+            for (j = 0; j < inputsRadioConNameRadioTienda.length; j++) {
+                var itemRadio = inputsRadioConNameRadioTienda[j];
+                if (itemRadio.checked) {
+                    idTiendaActual = itemRadio.value;
+                    break;
+                }
+            }
+
+
+            //Comenzar a recorrer la tabla "miTablaProductosDisponibles" e ir insertando a tabla miTablaProductosEnTienda
+            var i;
+            var numeroDeFilasEnTablaProductosDisponibles;
+            numeroDeFilasEnTablaProductosDisponibles = document.getElementById('miTablaProductosDisponibles').rows.length;
+
+            //La tabla productosEnTienda tiene las sigs columnas
+            //Almacena_IdTienda , Almacena_IdProducto , Producto_Id , Producto_CodigoBarras , ProductoConDetalles_IdProducto
+            //ProductoConDetalles_IdDetalleProducto , DetalleProducto_Id , DetalleProducto_Nombre , DetalleProducto_IdUsuarioAlta
+
+            //La tabla productosDisponibles tiene las sigs columnas
+            //checkbox (la primera columna) , Producto_Id , Producto_CodigoBarras , ProductoConDetalles_IdProducto , ProductoConDetalles_IdDetalleProducto ,
+            //ProductoConDetalles_Activo , DetalleProducto_Id , DetalleProducto_Nombre , DetalleProducto_Activo
+
+            //la fila 0 de la tabla viene siendo la del titulo de la columna
+            for (i = 1; i < numeroDeFilasEnTablaProductosDisponibles; i++) {
+                var textoProductoId = document.getElementById('miTablaProductosDisponibles').rows[i].cells[1].childNodes[0].nodeValue;
+                var idChkBoxARecuperar = 'idCheckBox' + textoProductoId;
+                if (document.getElementById(idChkBoxARecuperar).checked) {
+                    var miHtml = '<tr><td>' + idTiendaActual + '</td>';
+                    miHtml += '<td>' + document.getElementById('miTablaProductosDisponibles').rows[i].cells[1].childNodes[0].nodeValue + '</td>';
+                    miHtml += '<td>' + document.getElementById('miTablaProductosDisponibles').rows[i].cells[1].childNodes[0].nodeValue + '</td>';
+                    miHtml += '<td>' + document.getElementById('miTablaProductosDisponibles').rows[i].cells[2].childNodes[0].nodeValue + '</td>';//Producto_CodigoBarras
+                    miHtml += '<td>' + document.getElementById('miTablaProductosDisponibles').rows[i].cells[1].childNodes[0].nodeValue + '</td>';//ProductoConDetalles_IdProducto
+                    miHtml += '<td>' + document.getElementById('miTablaProductosDisponibles').rows[i].cells[4].childNodes[0].nodeValue + '</td>'; //ProductoConDetalles_IdDetalleProducto
+                    miHtml += '<td>' + document.getElementById('miTablaProductosDisponibles').rows[i].cells[6].childNodes[0].nodeValue + '</td>';//DetalleProducto_Id
+                    miHtml += '<td>' + document.getElementById('miTablaProductosDisponibles').rows[i].cells[7].childNodes[0].nodeValue + '</td>'; //DetalleProducto_Nombre
+                    miHtml += '<td>' + '0' + '</td>';
+                    miHtml += '</tr>';
+
+                    $('#miTablaProductosEnTienda tbody').append(miHtml);
+                }
+            }
+
+        } 
+
+
+        function QuitarPropsDataTableYVaciar(nomTabla) {  //recuerda que nomTabla debe venir en formato: #nomTabla
+            var objetoDataTable = $(nomTabla).DataTable();
+            objetoDataTable.destroy(); //desconecto la tabla de las propiedades datatabla, paso necesario para modificar la tabla
+            $(nomTabla).html('');
+        }
+
 
     </script>
 }
@@ -166,17 +377,20 @@
             <h4>Productos en tienda</h4>
 
             <div class="table-responsive">
-                <table id="miTablaProductosEnTienda" class="" style="width:100%"> @*NO le asignes clases bootstrap a la table porque DataTables la personalizara*@
+                @*NO le asignes clases bootstrap a la table porque DataTables la personalizara*@
+                @*Despues vi que si funciona usar clases bootstrap 3  https://datatables.net/examples/styling/bootstrap*@
+                <table id="miTablaProductosEnTienda" class="table table-striped" style="width:100%">
                     <thead>
                         <tr>
-                            <th style="display:none;">Almacena_IdTienda</th>
-                            <th style="display:none;">Almacena_IdProducto</th>
-                            <th style="display:none;">Producto_Id</th>
+                            <th>Almacena_IdTienda</th>  @*era th style="display:none;"*@
+                            <th>Almacena_IdProducto</th> @*era th style="display:none;"*@
+                            <th>Producto_Id</th> @*era th style="display:none;"*@
                             <th>Producto_CodigoBarras</th>
-                            <th style="display:none;">ProductoConDetalles_IdProducto</th>
-                            <th style="display:none;">ProductoConDetalles_IdDetalleProducto</th>
-                            <th style="display:none;">DetalleProducto_Id</th>
+                            <th>ProductoConDetalles_IdProducto</th> @*era th style="display:none;"*@
+                            <th>ProductoConDetalles_IdDetalleProducto</th> @*era th style="display:none;"*@
+                            <th>DetalleProducto_Id</th> @*era th style="display:none;"*@
                             <th>Producto_Nombre </th>
+                            <th>DetalleProducto_IdUsuarioAlta</th>  @*era th style="display:none;"*@
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -188,7 +402,9 @@
         <div class="col-sm-5">
             <h4> Productos disponibles</h4>
             <div class="table-responsive">
-                <table id="miTablaProductosDisponibles" class="" style="width:100%">                    
+                @*NO le asignes clases bootstrap a la table porque DataTables la personalizara*@
+                @*Despues vi que si funciona usar clases bootstrap 3 https://datatables.net/examples/styling/bootstrap*@
+                <table id="miTablaProductosDisponibles" class="table table-striped" style="width:100%">
                     <thead>
                         <tr>
                             <th>Selección</th>
@@ -211,7 +427,7 @@
     <div class="row" style="margin-top:30px">
         <div class="col-sm-12">
             <div class="pull-right">
-                <button type="button" class="btn btn-primary">Agregar a tienda</button>
+                <button type="button"  id="btnAgregarTienda" class="btn btn-primary">Agregar a tienda</button>
             </div>
         </div>
     </div>
@@ -219,6 +435,6 @@
 
 
 @section Footer
-{
+{ <p>El footer</p>
 }
 

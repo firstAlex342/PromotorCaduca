@@ -77,10 +77,15 @@
                     $('#miTablaProductosEnTienda tbody').empty();  //destruyo el contenido
                     var html = '';
 
-                    $.each(result, function (key, item){
+                    $.each(result, function (key, item) {
+                        var miFechaAlta = new Date(parseInt(item.Almacena_FechaAlta.substr(6)));
+                        var miFechaModificacion = new Date(parseInt(item.Almacena_FechaModificacion.substr(6)));
+
                         html = '<tr>';
                         html += '<td>' + item.Almacena_IdTienda + '</td>'; /*era style="display:none;"*/
                         html += '<td>' + item.Almacena_IdProducto + '</td>'; /*style = "display:none;"*/
+                        html += '<td>' + miFechaAlta + '</td>';  /*style = "display:none;"*/
+                        html += '<td>' + miFechaModificacion + '</td>'; /*style = "display:none;"*/
                         html += '<td>' + item.Producto_Id + '</td>';  /*style = "display:none;"*/
                         html += '<td>' + item.Producto_CodigoBarras + '</td>';
                         html += '<td>' + item.ProductoConDetalles_IdProducto + '</td>'; /*style = "display:none;"*/
@@ -165,8 +170,8 @@
                     language: {
                         url: '../Scripts/DataTables/Spanish.json'
                     },
-                    columnDefs: [{ visible: false, targets: [0, 1, 2, 4, 5, 6, 8] },
-                    { searchable: false, targets: [0, 1, 2, 4, 5, 6, 8] }] //https://datatables.net/reference/option/columns.searchable                    
+                    columnDefs: [{ visible: false, targets: [0, 1, 2, 3, 4, 6, 7, 8, 10] },
+                    { searchable: false, targets: [0, 1, 2, 3, 4, 6, 7, 8, 10] }] //https://datatables.net/reference/option/columns.searchable                    
                 });
             }
 
@@ -221,20 +226,35 @@
 
             var arregloProductosEnTienda = new Array();
             for (i = 1; i < numeroDeFilasEnTablaProductosEnTienda; i++) {  //la fila 0 de la tabla viene siendo la del titulo de la columna
+                var objInteligente = new FechaHoraSinMiliSegundos('30/09/2020 09:50:47 p.m.'); //Este objeto solo es para que me proporcione herramientas de trabajo con fechas
+
+                var valorEnNodo = document.getElementById('miTablaProductosEnTienda').rows[i].cells[2].childNodes[0].nodeValue;
+                var fa = new Date(valorEnNodo);
+                //1985-9-15T23:59:59
+                var objetoDateAlmacena_FechaAlta = objInteligente.FuckYou(fa);
+                
+
+                valorEnNodo = document.getElementById('miTablaProductosEnTienda').rows[i].cells[3].childNodes[0].nodeValue;
+                var fm = new Date(valorEnNodo);
+                var objetoDateAlmacena_FechaModificacion = objInteligente.FuckYou(fm);
+
                 var item = {
                     Almacena_IdTienda: document.getElementById('miTablaProductosEnTienda').rows[i].cells[0].childNodes[0].nodeValue,
                     Almacena_IdProducto: document.getElementById('miTablaProductosEnTienda').rows[i].cells[1].childNodes[0].nodeValue,
-                    Producto_Id: document.getElementById('miTablaProductosEnTienda').rows[i].cells[2].childNodes[0].nodeValue,
-                    Producto_CodigoBarras: document.getElementById('miTablaProductosEnTienda').rows[i].cells[3].childNodes[0].nodeValue,
-                    ProductoConDetalles_IdProducto: document.getElementById('miTablaProductosEnTienda').rows[i].cells[4].childNodes[0].nodeValue,
-                    ProductoConDetalles_IdDetalleProducto: document.getElementById('miTablaProductosEnTienda').rows[i].cells[5].childNodes[0].nodeValue,
-                    DetalleProducto_Id: document.getElementById('miTablaProductosEnTienda').rows[i].cells[6].childNodes[0].nodeValue,
-                    DetalleProducto_Nombre: document.getElementById('miTablaProductosEnTienda').rows[i].cells[7].childNodes[0].nodeValue,
-                    DetalleProducto_IdUsuarioAlta: document.getElementById('miTablaProductosEnTienda').rows[i].cells[8].childNodes[0].nodeValue
+                    Almacena_FechaAlta: objetoDateAlmacena_FechaAlta, //document.getElementById('miTablaProductosEnTienda').rows[i].cells[2].childNodes[0].nodeValue,
+                    Almacena_FechaModificacion: objetoDateAlmacena_FechaModificacion,  //document.getElementById('miTablaProductosEnTienda').rows[i].cells[3].childNodes[0].nodeValue,
+                    Producto_Id: document.getElementById('miTablaProductosEnTienda').rows[i].cells[4].childNodes[0].nodeValue,
+                    Producto_CodigoBarras: document.getElementById('miTablaProductosEnTienda').rows[i].cells[5].childNodes[0].nodeValue,
+                    ProductoConDetalles_IdProducto: document.getElementById('miTablaProductosEnTienda').rows[i].cells[6].childNodes[0].nodeValue,
+                    ProductoConDetalles_IdDetalleProducto: document.getElementById('miTablaProductosEnTienda').rows[i].cells[7].childNodes[0].nodeValue,
+                    DetalleProducto_Id: document.getElementById('miTablaProductosEnTienda').rows[i].cells[8].childNodes[0].nodeValue,
+                    DetalleProducto_Nombre: document.getElementById('miTablaProductosEnTienda').rows[i].cells[9].childNodes[0].nodeValue,
+                    DetalleProducto_IdUsuarioAlta: document.getElementById('miTablaProductosEnTienda').rows[i].cells[10].childNodes[0].nodeValue
                 };
 
                 arregloProductosEnTienda.push(item);
             }
+
 
 
             $.ajax({
@@ -323,7 +343,7 @@
             numeroDeFilasEnTablaProductosDisponibles = document.getElementById('miTablaProductosDisponibles').rows.length;
 
             //La tabla productosEnTienda tiene las sigs columnas
-            //Almacena_IdTienda , Almacena_IdProducto , Producto_Id , Producto_CodigoBarras , ProductoConDetalles_IdProducto
+            //Almacena_IdTienda , Almacena_IdProducto ,Almacena_FechaAlta, Almacena_FechaModificacion , Producto_Id , Producto_CodigoBarras , ProductoConDetalles_IdProducto
             //ProductoConDetalles_IdDetalleProducto , DetalleProducto_Id , DetalleProducto_Nombre , DetalleProducto_IdUsuarioAlta
 
             //La tabla productosDisponibles tiene las sigs columnas
@@ -335,8 +355,14 @@
                 var textoProductoId = document.getElementById('miTablaProductosDisponibles').rows[i].cells[1].childNodes[0].nodeValue;
                 var idChkBoxARecuperar = 'idCheckBox' + textoProductoId;
                 if (document.getElementById(idChkBoxARecuperar).checked) {
+                    //Los meses en el objeto Date empiezan con cero
+                    var fechaTonta = new Date(1985, 8, 15, 23, 59, 59, 0);
+
                     var miHtml = '<tr><td>' + idTiendaActual + '</td>';
                     miHtml += '<td>' + document.getElementById('miTablaProductosDisponibles').rows[i].cells[1].childNodes[0].nodeValue + '</td>';
+                    miHtml += '<td>' + fechaTonta + '</td>';
+                    miHtml += '<td>' + fechaTonta + '</td>';
+
                     miHtml += '<td>' + document.getElementById('miTablaProductosDisponibles').rows[i].cells[1].childNodes[0].nodeValue + '</td>';
                     miHtml += '<td>' + document.getElementById('miTablaProductosDisponibles').rows[i].cells[2].childNodes[0].nodeValue + '</td>';//Producto_CodigoBarras
                     miHtml += '<td>' + document.getElementById('miTablaProductosDisponibles').rows[i].cells[1].childNodes[0].nodeValue + '</td>';//ProductoConDetalles_IdProducto
@@ -384,6 +410,8 @@
                         <tr>
                             <th>Almacena_IdTienda</th>  @*era th style="display:none;"*@
                             <th>Almacena_IdProducto</th> @*era th style="display:none;"*@
+                            <th>Almacena_FechaAlta</th>
+                            <th>Almacena_FechaModificacion</th>
                             <th>Producto_Id</th> @*era th style="display:none;"*@
                             <th>Producto_CodigoBarras</th>
                             <th>ProductoConDetalles_IdProducto</th> @*era th style="display:none;"*@

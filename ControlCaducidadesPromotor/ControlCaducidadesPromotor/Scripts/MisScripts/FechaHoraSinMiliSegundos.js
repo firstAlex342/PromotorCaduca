@@ -9,6 +9,7 @@
     this.GetSegundos = GetSegundos;
 
     this.GenerarObjetoDateSinMilisegs = GenerarObjetoDateSinMilisegs;
+    this.FuckYou = FuckYou;
 }
 
 
@@ -57,13 +58,82 @@ function GetSegundos() {
 function GenerarObjetoDateSinMilisegs() {        
     //regresa un objeto javascript Date, sin milisegundos
 
-    var dia = this.GetDiaDe(this.fechaHora);
-    var mes = this.GetMesDe(this.fechaHora);
-    var anio = this.GetAnioDe(this.fechaHora);
+    var dia = this.GetDiaDe();
+    var mes = this.GetMesDe();
+    var anio = this.GetAnioDe();
     var horaEnFormato24Hrs = this.GetHoraEnFormato24HrsDe();
-    var minutos = this.GetMinutosDe(this.fechaHora);
-    var segundos = this.GetSegundos(this.fechaHora);
+    var minutos = this.GetMinutosDe();
+    var segundos = this.GetSegundos();
 
     var fechaHoraSInMilisegs = new Date(anio + "-" + mes + "-" + dia + "T" + horaEnFormato24Hrs + ":" + minutos + ":" + segundos);
     return (fechaHoraSInMilisegs);
 }
+
+
+
+function FuckYou(objetoDate) {
+    //¡¡¡ Regresa un objeto Date donde El dia y mes deben de estar a dos digitos  !!
+    var miObjDate = new Date(objetoDate);
+
+    var miDiaEnTexto;
+    if (objetoDate.getDate() <= 9) {
+         miDiaEnTexto = "0" + miObjDate.getDate().toString();
+    }
+
+    else {
+        miDiaEnTexto = miObjDate.getDate().toString();
+    }
+
+
+    var miMesEnTexto;
+    if (miObjDate.getMonth() <= 8) {
+        var mesEnNumero = parseInt(miObjDate.getMonth()) + 1;
+        miMesEnTexto = "0" + mesEnNumero.toString();
+    }
+
+    else {
+        var mesEnNumero = parseInt(miObjDate.getMonth()) + 1;
+        miMesEnTexto = mesEnNumero.toString();
+    }
+
+
+
+    var miAnioEnTexto = miObjDate.getFullYear().toString();
+    
+
+    var miHoraEnFormato24hrs;
+    if (miObjDate.getHours().toString().length == 1) {
+        miHoraEnFormato24hrs = "0" + miObjDate.getHours().toString();
+    }
+
+    else {
+        miHoraEnFormato24hrs = miObjDate.getHours().toString();
+    }
+
+
+    var miMinutosEnTexto;
+    if (miObjDate.getMinutes().toString().length == 1) {
+        miMinutosEnTexto = "0" + miObjDate.getMinutes().toString();
+    }
+
+    else {
+        miMinutosEnTexto = miObjDate.getMinutes().toString();
+    }
+
+
+    var miSegundosEnTexto;
+    if (miObjDate.getSeconds().toString().length == 1) {
+        miSegundosEnTexto = "0" + miObjDate.getSeconds().toString();
+    }
+
+    else {
+        miSegundosEnTexto = miObjDate.getSeconds().toString();
+    }
+
+
+    var objetoDateSinMiliSegs = new Date(miAnioEnTexto + "-" + miMesEnTexto + "-" + miDiaEnTexto + "T" + miHoraEnFormato24hrs + ":" + miMinutosEnTexto + ":" + miSegundosEnTexto);
+    return (objetoDateSinMiliSegs);
+}
+
+
+

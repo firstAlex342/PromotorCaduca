@@ -287,18 +287,12 @@
                     }
                 },
                 beforeSend: function () {
-                    //$('#miTablaProductosEnTienda').DataTable().destroy();
-                    ////$('#miTablaProductosEnTienda tbody').empty();
-                    //$('#miTablaProductosEnTienda').hide();
+                    $('#imagenWaiting').attr('style', '');
 
-                    //$('#miTablaProductosDisponibles').DataTable().destroy();
-                    ////$('#miTablaProductosDisponibles tbody').empty();
-                    //$('#miTablaProductosDisponibles').hide();
                 },
 
                 complete: function () {
-                    //$('#miTablaProductosEnTienda').show();
-                    //$('#miTablaProductosDisponibles').show();
+                    $('#imagenWaiting').attr('style', 'display:none');
                 },
                 error: function (errormessage) {
                     QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
@@ -451,6 +445,16 @@
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4">
+            @* diferencia entre display vs hiden https://www.w3schools.com/css/css_display_visibility.asp*@
+            <img id="imagenWaiting" src="~/Content/MisImagenes/imgWaiting.gif" class="img-responsive center-block" style="display:none" />
+        </div>
+        <div class="col-sm-4"></div>
+    </div>
+
 
     <div class="row" style="margin-top:30px">
         <div class="col-sm-12">

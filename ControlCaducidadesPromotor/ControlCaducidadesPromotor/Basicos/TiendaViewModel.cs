@@ -66,9 +66,11 @@ namespace ControlCaducidadesPromotor.Basicos
                 this.Lote,
                 this.Calle,
                 this.IdUsuarioAlta,
-                FechaAlta = this.FechaAlta.ToString(),
+                //FechaAlta = this.FechaAlta.ToString(),
+                this.FechaAlta,
                 this.IdUsuarioModifico,
-                FechaModificacion = this.FechaModificacion.ToString(),
+                //FechaModificacion = this.FechaModificacion.ToString(),
+                this.FechaModificacion,
                 this.Activo };
 
             return (c);

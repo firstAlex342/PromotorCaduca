@@ -60,8 +60,10 @@
                             $('#activo').attr('checked', 'true');
                         }
 
-                        $('#fechaAlta').html(result.FechaAlta);
-                        $('#fechaModificacion').html(result.FechaModificacion);
+                        var miFechaAlta = new Date(parseInt(result.FechaAlta.substr(6)));
+                        var miFechaModificacion = new Date(parseInt(result.FechaModificacion.substr(6)));
+                        $('#fechaAlta').html(miFechaAlta);
+                        $('#fechaModificacion').html(miFechaModificacion);
                     }
                 },
 
@@ -144,8 +146,14 @@
 
 
         function PresionoBotonActualizar() {           
-            var miFechaAltaEnSpan = new FechaHoraSinMiliSegundos(   $('#fechaAlta').text()  );
-            var miFechaModificacionEnSpan = new FechaHoraSinMiliSegundos($('#fechaModificacion').text()); 
+            var objInteligente = new FechaHoraSinMiliSegundos('30/09/2020 09:50:47 p.m.'); //Este objeto solo es para que me proporcione herramientas de trabajo con fechas
+            var valorEnNodo = document.getElementById('fechaAlta').childNodes[0].nodeValue;
+            var fa = new Date(valorEnNodo);
+            var objetoDateFechaAlta = objInteligente.FuckYou(fa); //regresa un objeto Date en un formato que json permite
+
+            valorEnNodo = document.getElementById('fechaModificacion').childNodes[0].nodeValue;
+            var fb = new Date(valorEnNodo);
+            var objetoDateFechaModificacion = objInteligente.FuckYou(fb); //regresa un objeto Date en un formato que json permite
 
             var tiendaObj = {
                 Id: $("#idTienda").val(),
@@ -155,9 +163,9 @@
                 Calle: $("#calle").val(),
                 Nombre: $("#nombreTienda").val(),
                 IdUsuarioAlta: 0 ,
-                FechaAlta: miFechaAltaEnSpan.GenerarObjetoDateSinMilisegs(),   //esta es el formato que se ve en la view   FechaAlta 30/09/2020 09:50:47 p.m. 
+                FechaAlta: objetoDateFechaAlta,   
                 IdUsuarioModifico: 0,
-                FechaModificacion: miFechaModificacionEnSpan.GenerarObjetoDateSinMilisegs(),
+                FechaModificacion: objetoDateFechaModificacion,
                 Activo: true
             }; 
 
@@ -172,7 +180,8 @@
                         $("#errorSpan").empty();
                         $("#nombreT").val("");
                         HabilitarBotonBuscarYTextBoxBuscar();
-                        LimpiarContenidoDeFormularioDetalles();                        
+                        LimpiarContenidoDeFormularioDetalles(); 
+                        DeshabilitarControlesEnDetalles();
                         DeshabilitarBotonActualizarYCancelar();                       
                     }
 

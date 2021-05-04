@@ -33,5 +33,7 @@ namespace ControlCaducidadesPromotor.AccesoADatos
         public virtual DbSet<Almacena> Almacena { get; set; }
         public virtual DbSet<Tienda> Tienda { get; set; }
         public virtual DbSet<Usuario> Usuario { get; set; }
+        public virtual DbSet<PeriodoConUnidad> PeriodoConUnidad { get; set; }
+        public virtual DbSet<UnidadMedida> UnidadMedida { get; set; }
     }
 }

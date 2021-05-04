@@ -54,6 +54,20 @@
     <Property Name="IdUsuarioModifico" Type="int" Nullable="false" />
     <Property Name="FechaModificacion" Type="datetime" Nullable="false" />
     <Property Name="Activo" Type="bit" Nullable="false" />
+    <Property Name="Vigente" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="PeriodoConUnidad">
+    <Key>
+      <PropertyRef Name="IdPeriodo" />
+      <PropertyRef Name="IdUnidad" />
+    </Key>
+    <Property Name="IdPeriodo" Type="int" Nullable="false" />
+    <Property Name="IdUnidad" Type="int" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="int" Nullable="false" />
+    <Property Name="FechaAlta" Type="datetime" Nullable="false" />
+    <Property Name="IdUsuarioModifico" Type="int" Nullable="false" />
+    <Property Name="FechaModificacion" Type="datetime" Nullable="false" />
+    <Property Name="Activo" Type="bit" Nullable="false" />
   </EntityType>
   <EntityType Name="Producto">
     <Key>
@@ -89,6 +103,18 @@
     <Property Name="Manzana" Type="varchar" MaxLength="50" Nullable="false" />
     <Property Name="Lote" Type="varchar" MaxLength="50" Nullable="false" />
     <Property Name="Calle" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="Nombre" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="IdUsuarioAlta" Type="int" Nullable="false" />
+    <Property Name="FechaAlta" Type="datetime" Nullable="false" />
+    <Property Name="IdUsuarioModifico" Type="int" Nullable="false" />
+    <Property Name="FechaModificacion" Type="datetime" Nullable="false" />
+    <Property Name="Activo" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="UnidadMedida">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" Nullable="false" />
     <Property Name="Nombre" Type="varchar" MaxLength="50" Nullable="false" />
     <Property Name="IdUsuarioAlta" Type="int" Nullable="false" />
     <Property Name="FechaAlta" Type="datetime" Nullable="false" />
@@ -178,6 +204,30 @@
       </Dependent>
     </ReferentialConstraint>
   </Association>
+  <Association Name="fk_PeriodoConUnidad_Periodo">
+    <End Role="Periodo" Type="Self.Periodo" Multiplicity="1" />
+    <End Role="PeriodoConUnidad" Type="Self.PeriodoConUnidad" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Periodo">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="PeriodoConUnidad">
+        <PropertyRef Name="IdPeriodo" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="fk_PeriodoConUnidad_UnidadMedida">
+    <End Role="UnidadMedida" Type="Self.UnidadMedida" Multiplicity="1" />
+    <End Role="PeriodoConUnidad" Type="Self.PeriodoConUnidad" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="UnidadMedida">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="PeriodoConUnidad">
+        <PropertyRef Name="IdUnidad" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
   <Association Name="fk_ProductoConDetalles_IdDetalleProducto">
     <End Role="DetalleProducto" Type="Self.DetalleProducto" Multiplicity="1" />
     <End Role="ProductoConDetalles" Type="Self.ProductoConDetalles" Multiplicity="*" />
@@ -207,9 +257,11 @@
     <EntitySet Name="Caduca" EntityType="Self.Caduca" Schema="dbo" store:Type="Tables" />
     <EntitySet Name="DetalleProducto" EntityType="Self.DetalleProducto" Schema="dbo" store:Type="Tables" />
     <EntitySet Name="Periodo" EntityType="Self.Periodo" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="PeriodoConUnidad" EntityType="Self.PeriodoConUnidad" Schema="dbo" store:Type="Tables" />
     <EntitySet Name="Producto" EntityType="Self.Producto" Schema="dbo" store:Type="Tables" />
     <EntitySet Name="ProductoConDetalles" EntityType="Self.ProductoConDetalles" Schema="dbo" store:Type="Tables" />
     <EntitySet Name="Tienda" EntityType="Self.Tienda" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="UnidadMedida" EntityType="Self.UnidadMedida" Schema="dbo" store:Type="Tables" />
     <EntitySet Name="Usuario" EntityType="Self.Usuario" Schema="dbo" store:Type="Tables" />
     <AssociationSet Name="fk_Almacena_Producto" Association="Self.fk_Almacena_Producto">
       <End Role="Producto" EntitySet="Producto" />
@@ -234,6 +286,14 @@
     <AssociationSet Name="fk_Caduca_Tienda_Id" Association="Self.fk_Caduca_Tienda_Id">
       <End Role="Tienda" EntitySet="Tienda" />
       <End Role="Caduca" EntitySet="Caduca" />
+    </AssociationSet>
+    <AssociationSet Name="fk_PeriodoConUnidad_Periodo" Association="Self.fk_PeriodoConUnidad_Periodo">
+      <End Role="Periodo" EntitySet="Periodo" />
+      <End Role="PeriodoConUnidad" EntitySet="PeriodoConUnidad" />
+    </AssociationSet>
+    <AssociationSet Name="fk_PeriodoConUnidad_UnidadMedida" Association="Self.fk_PeriodoConUnidad_UnidadMedida">
+      <End Role="UnidadMedida" EntitySet="UnidadMedida" />
+      <End Role="PeriodoConUnidad" EntitySet="PeriodoConUnidad" />
     </AssociationSet>
     <AssociationSet Name="fk_ProductoConDetalles_IdDetalleProducto" Association="Self.fk_ProductoConDetalles_IdDetalleProducto">
       <End Role="DetalleProducto" EntitySet="DetalleProducto" />

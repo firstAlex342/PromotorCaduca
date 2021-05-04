@@ -18,6 +18,7 @@ namespace ControlCaducidadesPromotor.AccesoADatos
         public Periodo()
         {
             this.Caduca = new HashSet<Caduca>();
+            this.PeriodoConUnidad = new HashSet<PeriodoConUnidad>();
         }
     
         public int Id { get; set; }
@@ -28,8 +29,11 @@ namespace ControlCaducidadesPromotor.AccesoADatos
         public int IdUsuarioModifico { get; set; }
         public System.DateTime FechaModificacion { get; set; }
         public bool Activo { get; set; }
+        public bool Vigente { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Caduca> Caduca { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<PeriodoConUnidad> PeriodoConUnidad { get; set; }
     }
 }

@@ -1,0 +1,226 @@
+﻿
+@{
+    ViewBag.Title = "AgregarCaducidad";
+    Layout = "~/Views/Shared/MiLayout.cshtml";
+}
+
+
+
+@section MisFuncionesJavaScript
+{
+    <script type="text/javascript">
+        'use strict';
+        var x = $(document);
+        x.ready(InicializarEventos);
+
+        function InicializarEventos() {
+            RecuperarYMostrarTiendasDeUsuario()
+            EstilizarConDataTables('#miTablaProductosEnTienda');
+
+            $(".form_date").datetimepicker({
+                language: 'es',
+                weekStart: 1,
+                todayBtn: 1,
+                autoclose: 1,
+                todayHighlight: 1,
+                startView: 2,
+                minView: 2,
+                forceParse: 0
+            });
+
+        }
+
+
+
+        function RecuperarYMostrarTiendasDeUsuario() {
+            $('#tiendasRecuperadas').empty();
+
+            //solicutud ajax sin parametros
+            $.ajax({
+                url: "/Tienda/RecuperarTiendasDeUsuario",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var html = '';
+                    $.each(result, function (key, item) {
+                        html = '<div class="radio">';
+                        html += '<label>';
+                        html += '<input type="radio" ';
+                        html += 'onclick="RecuperarProductosDeTienda(this)" ';
+                        html += 'name = "radioTiendas" value = "' + item.Id + '"/>' + item.Nombre;
+                        html += '</label> </div>';
+                        $('#tiendasRecuperadas').append(html);
+                    });
+
+                },
+                error: function (errormessage) {
+                    //QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');     //<------corregir esto
+                    //QuitarPropsDataTableYVaciar('#miTablaProductosDisponibles');
+                    //$('#tiendasRecuperadas').html('');
+
+                    //DeshabilitarBtnAgregar();
+                    //alert(errormessage.responseText);
+                }
+            });
+        }
+
+
+        function RecuperarProductosDeTienda(control) {
+            //alert(control.value);
+            $.ajax({
+                url: "/Tienda/RecuperarProductosDeTiendaXId?idTienda=" + control.value,
+                //data: { 'idTienda': control.value },  // asegurate que asi se serialize un entero
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var objetoDataTable = $('#miTablaProductosEnTienda').DataTable();  //Genero un objeto dataTable
+                    objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+                    $('#miTablaProductosEnTienda').hide();
+                    $('#miTablaProductosEnTienda tbody').empty();  //destruyo el contenido
+                    var html = '';
+
+                    $.each(result, function (key, item) {
+                        var miFechaAlta = new Date(parseInt(item.Almacena_FechaAlta.substr(6)));
+                        var miFechaModificacion = new Date(parseInt(item.Almacena_FechaModificacion.substr(6)));
+
+                        html = '<tr>';
+                        html += '<td>' + '<input type="checkbox"/>' + '</td>';
+                        html += '<td>' + item.Almacena_IdTienda + '</td>'; /*era style="display:none;"*/
+                        html += '<td>' + item.Almacena_IdProducto + '</td>'; /*style = "display:none;"*/
+                        html += '<td>' + miFechaAlta + '</td>';  /*style = "display:none;"*/
+                        html += '<td>' + miFechaModificacion + '</td>'; /*style = "display:none;"*/
+                        html += '<td>' + item.Producto_Id + '</td>';  /*style = "display:none;"*/
+                        html += '<td>' + item.Producto_CodigoBarras + '</td>';
+                        html += '<td>' + item.ProductoConDetalles_IdProducto + '</td>'; /*style = "display:none;"*/
+                        html += '<td>' + item.ProductoConDetalles_IdDetalleProducto + '</td>'; /*style = "display:none;"*/
+                        html += '<td>' + item.DetalleProducto_Id + '</td>'; /*style = "display:none;"*/
+                        html += '<td>' + item.DetalleProducto_Nombre + '</td>';
+                        html += '<td>' + item.DetalleProducto_IdUsuarioAlta + '</td>';  /*style = "display:none;"*/
+
+                        html += '</tr>';
+
+                        $('#miTablaProductosEnTienda tbody').append(html);
+                    });
+
+                    $('#miTablaProductosEnTienda').show();
+                    EstilizarConDataTables('#miTablaProductosEnTienda');
+                },
+                error: function (errormessage) {
+                    //QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
+                    //QuitarPropsDataTableYVaciar('#miTablaProductosDisponibles');
+                    //$('#tiendasRecuperadas').html('');
+
+                    //DeshabilitarBtnAgregar();
+                    alert(errormessage.responseText);
+                }
+            })
+        }
+
+
+        function EstilizarConDataTables(nomTabla) {
+            //https://datatables.net/manual/data/
+            var objetoDataTable = $(nomTabla).DataTable();  //Genero un objeto dataTable
+            objetoDataTable.destroy(); //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+
+            if (nomTabla === '#miTablaProductosEnTienda') {
+                $(nomTabla).DataTable({
+                    language: {
+                        url: '../Scripts/DataTables/Spanish.json'
+                    },
+                    columnDefs: [{ visible: false, targets: [1, 2, 3, 4, 5, 7, 8, 9, 11] },
+                    { searchable: false, targets: [0, 1, 2, 3, 4, 5, 7, 8, 9, 11] }] //https://datatables.net/reference/option/columns.searchable
+                });
+            }
+        }
+
+    </script>
+}
+
+
+@section Contenido
+{
+    <h3>Agregar caducidad</h3>
+
+    <div class="row">
+        <div class="col-sm-2">
+            <h4>Mis tiendas</h4>
+            <div id="tiendasRecuperadas"></div>
+        </div>
+
+        <div class="col-sm-5">
+            <h4>Productos en tienda</h4>
+
+            <div class="table-responsive">
+                @*NO le asignes clases bootstrap a la table porque DataTables la personalizara*@
+                @*Despues vi que si funciona usar clases bootstrap 3  https://datatables.net/examples/styling/bootstrap*@
+                <table id="miTablaProductosEnTienda" class="table table-striped" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Selección</th>
+                            <th>Almacena_IdTienda</th>  @*era th style="display:none;"*@
+                            <th>Almacena_IdProducto</th> @*era th style="display:none;"*@
+                            <th>Almacena_FechaAlta</th>
+                            <th>Almacena_FechaModificacion</th>
+                            <th>Producto_Id</th> @*era th style="display:none;"*@
+                            <th>Producto_CodigoBarras</th>
+                            <th>ProductoConDetalles_IdProducto</th> @*era th style="display:none;"*@
+                            <th>ProductoConDetalles_IdDetalleProducto</th> @*era th style="display:none;"*@
+                            <th>DetalleProducto_Id</th> @*era th style="display:none;"*@
+                            <th>Producto_Nombre </th>
+                            <th>DetalleProducto_IdUsuarioAlta</th>  @*era th style="display:none;"*@
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-sm-5">
+            <h4>Detalles</h4>
+
+            <div class="form-group">
+                <label for="dtp_input2" class="col-sm-4 control-label">Fecha de caducidad</label>
+                <div class="input-group date form_date col-sm-8" data-date="" data-date-format="dd MM yyyy" data-link-field="dtp_input2" data-link-format="yyyy-mm-dd">
+                    <input class="form-control" size="16" type="text" value="" readonly>
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+                </div>
+                <input type="hidden" id="dtp_input2" value="" /><br />
+            </div>
+
+
+
+            <div class="form-group">
+                <label for="numeroUnidades" class="col-sm-4 control-label">Número de unidades</label>
+                <div class="col-sm-8 input-group"><input type="text" class="form-control" id="numeroUnidades" /></div>
+            </div>
+
+            <div class="form-group">
+                <label for="tipoUnidad" class="col-sm-4 control-label">Tipo de unidad</label>
+                <div class="col-sm-8 input-group">
+                    <select class="form-control" id="tipoUnidad">
+                        <option>Caja</option>
+                        <option>Pieza</option>
+                        <option>Tarima</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="margin-top:30px">
+        <div class="col-sm-12">
+            <div class="pull-right">
+                <button type="button" id="btnAgregarCaducidad" class="btn btn-primary">Agregar caducidad</button>
+            </div>
+        </div>
+    </div>
+}
+
+
+@section Footer
+{ El footer
+}
+

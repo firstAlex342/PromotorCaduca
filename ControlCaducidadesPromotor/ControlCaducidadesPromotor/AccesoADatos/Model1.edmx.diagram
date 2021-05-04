@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="e2ee0396e712481b97373fb94be7e592" Name="Diagram1" ZoomLevel="82">
+      <Diagram DiagramId="e2ee0396e712481b97373fb94be7e592" Name="Diagram1" ZoomLevel="61">
         <EntityTypeShape EntityType="palominoModel.Producto" Width="1.5" PointX="8" PointY="1.625" IsExpanded="true" />
         <EntityTypeShape EntityType="palominoModel.DetalleProducto" Width="1.5" PointX="9.125" PointY="4.75" />
         <EntityTypeShape EntityType="palominoModel.ProductoConDetalles" Width="1.5" PointX="5.75" PointY="5.125" />
@@ -24,6 +24,10 @@
         <AssociationConnector Association="palominoModel.fk_Caduca_Tienda_Id" ManuallyRouted="false" >
         </AssociationConnector>
         <EntityTypeShape EntityType="palominoModel.Usuario" Width="1.5" PointX="0.625" PointY="1" />
+        <EntityTypeShape EntityType="palominoModel.PeriodoConUnidad" Width="2.375" PointX="15.75" PointY="2.125" />
+        <EntityTypeShape EntityType="palominoModel.UnidadMedida" Width="1.5" PointX="14.875" PointY="5.5" />
+        <AssociationConnector Association="palominoModel.fk_PeriodoConUnidad_Periodo" />
+        <AssociationConnector Association="palominoModel.fk_PeriodoConUnidad_UnidadMedida" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

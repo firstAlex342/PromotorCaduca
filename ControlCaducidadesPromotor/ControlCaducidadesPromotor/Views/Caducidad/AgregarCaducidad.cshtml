@@ -28,6 +28,8 @@
                 forceParse: 0
             });
 
+
+            $('#btnAgregarCaducidad').click(AgregarNuevaCaducidad);
         }
 
 
@@ -86,7 +88,7 @@
                         var miFechaModificacion = new Date(parseInt(item.Almacena_FechaModificacion.substr(6)));
 
                         html = '<tr>';
-                        html += '<td>' + '<input type="checkbox"/>' + '</td>';
+                        html += '<td>' + '<input type="checkbox" id="idCheckBox' + item.Producto_Id + '"/></td>';
                         html += '<td>' + item.Almacena_IdTienda + '</td>'; /*era style="display:none;"*/
                         html += '<td>' + item.Almacena_IdProducto + '</td>'; /*style = "display:none;"*/
                         html += '<td>' + miFechaAlta + '</td>';  /*style = "display:none;"*/
@@ -129,10 +131,218 @@
                     language: {
                         url: '../Scripts/DataTables/Spanish.json'
                     },
-                    columnDefs: [{ visible: false, targets: [1, 2, 3, 4, 5, 7, 8, 9, 11] },
-                    { searchable: false, targets: [0, 1, 2, 3, 4, 5, 7, 8, 9, 11] }] //https://datatables.net/reference/option/columns.searchable
+                    columnDefs: [/*{ visible: false, targets: [1, 2, 3, 4, 5, 7, 8, 9, 11] },*/
+                        { searchable: false, targets: [0, 1, 2, 3, 4, 5, 7, 8, 9, 11] }] //https://datatables.net/reference/option/columns.searchable
                 });
             }
+        }
+
+
+        function AgregarNuevaCaducidad() {
+            var posiblesErrores = EstaSeleccionadoCheckBoxYEstaElegidaFechaYEstaElegidoNumeroUnidades();
+            if (posiblesErrores.length > 0) {  //Verifico que selecciono algún checkBox, seleccioon fecha y captura un numero de unidades
+                $('#textoModal p').text(posiblesErrores);
+                $('#myModal').modal('show'); //https://stackoverflow.com/questions/13183630/how-to-open-a-bootstrap-modal-window-using-jquery
+            }
+
+            else {
+
+                //Extraer info de la fecha, numero de unidades, tipo de unidad seleccionada
+                var fechaDeCaducidad = $('#laFechaDeCaducidad').val();
+                fechaDeCaducidad = fechaDeCaducidad.replace(' ', '/'); // si esta 15 Mayo 2020, regresa 15/Mayo 2020
+                fechaDeCaducidad = fechaDeCaducidad.replace(' ', '/');  //Si esta 15/Mayo 2020, regresa 15/Mayo/2020
+                fechaDeCaducidad = fechaDeCaducidad + ' 11:59:59 p.m.'; //La cadena queda en el formato 15/Mayo/2020 11:59:59 p.m.
+                fechaDeCaducidad = SubstituirPalabraMesConNumero(fechaDeCaducidad); //La cadena queda en el formato 15/05/2021 11:59:59 p.m.
+
+                var auxFechaDeCaducidad = new FechaHoraSinMiliSegundos(fechaDeCaducidad);
+
+                var numeroDeUnidades = $('#numeroUnidades').val();
+                var controlSelect = document.getElementById('tipoUnidad');
+                var valorDeItemSeleccionado = controlSelect.options[controlSelect.selectedIndex].value;
+
+                //Recorrer la lista de productos en tienda
+                var i;
+                var numeroDeFilasEnTablaProductosEnTienda;
+                numeroDeFilasEnTablaProductosEnTienda = document.getElementById('miTablaProductosEnTienda').rows.length;
+
+                var arregloDeProductosConFechaCaducidad = new Array();
+                for (i = 1; i < numeroDeFilasEnTablaProductosEnTienda; i++) { //la fila 0 de la tabla viene siendo la del titulo de la columna
+                    var textoProductoId = document.getElementById('miTablaProductosEnTienda').rows[i].cells[2].childNodes[0].nodeValue;
+                    var idChkBoxARecuperar = 'idCheckBox' + textoProductoId;
+                    if (document.getElementById(idChkBoxARecuperar).checked) {
+                        //crear tupla
+                        var objetoASerializar = {
+                            MiCaducaViewModel: {
+                                IdProducto: document.getElementById('miTablaProductosEnTienda').rows[i].cells[2].childNodes[0].nodeValue,
+                                IdDetalleProducto: document.getElementById('miTablaProductosEnTienda').rows[i].cells[9].childNodes[0].nodeValue,
+                                IdTienda: document.getElementById('miTablaProductosEnTienda').rows[i].cells[1].childNodes[0].nodeValue,
+                                IdUsuarioAlta: document.getElementById('miTablaProductosEnTienda').rows[i].cells[11].childNodes[0].nodeValue
+                            },
+                            MiPeriodoViewModel: {
+                                FechaCaducidad: auxFechaDeCaducidad.GenerarEnSintaxisCadena(),
+                                NumeroUnidades: numeroDeUnidades,
+                            },
+                            MiUnidadMedidaViewModel: {
+                                Id: valorDeItemSeleccionado
+                            },
+                            MiTiendaViewModel: {
+                                Supmza: 'supmza',
+                                Manzana: 'manzana',
+                                Lote: 'lote',
+                                Calle: 'calle',
+                                Nombre: 'nombre'
+                            },
+                            MiProductoViewModel: {
+                                CodigoBarras: '???',
+                                Nombre: '???'
+                            }
+                        };
+
+                        arregloDeProductosConFechaCaducidad.push(objetoASerializar);
+                    }
+                }
+
+
+                $.ajax({
+                    url: "/Caducidad/InsertarNuevaCaducidad",
+                    data: JSON.stringify(arregloDeProductosConFechaCaducidad),
+                    type: "POST",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    success: function (result) {
+                        alert(result);
+                    },
+                    beforeSend: function () {
+                        $('#imagenWaiting').attr('style', '');
+
+                    },
+
+                    complete: function () {
+                        $('#imagenWaiting').attr('style', 'display:none');
+                    },
+                    error: function (errormessage) {
+                        //QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
+                        //QuitarPropsDataTableYVaciar('#miTablaProductosDisponibles');
+                        //$('#tiendasRecuperadas').html('');
+
+                        //DeshabilitarBtnAgregar();
+                        alert(errormessage.responseText);
+                    }
+                });
+            }
+        }
+
+        function SubstituirPalabraMesConNumero(texto) {
+            if (texto.indexOf('Enero') != -1) {
+                var nuevoTexto = texto.replace('Enero', '01');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Febrero') != -1) {
+                var nuevoTexto = texto.replace('Febrero', '02');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Marzo') != -1) {
+                var nuevoTexto = texto.replace('Marzo', '03');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Abril') != -1) {
+                var nuevoTexto = texto.replace('Abril', '04');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Mayo') != -1) {
+                var nuevoTexto = texto.replace('Mayo', '05');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Junio') != -1) {
+                var nuevoTexto = texto.replace('Junio', '06');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Julio') != -1) {
+                var nuevoTexto = texto.replace('Julio', '07');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Agosto') != -1) {
+                var nuevoTexto = texto.replace('Agosto', '08');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Septiembre') != -1) {
+                var nuevoTexto = texto.replace('Septiembre', '09');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Octubre') != -1) {
+                var nuevoTexto = texto.replace('Octubre', '10');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Noviembre') != -1) {
+                var nuevoTexto = texto.replace('Noviembre', '11');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Diciembre') != -1) {
+                var nuevoTexto = texto.replace('Diciembre', '12');
+                return (nuevoTexto);
+            }
+        }
+
+
+
+        function ContarCheckBoxesSeleccionados() {
+            var numChkBoxesSeleccionados = 0;
+            var i;
+            for (i = 1; i < document.getElementById('miTablaProductosEnTienda').rows.length; i++) {
+                if (document.getElementById('miTablaProductosEnTienda').rows[i].cells[0].childNodes[0].checked) {
+                    numChkBoxesSeleccionados++;
+                }
+            }
+
+            return (numChkBoxesSeleccionados);
+        }
+
+
+        function EstaSeleccionadoCheckBoxYEstaElegidaFechaYEstaElegidoNumeroUnidades() {
+            var numeroDeCheckBoxsSeleccionado;
+            var fechaDeCaducidad = $('#laFechaDeCaducidad').val();
+            var numeroDeUnidades = $('#numeroUnidades').val();
+            var posiblesErrores = '';
+
+
+            numeroDeCheckBoxsSeleccionado = ContarCheckBoxesSeleccionados();
+            if (numeroDeCheckBoxsSeleccionado < 1) {
+                posiblesErrores += 'Es necesario seleccionar algún producto.';
+            }
+
+
+            if (fechaDeCaducidad.length < 5) {
+                posiblesErrores += ' Es necesario elegir una fecha de caducidad.'
+            }
+
+            if (numeroDeUnidades.length >= 1) {
+                if (isNaN(numeroDeUnidades)) {
+                    posiblesErrores += ' Introduzca un valor válido para el numero de unidades.';
+                }
+
+                else {
+                    if (parseInt(numeroDeUnidades) == 0) {
+                        posiblesErrores += ' Introduzca un valor válido para el número de unidades.';
+                    }
+                }
+            }
+
+            else {
+                posiblesErrores += ' Introduzca un valor válido para el numero de unidades.';
+            }
+
+            return (posiblesErrores);
         }
 
     </script>
@@ -183,7 +393,7 @@
             <div class="form-group">
                 <label for="dtp_input2" class="col-sm-4 control-label">Fecha de caducidad</label>
                 <div class="input-group date form_date col-sm-8" data-date="" data-date-format="dd MM yyyy" data-link-field="dtp_input2" data-link-format="yyyy-mm-dd">
-                    <input class="form-control" size="16" type="text" value="" readonly>
+                    <input class="form-control" id="laFechaDeCaducidad" size="16" type="text" value="" readonly>
                     <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
                     <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
                 </div>
@@ -201,13 +411,43 @@
                 <label for="tipoUnidad" class="col-sm-4 control-label">Tipo de unidad</label>
                 <div class="col-sm-8 input-group">
                     <select class="form-control" id="tipoUnidad">
-                        <option>Caja</option>
-                        <option>Pieza</option>
-                        <option>Tarima</option>
+                        <option value="1">Pieza</option>
+                        <option value="2">Caja</option>
+                        <option value="3">Tarima</option>
                     </select>
                 </div>
             </div>
         </div>
+    </div>
+
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Verifica lo siguiente.</h4>
+                </div>
+                <div class="modal-body" id="textoModal">
+                    <p class="text-danger">Some text in the modal.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4">
+            @* diferencia entre display vs hiden https://www.w3schools.com/css/css_display_visibility.asp*@
+            <img id="imagenWaiting" src="~/Content/MisImagenes/imgWaiting.gif" class="img-responsive center-block" style="display:none" />
+        </div>
+        <div class="col-sm-4"></div>
     </div>
 
     <div class="row" style="margin-top:30px">

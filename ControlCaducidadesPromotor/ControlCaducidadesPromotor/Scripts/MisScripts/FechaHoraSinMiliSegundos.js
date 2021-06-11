@@ -10,6 +10,7 @@
 
     this.GenerarObjetoDateSinMilisegs = GenerarObjetoDateSinMilisegs;
     this.FuckYou = FuckYou;
+    this.GenerarEnSintaxisCadena = GenerarEnSintaxisCadena;
 }
 
 
@@ -56,7 +57,7 @@ function GetSegundos() {
 
 
 function GenerarObjetoDateSinMilisegs() {        
-    //regresa un objeto javascript Date, sin milisegundos
+    //regresa un objeto javascript Date, sin milisegundos en este formato, cuya inicializacion es asi 1985-09-15T23:59:59
 
     var dia = this.GetDiaDe();
     var mes = this.GetMesDe();
@@ -67,12 +68,12 @@ function GenerarObjetoDateSinMilisegs() {
 
     var fechaHoraSInMilisegs = new Date(anio + "-" + mes + "-" + dia + "T" + horaEnFormato24Hrs + ":" + minutos + ":" + segundos);
     return (fechaHoraSInMilisegs);
-}
+}//No Usar este metodo
 
 
 
 function FuckYou(objetoDate) {
-    //¡¡¡ Regresa un objeto Date donde El dia y mes deben de estar a dos digitos  !!
+    //¡¡¡ Regresa un objeto Date donde El dia y mes deben de estar a dos digitos  !! 
     var miObjDate = new Date(objetoDate);
 
     var miDiaEnTexto;
@@ -133,6 +134,21 @@ function FuckYou(objetoDate) {
 
     var objetoDateSinMiliSegs = new Date(miAnioEnTexto + "-" + miMesEnTexto + "-" + miDiaEnTexto + "T" + miHoraEnFormato24hrs + ":" + miMinutosEnTexto + ":" + miSegundosEnTexto);
     return (objetoDateSinMiliSegs);
+}
+
+
+function GenerarEnSintaxisCadena() {
+    //Genera una cadena por ejemplo: 2015-05-02T23:50:59 , esta cadena puede ser 
+    //usada para enviar una fecha / hora a un controller API
+    var dia = this.GetDiaDe();
+    var mes = this.GetMesDe();
+    var anio = this.GetAnioDe();
+    var horaEnFormato24Hrs = this.GetHoraEnFormato24HrsDe();
+    var minutos = this.GetMinutosDe();
+    var segundos = this.GetSegundos();
+
+    var cadena = anio + "-" + mes + "-" + dia + "T" + horaEnFormato24Hrs + ":" + minutos + ":" + segundos;
+    return (cadena);
 }
 
 

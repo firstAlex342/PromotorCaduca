@@ -215,7 +215,15 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Basicos\AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM.cs" />
+    <Compile Include="Basicos\AlmacenaViewModel.cs" />
+    <Compile Include="Basicos\CaducaViewModel.cs" />
+    <Compile Include="Basicos\DetalleProductoViewModel.cs" />
+    <Compile Include="Basicos\PeriodoConUnidadViewModel.cs" />
+    <Compile Include="Basicos\PeriodoViewModel.cs" />
+    <Compile Include="Basicos\ProductoConDetallesViewModel.cs" />
     <Compile Include="Basicos\TiendasYProductosViewModel.cs" />
+    <Compile Include="Basicos\TiendaJoinCaducidadesViewModel.cs" />
+    <Compile Include="Basicos\UnidadMedidaViewModel.cs" />
     <Compile Include="Basicos\UsuarioViewModel.cs" />
     <Compile Include="Basicos\ProductoJoinProductoConDetallesJoinDetalleProductoViewModel.cs" />
     <Compile Include="Basicos\ProductoViewModel.cs" />
@@ -224,6 +232,7 @@
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\CaducidadController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\MisApis\CaducidadAPIController.cs" />
     <Compile Include="Controllers\MisApis\ProductoAPIController.cs" />
     <Compile Include="Controllers\MisApis\TiendaAPIController.cs" />
     <Compile Include="Controllers\MisApis\TiendaYProductoAPIController.cs" />

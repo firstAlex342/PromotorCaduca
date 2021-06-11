@@ -926,5 +926,96 @@ namespace ControlCaducidadesPromotor.Models
 
             return (respuesta);
         }
+
+        public string Post_AgregarNuevaCaducidad(List<TiendaJoinCaducidadesViewModel> coleccionViewModel)
+        {
+            string respuesta = "Inicializar.";
+
+            using (var ctx = new palominoEntities())
+            {
+                using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                {
+                    try
+                    {
+                        TiendaJoinCaducidadesViewModel itemTiendaJoinCaducidadesViewModel = coleccionViewModel.First();
+                        RelojServidor relojServidor = new RelojServidor();
+                        DateTime fechaHoraEnServidor = relojServidor.RegresarHoraEnServidor();
+
+                        //Obtener nuevo id para tabla Periodo
+                        var idsPeriodo = (from item in ctx.Periodo
+                                   select item.Id).ToList();
+
+                        var nuevoIdDePeriodo = idsPeriodo.Count == 0 ? 1 : (idsPeriodo.Max() + 1);
+                        
+                        //Creo un item en Periodo
+                        Periodo periodo = new Periodo(); 
+                        periodo.Id = nuevoIdDePeriodo;
+                        periodo.FechaCaducidad = itemTiendaJoinCaducidadesViewModel.MiPeriodoViewModel.FechaCaducidad;
+                        periodo.NumeroUnidades = itemTiendaJoinCaducidadesViewModel.MiPeriodoViewModel.NumeroUnidades;
+                        periodo.Vigente = true;
+                        periodo.IdUsuarioAlta = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
+                        periodo.IdUsuarioModifico = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
+                        periodo.FechaAlta = fechaHoraEnServidor;
+                        periodo.FechaModificacion = fechaHoraEnServidor;
+                        periodo.Activo = true;
+
+                        ctx.Periodo.Add(periodo);
+                        ctx.SaveChanges();
+
+
+                        //Creo un item en PeriodoConunidad
+                        PeriodoConUnidad periodoConUnidad = new PeriodoConUnidad();
+                        periodoConUnidad.IdPeriodo = nuevoIdDePeriodo;
+                        periodoConUnidad.IdUnidad = itemTiendaJoinCaducidadesViewModel.MiUnidadMedidaViewModel.Id;
+                        periodoConUnidad.IdUsuarioAlta = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
+                        periodoConUnidad.IdUsuarioModifico = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
+                        periodoConUnidad.FechaAlta = fechaHoraEnServidor;
+                        periodoConUnidad.FechaModificacion = fechaHoraEnServidor;
+                        periodoConUnidad.Activo = true;
+
+                        ctx.PeriodoConUnidad.Add(periodoConUnidad);
+                        ctx.SaveChanges();
+
+                        coleccionViewModel.ForEach(item =>
+                            {
+                                Caduca caduca = new Caduca();
+                                caduca.IdProducto = item.MiCaducaViewModel.IdProducto;
+                                caduca.IdDetalleProducto = item.MiCaducaViewModel.IdDetalleProducto;
+                                caduca.IdPeriodo = nuevoIdDePeriodo;
+                                caduca.IdTienda = item.MiCaducaViewModel.IdTienda;
+                                caduca.IdUsuarioAlta = item.MiCaducaViewModel.IdUsuarioAlta;
+                                caduca.IdUsuarioModifico = item.MiCaducaViewModel.IdUsuarioAlta;
+                                caduca.FechaAlta = fechaHoraEnServidor;
+                                caduca.FechaModificacion = fechaHoraEnServidor;
+                                caduca.Activo = true;
+
+                                ctx.Caduca.Add(caduca);
+                                ctx.SaveChanges();
+                            }
+                        );
+
+                        respuesta = "ok";
+
+                        if (respuesta.Contains("ok"))
+                        {
+                            dbContextTransaction.Commit();
+                        }
+
+                        else
+                        {
+                            dbContextTransaction.Rollback();
+                        }
+                    }
+
+                    catch(Exception ex)
+                    {
+                        dbContextTransaction.Rollback();
+                        throw new Exception("Excepcion lanzada y cachada en TiendaLN.Post_AgregarNuevaCaducidad", ex);
+                    }
+                }
+            }
+
+            return (respuesta);
+        }
     }
 }

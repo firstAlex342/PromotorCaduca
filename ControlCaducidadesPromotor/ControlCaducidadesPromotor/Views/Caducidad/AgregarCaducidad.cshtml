@@ -22,7 +22,7 @@
                 weekStart: 1,
                 todayBtn: 1,
                 autoclose: 1,
-                todayHighlight: 1,
+                todayHighlight: 0,
                 startView: 2,
                 minView: 2,
                 forceParse: 0
@@ -57,12 +57,11 @@
 
                 },
                 error: function (errormessage) {
-                    //QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');     //<------corregir esto
-                    //QuitarPropsDataTableYVaciar('#miTablaProductosDisponibles');
-                    //$('#tiendasRecuperadas').html('');
+                    QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
+                    $('#tiendasRecuperadas').html('');
 
-                    //DeshabilitarBtnAgregar();
-                    //alert(errormessage.responseText);
+                    DeshabilitarBtnAgregar();
+                    alert(errormessage.responseText);
                 }
             });
         }
@@ -110,11 +109,10 @@
                     EstilizarConDataTables('#miTablaProductosEnTienda');
                 },
                 error: function (errormessage) {
-                    //QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
-                    //QuitarPropsDataTableYVaciar('#miTablaProductosDisponibles');
-                    //$('#tiendasRecuperadas').html('');
+                    QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
+                    $('#tiendasRecuperadas').html('');
 
-                    //DeshabilitarBtnAgregar();
+                    DeshabilitarBtnAgregar();
                     alert(errormessage.responseText);
                 }
             })
@@ -131,16 +129,32 @@
                     language: {
                         url: '../Scripts/DataTables/Spanish.json'
                     },
-                    columnDefs: [/*{ visible: false, targets: [1, 2, 3, 4, 5, 7, 8, 9, 11] },*/
-                        { searchable: false, targets: [0, 1, 2, 3, 4, 5, 7, 8, 9, 11] }] //https://datatables.net/reference/option/columns.searchable
+                    columnDefs: [{ visible: false, targets: [1, 2, 3, 4, 5, 7, 8, 9, 11] },
+                    { searchable: false, targets: [0, 1, 2, 3, 4, 5, 7, 8, 9, 11] }] //https://datatables.net/reference/option/columns.searchable
                 });
             }
         }
 
 
         function AgregarNuevaCaducidad() {
+            $('#tiendasRecuperadas').hide();
+            $('#controlesAdicionales').hide();
+            $('#btnAgregarCaducidad').hide();
+
+            //Desconecto de las propiedades DataTable para poder ocultar la tabla
+            var objetoDataTable = $('#miTablaProductosEnTienda').DataTable();
+            objetoDataTable.destroy(); //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+            $('#miTablaProductosEnTienda').hide();
+
+
             var posiblesErrores = EstaSeleccionadoCheckBoxYEstaElegidaFechaYEstaElegidoNumeroUnidades();
             if (posiblesErrores.length > 0) {  //Verifico que selecciono algún checkBox, seleccioon fecha y captura un numero de unidades
+                $('#tiendasRecuperadas').show();
+                $('#controlesAdicionales').show();
+                $('#miTablaProductosEnTienda').show();
+                EstilizarConDataTables('#miTablaProductosEnTienda');
+                $('#btnAgregarCaducidad').show();
+
                 $('#textoModal p').text(posiblesErrores);
                 $('#myModal').modal('show'); //https://stackoverflow.com/questions/13183630/how-to-open-a-bootstrap-modal-window-using-jquery
             }
@@ -169,6 +183,7 @@
                 for (i = 1; i < numeroDeFilasEnTablaProductosEnTienda; i++) { //la fila 0 de la tabla viene siendo la del titulo de la columna
                     var textoProductoId = document.getElementById('miTablaProductosEnTienda').rows[i].cells[2].childNodes[0].nodeValue;
                     var idChkBoxARecuperar = 'idCheckBox' + textoProductoId;
+                    //alert('elemeto recuperado' + idChkBoxARecuperar);
                     if (document.getElementById(idChkBoxARecuperar).checked) {
                         //crear tupla
                         var objetoASerializar = {
@@ -210,22 +225,32 @@
                     contentType: "application/json;charset=utf-8",
                     dataType: "json",
                     success: function (result) {
-                        alert(result);
+                        $('#imagenWaiting').attr('style', 'display:none');
+
+                        //alert(result);
+                        $('#textoDeModal2 p').text(result);
+                        $('#myModal2').modal('show'); //https://stackoverflow.com/questions/13183630/how-to-open-a-bootstrap-modal-window-using-jquery
+
+                        $('#tiendasRecuperadas').show();
+                        RecuperarYMostrarTiendasDeUsuario();
+                        $('#miTablaProductosEnTienda tbody').empty();  //destruyo el contenido
+                        $('#miTablaProductosEnTienda').show();
+                        EstilizarConDataTables('#miTablaProductosEnTienda');
+                        $('#controlesAdicionales').show();
+                        $('#laFechaDeCaducidad').val('');
+                        $('#numeroUnidades').val('');
+                        document.getElementById('tipoUnidad').selectedIndex = '0';
+                        $('#btnAgregarCaducidad').show();
                     },
                     beforeSend: function () {
                         $('#imagenWaiting').attr('style', '');
-
                     },
 
                     complete: function () {
-                        $('#imagenWaiting').attr('style', 'display:none');
+                        //Called after runtime call success and error functions
                     },
                     error: function (errormessage) {
-                        //QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
-                        //QuitarPropsDataTableYVaciar('#miTablaProductosDisponibles');
-                        //$('#tiendasRecuperadas').html('');
-
-                        //DeshabilitarBtnAgregar();
+                        DeshabilitarBtnAgregar();
                         alert(errormessage.responseText);
                     }
                 });
@@ -345,6 +370,19 @@
             return (posiblesErrores);
         }
 
+
+        function QuitarPropsDataTableYVaciar(nomTabla) {  //recuerda que nomTabla debe venir en formato: #nomTabla
+            var objetoDataTable = $(nomTabla).DataTable();
+            objetoDataTable.destroy(); //desconecto la tabla de las propiedades datatabla, paso necesario para modificar la tabla
+            $(nomTabla).html('');
+        }
+
+
+        function DeshabilitarBtnAgregar() {
+            $('#btnAgregarCaducidad').attr('disabled', 'disabled');
+        }
+
+
     </script>
 }
 
@@ -384,37 +422,45 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+
             </div>
         </div>
 
         <div class="col-sm-5">
             <h4>Detalles</h4>
-
-            <div class="form-group">
-                <label for="dtp_input2" class="col-sm-4 control-label">Fecha de caducidad</label>
-                <div class="input-group date form_date col-sm-8" data-date="" data-date-format="dd MM yyyy" data-link-field="dtp_input2" data-link-format="yyyy-mm-dd">
-                    <input class="form-control" id="laFechaDeCaducidad" size="16" type="text" value="" readonly>
-                    <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
-                    <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+            <div id="controlesAdicionales">
+                <div class="form-group">
+                    <label for="dtp_input2" class="control-label">Fecha de caducidad</label>
+                    <div class="input-group date form_date" data-date="" data-date-format="dd MM yyyy" data-link-field="dtp_input2" data-link-format="yyyy-mm-dd">
+                        <input class="form-control" id="laFechaDeCaducidad" size="16" type="text" value="" readonly>
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+                    </div>
+                    <input type="hidden" id="dtp_input2" value="" /><br />
                 </div>
-                <input type="hidden" id="dtp_input2" value="" /><br />
-            </div>
 
 
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label for="numeroUnidades" class="control-label">Número de unidades</label>
+                            <input type="text" class="form-control" id="numeroUnidades" />
+                        </div>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label for="numeroUnidades" class="col-sm-4 control-label">Número de unidades</label>
-                <div class="col-sm-8 input-group"><input type="text" class="form-control" id="numeroUnidades" /></div>
-            </div>
 
-            <div class="form-group">
-                <label for="tipoUnidad" class="col-sm-4 control-label">Tipo de unidad</label>
-                <div class="col-sm-8 input-group">
-                    <select class="form-control" id="tipoUnidad">
-                        <option value="1">Pieza</option>
-                        <option value="2">Caja</option>
-                        <option value="3">Tarima</option>
-                    </select>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label for="tipoUnidad" class="control-label">Tipo de unidad</label>
+                            <select class="form-control" id="tipoUnidad">
+                                <option value="1">Pieza</option>
+                                <option value="2">Caja</option>
+                                <option value="3">Tarima</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -441,6 +487,27 @@
     </div>
 
 
+    <div id="myModal2" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Felicitaciones</h4>
+                </div>
+                <div class="modal-body" id="textoDeModal2">
+                    <p>Aqui va un texto para el modal</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
     <div class="row">
         <div class="col-sm-4"></div>
         <div class="col-sm-4">
@@ -449,6 +516,7 @@
         </div>
         <div class="col-sm-4"></div>
     </div>
+
 
     <div class="row" style="margin-top:30px">
         <div class="col-sm-12">

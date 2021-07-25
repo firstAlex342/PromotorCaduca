@@ -936,75 +936,172 @@ namespace ControlCaducidadesPromotor.Models
                 using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
                 {
                     try
-                    {
+                    {   
+
                         TiendaJoinCaducidadesViewModel itemTiendaJoinCaducidadesViewModel = coleccionViewModel.First();
                         RelojServidor relojServidor = new RelojServidor();
                         DateTime fechaHoraEnServidor = relojServidor.RegresarHoraEnServidor();
 
-                        //Obtener nuevo id para tabla Periodo
-                        var idsPeriodo = (from item in ctx.Periodo
-                                   select item.Id).ToList();
+                        //Verificar que estan activos: la tienda, usuario, producto y detalleProducto
+                        RulesEngineLN rulesEngineLN = new RulesEngineLN();
+                        var resumenUsuarios = (from s in ctx.Usuario
+                                           select new UsuarioViewModel { Id = s.Id, Activo = s.Activo }).ToList();
 
-                        var nuevoIdDePeriodo = idsPeriodo.Count == 0 ? 1 : (idsPeriodo.Max() + 1);
+                        bool esActivoUsuarioOperador = rulesEngineLN.EsActivoIdUsuario(resumenUsuarios, itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta);
+
+                        var resumenTiendas = (from s in ctx.Tienda
+                                             select new TiendaViewModel { Id = s.Id, Supmza = "", Manzana = "", Lote = "",
+                                             Calle = "", Nombre = "", IdUsuarioAlta = 0, IdUsuarioModifico = 0,
+                                             FechaAlta = DateTime.MinValue, FechaModificacion = DateTime.MinValue,
+                                             Activo = s.Activo}).ToList();
+
+                        bool esActivaTienda = rulesEngineLN.EsActivaTienda(resumenTiendas, itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdTienda);
+
+                        var resumenAlmacena = (from s in ctx.Almacena
+                                               select new AlmacenaViewModel { IdTienda = s.IdTienda, IdProducto = s.IdProducto, Activo = s.Activo }).ToList();
+
+                        bool estanActivosTodosProductosEnTienda = rulesEngineLN.EstanActivosTodosLosProductosEnTienda(coleccionViewModel, resumenAlmacena);
                         
-                        //Creo un item en Periodo
-                        Periodo periodo = new Periodo(); 
-                        periodo.Id = nuevoIdDePeriodo;
-                        periodo.FechaCaducidad = itemTiendaJoinCaducidadesViewModel.MiPeriodoViewModel.FechaCaducidad;
-                        periodo.NumeroUnidades = itemTiendaJoinCaducidadesViewModel.MiPeriodoViewModel.NumeroUnidades;
-                        periodo.Vigente = true;
-                        periodo.IdUsuarioAlta = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
-                        periodo.IdUsuarioModifico = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
-                        periodo.FechaAlta = fechaHoraEnServidor;
-                        periodo.FechaModificacion = fechaHoraEnServidor;
-                        periodo.Activo = true;
+                        var resumenProducto = (from s in ctx.Producto
+                                               select new ProductoViewModel { Id = s.Id, CodigoBarras="", Nombre="", IdUsuarioAlta = 0,
+                                                   FechaAlta = DateTime.MinValue, IdUsuarioModifico = 0, FechaModificacion = DateTime.MinValue,
+                                                   Activo = s.Activo  }).ToList();
 
-                        ctx.Periodo.Add(periodo);
-                        ctx.SaveChanges();
+                        bool estanActivosTodosProductos = rulesEngineLN.EstanActivosLosProductos(coleccionViewModel, resumenProducto);
+
+                        var resumenProductoConDetalles = (from s in ctx.ProductoConDetalles
+                                                          select new ProductoConDetallesViewModel
+                                                          {
+                                                              IdProducto = s.IdProducto,
+                                                              IdDetalleProducto = s.IdDetalleProducto,
+                                                              Activo = s.Activo
+                                                          }).ToList();
+
+                        bool estaActivaRelacionEnProductoConDetalles = rulesEngineLN.EstanActivaRelacionEnProductoConDetalles(coleccionViewModel, resumenProductoConDetalles);
 
 
-                        //Creo un item en PeriodoConunidad
-                        PeriodoConUnidad periodoConUnidad = new PeriodoConUnidad();
-                        periodoConUnidad.IdPeriodo = nuevoIdDePeriodo;
-                        periodoConUnidad.IdUnidad = itemTiendaJoinCaducidadesViewModel.MiUnidadMedidaViewModel.Id;
-                        periodoConUnidad.IdUsuarioAlta = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
-                        periodoConUnidad.IdUsuarioModifico = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
-                        periodoConUnidad.FechaAlta = fechaHoraEnServidor;
-                        periodoConUnidad.FechaModificacion = fechaHoraEnServidor;
-                        periodoConUnidad.Activo = true;
+                        var resumenDetalleProductoVM = (from s in ctx.DetalleProducto
+                                                         select new DetalleProductoViewModel { Id = s.Id, Activo = s.Activo }).ToList();
 
-                        ctx.PeriodoConUnidad.Add(periodoConUnidad);
-                        ctx.SaveChanges();
+                        bool estanActivosEnDetalleProducto = rulesEngineLN.EstanActivosLosIdDetalleProducto(coleccionViewModel, resumenDetalleProductoVM);
+                        
 
-                        coleccionViewModel.ForEach(item =>
-                            {
-                                Caduca caduca = new Caduca();
-                                caduca.IdProducto = item.MiCaducaViewModel.IdProducto;
-                                caduca.IdDetalleProducto = item.MiCaducaViewModel.IdDetalleProducto;
-                                caduca.IdPeriodo = nuevoIdDePeriodo;
-                                caduca.IdTienda = item.MiCaducaViewModel.IdTienda;
-                                caduca.IdUsuarioAlta = item.MiCaducaViewModel.IdUsuarioAlta;
-                                caduca.IdUsuarioModifico = item.MiCaducaViewModel.IdUsuarioAlta;
-                                caduca.FechaAlta = fechaHoraEnServidor;
-                                caduca.FechaModificacion = fechaHoraEnServidor;
-                                caduca.Activo = true;
-
-                                ctx.Caduca.Add(caduca);
-                                ctx.SaveChanges();
-                            }
-                        );
-
-                        respuesta = "ok";
-
-                        if (respuesta.Contains("ok"))
+                        if(esActivoUsuarioOperador)
                         {
-                            dbContextTransaction.Commit();
+                            if(esActivaTienda)
+                            {
+                                if(estanActivosTodosProductosEnTienda)
+                                {
+                                    if(estanActivosTodosProductos)
+                                    {
+                                        if(estaActivaRelacionEnProductoConDetalles)
+                                        {
+                                            if(estanActivosEnDetalleProducto)
+                                            {
+                                                //Obtener nuevo id para tabla Periodo
+                                                var idsPeriodo = (from item in ctx.Periodo
+                                                                  select item.Id).ToList();
+
+                                                var nuevoIdDePeriodo = idsPeriodo.Count == 0 ? 1 : (idsPeriodo.Max() + 1);
+
+                                                //Creo un item en Periodo
+                                                Periodo periodo = new Periodo();
+                                                periodo.Id = nuevoIdDePeriodo;
+                                                periodo.FechaCaducidad = itemTiendaJoinCaducidadesViewModel.MiPeriodoViewModel.FechaCaducidad;
+                                                periodo.NumeroUnidades = itemTiendaJoinCaducidadesViewModel.MiPeriodoViewModel.NumeroUnidades;
+                                                periodo.Vigente = true;
+                                                periodo.IdUsuarioAlta = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
+                                                periodo.IdUsuarioModifico = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
+                                                periodo.FechaAlta = fechaHoraEnServidor;
+                                                periodo.FechaModificacion = fechaHoraEnServidor;
+                                                periodo.Activo = true;
+
+                                                ctx.Periodo.Add(periodo);
+                                                ctx.SaveChanges();
+
+
+                                                //Creo un item en PeriodoConunidad
+                                                PeriodoConUnidad periodoConUnidad = new PeriodoConUnidad();
+                                                periodoConUnidad.IdPeriodo = nuevoIdDePeriodo;
+                                                periodoConUnidad.IdUnidad = itemTiendaJoinCaducidadesViewModel.MiUnidadMedidaViewModel.Id;
+                                                periodoConUnidad.IdUsuarioAlta = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
+                                                periodoConUnidad.IdUsuarioModifico = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
+                                                periodoConUnidad.FechaAlta = fechaHoraEnServidor;
+                                                periodoConUnidad.FechaModificacion = fechaHoraEnServidor;
+                                                periodoConUnidad.Activo = true;
+
+                                                ctx.PeriodoConUnidad.Add(periodoConUnidad);
+                                                ctx.SaveChanges();
+
+                                                coleccionViewModel.ForEach(item =>
+                                                {
+                                                    Caduca caduca = new Caduca();
+                                                    caduca.IdProducto = item.MiCaducaViewModel.IdProducto;
+                                                    caduca.IdDetalleProducto = item.MiCaducaViewModel.IdDetalleProducto;
+                                                    caduca.IdPeriodo = nuevoIdDePeriodo;
+                                                    caduca.IdTienda = item.MiCaducaViewModel.IdTienda;
+                                                    caduca.IdUsuarioAlta = item.MiCaducaViewModel.IdUsuarioAlta;
+                                                    caduca.IdUsuarioModifico = item.MiCaducaViewModel.IdUsuarioAlta;
+                                                    caduca.FechaAlta = fechaHoraEnServidor;
+                                                    caduca.FechaModificacion = fechaHoraEnServidor;
+                                                    caduca.Activo = true;
+
+                                                    ctx.Caduca.Add(caduca);
+                                                    ctx.SaveChanges();
+                                                }
+                                                );
+
+                                                respuesta = "ok";
+
+                                                if (respuesta.Contains("ok"))
+                                                {
+                                                    dbContextTransaction.Commit();
+                                                }
+
+                                                else
+                                                {
+                                                    dbContextTransaction.Rollback();
+                                                }
+                                            }
+
+                                            else
+                                            {
+                                                respuesta = "El detalle de algún(os) producto(s) no esta(n) disponible(s) en este momento en la tabla DetalleProducto";
+                                            }
+                                        }
+
+                                        else
+                                        {
+                                            respuesta = "El detalle de algún(os) producto(s) no esta(n) disponible(s) en este momento en la tabla ProductoConDetalles";
+                                        }
+                                    }
+
+                                    else
+                                    {
+                                        respuesta = "Algún(os) producto(s) no está(n) disponible(s) en este momento";
+                                    }
+
+                                }
+
+                                else
+                                {
+                                    respuesta = "Algún(os) producto(s) no estan activos en la tienda en este momento.";
+                                }
+
+                            }
+
+                            else
+                            {
+                                respuesta = "La tienda no esta activa en este momento";
+                            }
+
                         }
 
                         else
                         {
-                            dbContextTransaction.Rollback();
+                            respuesta = "El usuario operador no esta activo en este momento";
                         }
+
                     }
 
                     catch(Exception ex)

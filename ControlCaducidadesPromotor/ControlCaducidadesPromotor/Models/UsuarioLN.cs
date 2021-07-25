@@ -78,7 +78,7 @@ namespace ControlCaducidadesPromotor.Models
                     catch(Exception ex)
                     {
                         dbContextTransaction.Rollback();
-                        throw new Exception("Excepcion lanzada y cachada en Usuario.Get_DetallesDeUsuarioXusuario");
+                        throw new Exception("Excepcion lanzada y cachada en Usuario.Get_DetallesDeUsuarioXusuario", ex);
                     }
                 }
             }
@@ -106,7 +106,7 @@ namespace ControlCaducidadesPromotor.Models
                     catch (Exception ex)
                     {
                         dbContextTransaction.Rollback();
-                        throw new Exception("Excepcion lanzada y cachada en Usuario.Get_DetallesDeUsuarioXId");
+                        throw new Exception("Excepcion lanzada y cachada en Usuario.Get_DetallesDeUsuarioXId", ex);
                     }
                 }
             }

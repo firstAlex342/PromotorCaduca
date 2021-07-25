@@ -36,7 +36,7 @@ namespace ControlCaducidadesPromotor.Controllers
                     {
                         Response.Cache.SetCacheability(HttpCacheability.NoCache);
                         Response.Cache.SetNoStore();
-                        return Json("aqui boludo", JsonRequestBehavior.AllowGet);
+                        return Json("Haz ingresado una nueva caducidad", JsonRequestBehavior.AllowGet);
                     }
 
                     else

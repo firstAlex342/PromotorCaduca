@@ -218,6 +218,7 @@
     <Compile Include="Basicos\AlmacenaViewModel.cs" />
     <Compile Include="Basicos\CaducaViewModel.cs" />
     <Compile Include="Basicos\DetalleProductoViewModel.cs" />
+    <Compile Include="Basicos\ParametroBuscarCaducidadViewModel.cs" />
     <Compile Include="Basicos\PeriodoConUnidadViewModel.cs" />
     <Compile Include="Basicos\PeriodoViewModel.cs" />
     <Compile Include="Basicos\ProductoConDetallesViewModel.cs" />
@@ -453,6 +454,7 @@
     <Content Include="Views\TiendaYProducto\AgregarProductosATienda.cshtml" />
     <Content Include="Scripts\DataTables\Spanish.json" />
     <Content Include="Views\Caducidad\AgregarCaducidad.cshtml" />
+    <Content Include="Views\Caducidad\VerCaducidad.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

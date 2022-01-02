@@ -1,0 +1,231 @@
+﻿@using ControlCaducidadesPromotor.Basicos
+@model List<TiendaViewModel>
+@{
+    ViewBag.Title = "VerCaducidad";
+    Layout = "~/Views/Shared/MiLayout.cshtml";
+}
+
+
+@section MisFuncionesJavaScript
+{
+    <script type="text/javascript">
+        'use strict';
+        var x = $(document);
+        x.ready(InicializarEventos);
+
+        function InicializarEventos() {
+            $(".form_date").datetimepicker({
+                language: 'es',
+                weekStart: 1,
+                todayBtn: 1,
+                autoclose: 1,
+                todayHighlight: 0,
+                startView: 2,
+                minView: 2,
+                forceParse: 0
+            });
+
+            $("#btnBuscar").click(BuscarCaducidades);
+        }
+
+
+        function BuscarCaducidades() {
+            //Obtener el id de la tienda
+            var controlSelect = document.getElementById('tiendasLista');
+            var idDeTienda = controlSelect.options[controlSelect.selectedIndex].value;
+            
+
+            //Extraer info de la fecha inicial
+            var fechaInicial = $('#miFechaInicial').val();
+            fechaInicial = fechaInicial.replace(' ', '/'); // si esta 15 Mayo 2020, regresa 15/Mayo 2020
+            fechaInicial = fechaInicial.replace(' ', '/');  //Si esta 15/Mayo 2020, regresa 15/Mayo/2020
+            fechaInicial = fechaInicial + ' 00:00:00 a.m.'; //La cadena queda en el formato 15/Mayo/2020 00:00:00 a.m.
+            fechaInicial = SubstituirPalabraMesConNumero(fechaInicial); //La cadena queda en el formato 15/05/2021 00:00:00 a.m.
+
+            var auxFechaDeCaducidadInicial = new FechaHoraSinMiliSegundos(fechaInicial);
+            //auxFechaDeCaducidadInicial.GenerarEnSintaxisCadena()
+
+            //Extraer info de la fecha final
+            var fechaFinal = $('#miFechaFinal').val();
+            fechaFinal = fechaFinal.replace(' ', '/');  // si esta 15 Mayo 2020, regresa 15/Mayo 2020
+            fechaFinal = fechaFinal.replace(' ', '/');  //Si esta 15/Mayo 2020, regresa 15/Mayo/2020
+            fechaFinal = fechaFinal + ' 00:00:00 a.m.'; //La cadena queda en el formato 15/Mayo/2020 00:00:00 a.m.
+            fechaFinal = SubstituirPalabraMesConNumero(fechaFinal); //La cadena queda en el formato 15/05/2021 00:00:00 a.m.
+
+            var auxFechaCaducidadFinal = new FechaHoraSinMiliSegundos(fechaFinal);
+            // auxFechaCaducidadFinal.GenerarEnSintaxisCadena();
+
+            //Se llama al controlador Caducidad.BuscarCaducidad()
+
+            var objetoASerializar = {
+                IdTienda: idDeTienda,
+                FechaInicial: auxFechaDeCaducidadInicial.GenerarEnSintaxisCadena(),
+                FechaFinal: auxFechaCaducidadFinal.GenerarEnSintaxisCadena(),
+                IdUsuarioAlta: 0,
+                FechaAlta: auxFechaCaducidadFinal.GenerarEnSintaxisCadena(),
+                IdUsuarioModifico: 0,
+                FechaModificacion: auxFechaCaducidadFinal.GenerarEnSintaxisCadena(),
+                Activo: true
+            };
+
+            $.ajax({
+                url: "/Caducidad/BuscarCaducidad",
+                data: JSON.stringify(objetoASerializar),
+                type: "POST",                   //Uso post para enviar una consulta que requiere varios datos. Se pudo usar get.
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    alert(result);
+                    //$('#imagenWaiting').attr('style', 'display:none');
+
+                    
+                    //$('#textoDeModal2 p').text(result);
+                    //$('#myModal2').modal('show'); //https://stackoverflow.com/questions/13183630/how-to-open-a-bootstrap-modal-window-using-jquery
+
+                    //$('#tiendasRecuperadas').show();
+                    //RecuperarYMostrarTiendasDeUsuario();
+                    //$('#miTablaProductosEnTienda tbody').empty();  //destruyo el contenido
+                    //$('#miTablaProductosEnTienda').show();
+                    //EstilizarConDataTables('#miTablaProductosEnTienda');
+                    //$('#controlesAdicionales').show();
+                    //$('#laFechaDeCaducidad').val('');
+                    //$('#numeroUnidades').val('');
+                    //document.getElementById('tipoUnidad').selectedIndex = '0';
+                    //$('#btnAgregarCaducidad').show();
+                },
+                beforeSend: function () {
+                    //$('#imagenWaiting').attr('style', '');
+                },
+
+                complete: function () {
+                    //Called after runtime call success and error functions
+                },
+                error: function (errormessage) {
+                    //DeshabilitarBtnAgregar();
+                    //alert(errormessage.responseText);
+                }
+            });
+        }
+
+
+        function SubstituirPalabraMesConNumero(texto) {
+            if (texto.indexOf('Enero') != -1) {
+                var nuevoTexto = texto.replace('Enero', '01');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Febrero') != -1) {
+                var nuevoTexto = texto.replace('Febrero', '02');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Marzo') != -1) {
+                var nuevoTexto = texto.replace('Marzo', '03');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Abril') != -1) {
+                var nuevoTexto = texto.replace('Abril', '04');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Mayo') != -1) {
+                var nuevoTexto = texto.replace('Mayo', '05');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Junio') != -1) {
+                var nuevoTexto = texto.replace('Junio', '06');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Julio') != -1) {
+                var nuevoTexto = texto.replace('Julio', '07');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Agosto') != -1) {
+                var nuevoTexto = texto.replace('Agosto', '08');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Septiembre') != -1) {
+                var nuevoTexto = texto.replace('Septiembre', '09');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Octubre') != -1) {
+                var nuevoTexto = texto.replace('Octubre', '10');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Noviembre') != -1) {
+                var nuevoTexto = texto.replace('Noviembre', '11');
+                return (nuevoTexto);
+            }
+
+            else if (texto.indexOf('Diciembre') != -1) {
+                var nuevoTexto = texto.replace('Diciembre', '12');
+                return (nuevoTexto);
+            }
+        }
+    </script>
+}
+
+@section Contenido
+{
+    <h3>Ver caducidad</h3>
+
+    <div class="row">
+        <div class="col-sm-4">
+            <div class="form-group">
+                <label for="tiendasLista">Tienda</label>
+                <select class="form-control" id="tiendasLista">                    
+                        @{
+                            foreach (var item in Model)
+                            {
+                                <option value="@item.Id">@item.Nombre</option>
+                            }
+                         }                  
+                </select>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="form-group">
+                <label for="dtp_input1" class="control-label">Fecha inicial</label>
+                <div class="input-group date form_date" data-date="" data-date-format="dd MM yyyy" data-link-field="dtp_input1" data-link-format="yyyy-mm-dd">
+                    <input class="form-control" id="miFechaInicial" size="16" type="text" value="" readonly>
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+                </div>
+                <input type="hidden" id="dtp_input1" value="" /><br />
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="form-group">
+                <label for="dtp_input2" class="control-label">Fecha final</label>
+                <div class="input-group date form_date" data-date="" data-date-format="dd MM yyyy" data-link-field="dtp_input2" data-link-format="yyyy-mm-dd">
+                    <input class="form-control" id="miFechaFinal" size="16" type="text" value="" readonly>
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+                </div>
+                <input type="hidden" id="dtp_input2" value="" /><br />
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-sm-4 col-sm-offset-8">
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary pull-right" id="btnBuscar">Buscar</button>
+            </div>
+        </div>
+    </div>
+}
+
+
+@section Footer
+{ <h5>El footer</h5>
+}
+
+

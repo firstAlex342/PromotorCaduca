@@ -60,5 +60,124 @@ namespace ControlCaducidadesPromotor.Controllers
                 return Json(respuesta, JsonRequestBehavior.AllowGet);
             }
         }
+
+
+        [Authorize]
+        public ActionResult VerCaducidad()
+        {
+            List<TiendaViewModel> respuesta = new List<TiendaViewModel>();
+            using (var cliente = new HttpClient())
+            {
+                cliente.BaseAddress = new Uri("http://localhost:51339/");
+                var responseTask = cliente.GetAsync("api/TiendaAPI/Get_MostrarTodasTiendasDeUsuario?usuario=" + User.Identity.Name);
+
+                responseTask.Wait();
+
+                var result = responseTask.Result;
+                if (result.IsSuccessStatusCode)
+                {
+                    var readTask = result.Content.ReadAsAsync<List<TiendaViewModel>>();
+                    readTask.Wait();
+
+                    respuesta = readTask.Result;
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                }
+            }
+
+            return View("VerCaducidad",respuesta);
+        }
+
+
+        [Authorize]
+        public JsonResult BuscarCaducidad(ParametroBuscarCaducidadViewModel parametroBuscarCaducidadViewModel)
+        {
+            List<int> listaEnterosBuscada = new List<int>();
+
+            if (ModelState.IsValid)
+            {
+                UsuarioViewModel usuarioInfoViewModel = LLamarApiBuscarUsuarioXUsuario(User.Identity.Name);
+
+                if (usuarioInfoViewModel != null)
+                {
+                    parametroBuscarCaducidadViewModel.IdUsuarioAlta = usuarioInfoViewModel.Id;
+                    parametroBuscarCaducidadViewModel.IdUsuarioModifico = usuarioInfoViewModel.Id;
+
+                    using (var client = new HttpClient())
+                    {
+                        client.BaseAddress = new Uri("http://localhost:51339/");
+
+                        //HTTP POST
+                        var postTask = client.PostAsJsonAsync<ParametroBuscarCaducidadViewModel>("api/CaducidadAPI/Post_BuscarCaducidad", parametroBuscarCaducidadViewModel);
+                        postTask.Wait();
+
+                        var result = postTask.Result;
+                        if (result.IsSuccessStatusCode)
+                        {
+                            var readTask = result.Content.ReadAsAsync<List<int>>();
+                            readTask.Wait();
+                            listaEnterosBuscada = readTask.Result;
+                            return Json(listaEnterosBuscada, JsonRequestBehavior.AllowGet);
+                        }
+
+                        else
+                        {
+                            //https://www.thetopsites.net/article/53008477.shtml
+                            var x = result.Content.ReadAsStringAsync();
+                            x.Wait(); //x.Result tiene el resultado
+
+                            ModelState.AddModelError(string.Empty, x.Result);
+                            //TiendaViewModel tiendaVM = new TiendaViewModel();
+                            //InicializarTiendaViewModelConDatosQueLLegaronAlControlador(tiendaVM);
+                            //Response.Cache.SetCacheability(HttpCacheability.NoCache);
+                            //Response.Cache.SetNoStore();
+                            //return (View("MostrarFormAltaTienda", tiendaVM));
+
+                            return Json("Hola mundo !!", JsonRequestBehavior.AllowGet);
+                        }
+                    }
+                }
+
+                else
+                {
+                    return Json("algo anda mal !!", JsonRequestBehavior.AllowGet);
+                }
+            }
+
+            else
+            {      //regresar mensaje
+                return Json("algo anda mal !!", JsonRequestBehavior.AllowGet);
+            }
+            
+        }
+
+
+
+        //--------------methods
+        private UsuarioViewModel LLamarApiBuscarUsuarioXUsuario(string usuario)
+        {
+            UsuarioViewModel usuarioViewModel = null;
+
+            using (var cliente = new HttpClient())
+            {
+                cliente.BaseAddress = new Uri("http://localhost:51339/");
+                var responseTask = cliente.GetAsync("api/UsuarioAPI/Get_UsuarioXUsuario?usuario=" + User.Identity.Name);
+
+                responseTask.Wait();
+
+                var result = responseTask.Result;
+                if (result.IsSuccessStatusCode)
+                {
+                    var readTask = result.Content.ReadAsAsync<UsuarioViewModel>();
+                    readTask.Wait();
+
+                    usuarioViewModel = readTask.Result;
+                }
+            }
+
+            return (usuarioViewModel);
+        }
     }
 }

@@ -1114,5 +1114,165 @@ namespace ControlCaducidadesPromotor.Models
 
             return (respuesta);
         }
+
+
+        public void Get_BuscarCaducidadEnTiendaFrom(ParametroBuscarCaducidadViewModel parametroBuscarCaducidadViewModel)
+        { 
+            using (var ctx = new palominoEntities())
+            {
+                using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                {
+                    try
+                    {   //Verificar como se comporta el tipo var, cuando un select regresa "vacio"
+                        List<TiendaViewModel> resumenTiendas = new List<TiendaViewModel>();
+                        resumenTiendas = (from s in ctx.Tienda
+                                                   select new TiendaViewModel { Id = s.Id, Activo = s.Activo }).ToList();
+
+                        RulesEngineLN rulesEngineLN = new RulesEngineLN();
+                        bool esActivaTiendaBuscada = rulesEngineLN.EsActivaTienda(resumenTiendas, parametroBuscarCaducidadViewModel.IdTienda);
+                        if(esActivaTiendaBuscada)
+                        {
+                            //Extrayendo info de la tabla caduca
+                            var itemsActivosDeCaduca = (from s in ctx.Caduca
+                                                 where s.Activo == true
+                                                 select s).ToList();
+
+                            var resumenCaduca = (from s in itemsActivosDeCaduca
+                                                 where parametroBuscarCaducidadViewModel.IdTienda == s.IdTienda
+                                                 select s).ToList();  //Esta coleccion se debe enlazar en consulta final
+
+                            var resumenIdsIdProductoKNecesito = (from s in resumenCaduca
+                                                                 select s.IdProducto).ToList();
+                            
+                            //Extrayendo info de la tabla Producto
+                            var resumenProducto = (from s in ctx.Producto
+                                                   where resumenIdsIdProductoKNecesito.Contains(s.Id) && s.Activo == true
+                                                   select s).ToList();//esta coleccion se debe enlazar para consulta final
+
+                            var resumenIdsProducto = (from s in resumenProducto
+                                                      select s.Id).ToList();
+
+                            //Extrayendo info de la tabla ProductoConDetalles
+                            var resumenProductoConDetalles = (from s in ctx.ProductoConDetalles
+                                                              where resumenIdsProducto.Contains(s.IdProducto) && s.Activo == true
+                                                              select s).ToList();//esta coleccion se debe enlazar para consulta final
+
+                            var resumenIdsIdDetalleProducto = (from s in resumenProductoConDetalles
+                                                               select s.IdDetalleProducto).ToList();
+
+                            //Extrayendo info de la tabla DetalleProducto
+                            var resumenDetalleProducto = (from s in ctx.DetalleProducto
+                                                          where resumenIdsIdDetalleProducto.Contains(s.Id) && s.Activo == true
+                                                          select s).ToList(); //esta coleccion se debe enlazar para consulta final
+
+                            //Se estrae info de la tabla Periodo
+                            var idsPeriodosDeTienda = (from s in resumenCaduca
+                                                       select s.IdPeriodo).ToList();
+
+                            var itemsDPeriodoVigentesYActivos = (from s in ctx.Periodo
+                                                                 where idsPeriodosDeTienda.Contains(s.Id) &&  s.Activo == true && s.Vigente == true 
+                                                                 select s).ToList();
+
+                            var resumenPeriodo = (from s in itemsDPeriodoVigentesYActivos
+                                                  where s.FechaCaducidad >= parametroBuscarCaducidadViewModel.FechaInicial &&
+                                                         s.FechaCaducidad <= parametroBuscarCaducidadViewModel.FechaFinal
+                                                  select s).ToList();  //esta coleccion se debe enlazar para consulta final
+
+                            var resumenIdsDeResumenPeriodo = (from s in resumenPeriodo
+                                                              select s.Id).ToList();
+
+                            //Se extrae info de la tabla PeriodoConUnidad
+                            var resumenPeriodoConUnidad = (from s in ctx.PeriodoConUnidad
+                                                           where resumenIdsDeResumenPeriodo.Contains(s.IdPeriodo)
+                                                           select s).ToList();  //esta coleccion se debe enlazar para consulta final
+
+                            var resumenIdsDeResumenPeriodoConUnidad = (from s in resumenPeriodoConUnidad
+                                                                       select s.IdUnidad).ToList();
+
+                            //Se extrae info de la tabla UnidadMedida
+                            var resumenUnidadMedida = (from s in ctx.UnidadMedida
+                                                       where resumenIdsDeResumenPeriodoConUnidad.Contains(s.Id)
+                                                       select s).ToList(); //esta coleccion se debe enlazar para consulta final
+
+                            //a partir de aqui se comienza a enlazar la consulta final
+                            var caducaJoinProducto = (from resumCaduca in resumenCaduca
+                                                      join resumProducto in resumenProducto on resumCaduca.IdProducto equals resumProducto.Id
+                                                      select new { Caduca_IdProducto = resumCaduca.IdProducto, Caduca_IdPeriodo = resumCaduca.IdPeriodo,
+                                                      Producto_Id = resumProducto.Id}).ToList();
+
+                            var caducaJoinProductoJoinProductoConDetalles = (from s in caducaJoinProducto
+                                                                             join c in resumenProductoConDetalles on s.Caduca_IdProducto equals c.IdProducto
+                                                                             select new
+                                                                             {
+                                                                                 s.Caduca_IdProducto,
+                                                                                 s.Caduca_IdPeriodo,
+                                                                                 s.Producto_Id,
+                                                                                 ProductoConDetalles_IdProducto = c.IdProducto,
+                                                                                 ProductoConDetalles_IdDetalleProducto = c.IdDetalleProducto
+                                                                             }).ToList();
+
+                            var caducaJoinProductoJoinProductoConDetallesJoinDetalleProducto = (from s in caducaJoinProductoJoinProductoConDetalles
+                                                                                                join c in resumenDetalleProducto on s.ProductoConDetalles_IdDetalleProducto equals c.Id
+                                                                                                select new
+                                                                                                {
+                                                                                                    s.Caduca_IdProducto,
+                                                                                                    s.Caduca_IdPeriodo,
+                                                                                                    s.Producto_Id,
+                                                                                                    s.ProductoConDetalles_IdProducto,
+                                                                                                    s.ProductoConDetalles_IdDetalleProducto,
+                                                                                                    DetalleProducto_Id = c.Id,
+                                                                                                    DetalleProducto_Nombre = c.Nombre
+                                                                                                }).ToList();
+
+                            var caducaJoinProductoJoinProductoConDetallesJoinDetalleProductoJoinPeriodo = (from s in caducaJoinProductoJoinProductoConDetallesJoinDetalleProducto
+                                                                                                           join c in resumenPeriodo on s.Caduca_IdPeriodo equals c.Id
+                                                                                                           select new {   s.Caduca_IdProducto,
+                                                                                                                          s.Caduca_IdPeriodo,
+                                                                                                                          s.Producto_Id,
+                                                                                                                          s.ProductoConDetalles_IdProducto,
+                                                                                                                          s.ProductoConDetalles_IdDetalleProducto,
+                                                                                                                          s.DetalleProducto_Id,
+                                                                                                                          s.DetalleProducto_Nombre,
+                                                                                                                          Periodo_Id = c.Id, 
+                                                                                                                          Periodo_FechaCaducidad = c.FechaCaducidad,
+                                                                                                                          Periodo_NumeroUnidades = c.NumeroUnidades,
+                                                                                                                          Periodo_Vigente = c.Vigente
+                                                                                                           }).ToList();
+
+                            var caducaJoinProductoJoinProductoConDetallesJoinDetalleProductoJoinPeriodoJoinPeriodoConUnidad = (from s in caducaJoinProductoJoinProductoConDetallesJoinDetalleProductoJoinPeriodo
+                                                                                                                               join c in resumenPeriodoConUnidad on s.Periodo_Id equals c.IdPeriodo
+                                                                                                                               select new
+                                                                                                                               {
+                                                                                                                                   s.Caduca_IdProducto,
+                                                                                                                                   s.Caduca_IdPeriodo,
+                                                                                                                                   s.Producto_Id,
+                                                                                                                                   s.ProductoConDetalles_IdProducto,
+                                                                                                                                   s.ProductoConDetalles_IdDetalleProducto,
+                                                                                                                                   s.DetalleProducto_Id,
+                                                                                                                                   s.DetalleProducto_Nombre,
+                                                                                                                                   s.Periodo_Id,
+                                                                                                                                   s.Periodo_FechaCaducidad,
+                                                                                                                                   s.Periodo_NumeroUnidades,
+                                                                                                                                   s.Periodo_Vigente,
+                                                                                                                                   PeriodoConUnidad_IdPeriodo = c.IdPeriodo,
+                                                                                                                                   PeriodoConUnidad_IdUnidad = c.IdUnidad
+                                                                                                                               }).ToList();   ///falta revisar bien este
+                        }
+
+                        else
+                        {
+                            //No es activa tienda buscada
+                        }
+                        
+                    }
+
+                    catch (Exception ex)
+                    {
+                        dbContextTransaction.Rollback();
+                        throw new Exception("Excepcion lanzada y cachada en TiendaLN.Get_BuscarCaducidadEnTiendaFrom", ex);
+                    }
+                }
+            }
+        }
     }
 }

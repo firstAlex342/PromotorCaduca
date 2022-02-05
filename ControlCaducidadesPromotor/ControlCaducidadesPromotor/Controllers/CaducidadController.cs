@@ -94,7 +94,7 @@ namespace ControlCaducidadesPromotor.Controllers
         [Authorize]
         public JsonResult BuscarCaducidad(ParametroBuscarCaducidadViewModel parametroBuscarCaducidadViewModel)
         {
-            List<int> listaEnterosBuscada = new List<int>();
+            List<CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel> respuestaColeccion = new List<CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel>();
 
             if (ModelState.IsValid)
             {
@@ -116,10 +116,10 @@ namespace ControlCaducidadesPromotor.Controllers
                         var result = postTask.Result;
                         if (result.IsSuccessStatusCode)
                         {
-                            var readTask = result.Content.ReadAsAsync<List<int>>();
+                            var readTask = result.Content.ReadAsAsync<List<CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel>>();
                             readTask.Wait();
-                            listaEnterosBuscada = readTask.Result;
-                            return Json(listaEnterosBuscada, JsonRequestBehavior.AllowGet);
+                            respuestaColeccion = readTask.Result;
+                            return Json(respuestaColeccion, JsonRequestBehavior.AllowGet);
                         }
 
                         else

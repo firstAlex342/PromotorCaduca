@@ -216,6 +216,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Basicos\AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM.cs" />
     <Compile Include="Basicos\AlmacenaViewModel.cs" />
+    <Compile Include="Basicos\CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel.cs" />
     <Compile Include="Basicos\CaducaViewModel.cs" />
     <Compile Include="Basicos\DetalleProductoViewModel.cs" />
     <Compile Include="Basicos\ParametroBuscarCaducidadViewModel.cs" />

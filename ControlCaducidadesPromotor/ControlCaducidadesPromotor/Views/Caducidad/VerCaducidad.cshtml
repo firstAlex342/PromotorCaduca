@@ -26,6 +26,7 @@
             });
 
             $("#btnBuscar").click(BuscarCaducidades);
+            EstilizarConDataTables('#miTablaCaducidadesEnTienda');
         }
 
 
@@ -33,7 +34,7 @@
             //Obtener el id de la tienda
             var controlSelect = document.getElementById('tiendasLista');
             var idDeTienda = controlSelect.options[controlSelect.selectedIndex].value;
-            
+
 
             //Extraer info de la fecha inicial
             var fechaInicial = $('#miFechaInicial').val();
@@ -49,7 +50,7 @@
             var fechaFinal = $('#miFechaFinal').val();
             fechaFinal = fechaFinal.replace(' ', '/');  // si esta 15 Mayo 2020, regresa 15/Mayo 2020
             fechaFinal = fechaFinal.replace(' ', '/');  //Si esta 15/Mayo 2020, regresa 15/Mayo/2020
-            fechaFinal = fechaFinal + ' 00:00:00 a.m.'; //La cadena queda en el formato 15/Mayo/2020 00:00:00 a.m.
+            fechaFinal = fechaFinal + ' 11:59:59 p.m.'; //La cadena queda en el formato 15/Mayo/2020 00:00:00 a.m.
             fechaFinal = SubstituirPalabraMesConNumero(fechaFinal); //La cadena queda en el formato 15/05/2021 00:00:00 a.m.
 
             var auxFechaCaducidadFinal = new FechaHoraSinMiliSegundos(fechaFinal);
@@ -75,26 +76,44 @@
                 contentType: "application/json;charset=utf-8",
                 dataType: "json",
                 success: function (result) {
-                    alert(result);
-                    //$('#imagenWaiting').attr('style', 'display:none');
+                    //alert();
+                    $('#imagenWaiting').attr('style', 'display:none');
+                    var objetoDataTable = $('#miTablaCaducidadesEnTienda').DataTable();  //Genero un objeto dataTable
+                    objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+                    $('#miTablaCaducidadesEnTienda').hide();
+                    $('#miTablaCaducidadesEnTienda tbody').empty();  //destruyo el contenido
 
-                    
-                    //$('#textoDeModal2 p').text(result);
-                    //$('#myModal2').modal('show'); //https://stackoverflow.com/questions/13183630/how-to-open-a-bootstrap-modal-window-using-jquery
+                    var html = '';
+                    $.each(result, function (key, item) {
+                        html = '<tr>';
+                        html += '<td>' + item.MiCaducaViewModel.IdProducto + '</td>';  //van a ser 16
+                        html += '<td>' + item.MiCaducaViewModel.IdPeriodo + '</td>';
+                        html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.Producto_Id + '</td>';
+                        html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.Producto_CodigoBarras + '</td>';
+                        html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.ProductoConDetalles_IdProducto + '</td>';
+                        html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.ProductoConDetalles_IdDetalleProducto + '</td>';
+                        html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.DetalleProducto_Id + '</td>';
+                        html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.DetalleProducto_Nombre + '</td>';
+                        html += '<td>' + item.MiPeriodoViewModel.Id + '</td>';
+                        var miFechaCaducidad = new Date(parseInt(item.MiPeriodoViewModel.FechaCaducidad.substr(6)));
+                        var miF = miFechaCaducidad.getFullYear().toString() + '-' + (miFechaCaducidad.getMonth() + 1).toString() + '-' + miFechaCaducidad.getDate().toString();
+                        html += '<td>' + miF + '</td>';
+                        html += '<td>' + item.MiPeriodoViewModel.NumeroUnidades + '</td>';
+                        html += '<td>' + item.MiPeriodoViewModel.Vigente + '</td>';
+                        html += '<td>' + item.MiPeriodoConUnidadViewModel.IdPeriodo + '</td>';
+                        html += '<td>' + item.MiPeriodoConUnidadViewModel.IdUnidad + '</td>';
+                        html += '<td>' + item.MiUnidadMedidaViewModel.Id + '</td>';
+                        html += '<td>' + item.MiUnidadMedidaViewModel.Nombre + '</td>';
+                        html += '</tr>';
+                        $('#miTablaCaducidadesEnTienda tbody').append(html);
+                    });
 
-                    //$('#tiendasRecuperadas').show();
-                    //RecuperarYMostrarTiendasDeUsuario();
-                    //$('#miTablaProductosEnTienda tbody').empty();  //destruyo el contenido
-                    //$('#miTablaProductosEnTienda').show();
-                    //EstilizarConDataTables('#miTablaProductosEnTienda');
-                    //$('#controlesAdicionales').show();
-                    //$('#laFechaDeCaducidad').val('');
-                    //$('#numeroUnidades').val('');
-                    //document.getElementById('tipoUnidad').selectedIndex = '0';
-                    //$('#btnAgregarCaducidad').show();
+
+                    $('#miTablaCaducidadesEnTienda').show();
+                    EstilizarConDataTables('#miTablaCaducidadesEnTienda');
                 },
                 beforeSend: function () {
-                    //$('#imagenWaiting').attr('style', '');
+                    $('#imagenWaiting').attr('style', '');
                 },
 
                 complete: function () {
@@ -169,6 +188,21 @@
                 return (nuevoTexto);
             }
         }
+
+        function EstilizarConDataTables(nomTabla) {
+            //https://datatables.net/manual/data/
+            var objetoDataTable = $(nomTabla).DataTable();  //Genero un objeto dataTable
+            objetoDataTable.destroy(); //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+
+            if (nomTabla === '#miTablaCaducidadesEnTienda') {
+                $(nomTabla).DataTable({
+                    language: {
+                        url: '../Scripts/DataTables/Spanish.json'
+                    },                  //https://datatables.net/manual/options
+                    searching: false //https://datatables.net/reference/option/columns.searchable                    
+                });
+            }
+        }
     </script>
 }
 
@@ -180,13 +214,13 @@
         <div class="col-sm-4">
             <div class="form-group">
                 <label for="tiendasLista">Tienda</label>
-                <select class="form-control" id="tiendasLista">                    
-                        @{
-                            foreach (var item in Model)
-                            {
-                                <option value="@item.Id">@item.Nombre</option>
-                            }
-                         }                  
+                <select class="form-control" id="tiendasLista">
+                    @{
+                        foreach (var item in Model)
+                        {
+                            <option value="@item.Id">@item.Nombre</option>
+                        }
+                    }
                 </select>
             </div>
         </div>
@@ -213,11 +247,54 @@
             </div>
         </div>
     </div>
-    
+
     <div class="row">
         <div class="col-sm-4 col-sm-offset-8">
             <div class="form-group">
                 <button type="submit" class="btn btn-primary pull-right" id="btnBuscar">Buscar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4">
+            @* diferencia entre display vs hiden https://www.w3schools.com/css/css_display_visibility.asp*@
+            <img id="imagenWaiting" src="~/Content/MisImagenes/imgWaiting.gif" class="img-responsive center-block" style="display:none" />
+        </div>
+        <div class="col-sm-4"></div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="table-responsive">
+                @*NO le asignes clases bootstrap a la table porque DataTables la personalizara*@
+                @*Despues vi que si funciona usar clases bootstrap 3  https://datatables.net/examples/styling/bootstrap*@
+                <table id="miTablaCaducidadesEnTienda" class="table table-striped" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Caduca_IdProducto</th>  @*era th style="display:none;"*@
+                            <th>Caduca_IdPeriodo</th> @*era th style="display:none;"*@
+                            <th>Producto_Id</th> @*era th style="display:none;"*@
+                            <th>Producto_CodigoBarras</th> @*era th style="display:none;"*@
+                            <th>ProductoConDetalles_IdProducto</th> @*era th style="display:none;"*@
+                            <th>ProductoConDetalles_IdDetalleProducto</th> @*era th style="display:none;"*@
+                            <th>DetalleProducto_Id</th> @*era th style="display:none;"*@
+                            <th>DetalleProducto_Nombre </th>
+                            <th>Periodo_Id</th>
+                            <th>Periodo_FechaCaducidad</th>
+                            <th>Periodo_NumeroUnidades</th>
+                            <th>Periodo_Vigente</th>
+                            <th>PeriodoConUnidad_IdPeriodo</th>
+                            <th>PeriodoConUnidad_IdUnidad</th>
+                            <th>UnidadMedida_Id</th>
+                            <th>UnidadMedida_Nombre</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
     </div>

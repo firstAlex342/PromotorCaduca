@@ -41,16 +41,15 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         [System.Web.Http.HttpPost]
         public IHttpActionResult Post_BuscarCaducidad(ParametroBuscarCaducidadViewModel parametroBuscarCaducidadViewModel)
         {
-            string respuesta = "";
+            IList<CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel> respuestaColeccion;
 
             if (ModelState.IsValid)
-            {   //Call to TiendaLN.Get_BuscarCaducidadEnTiendaFrom()
+            {   
                 TiendaLN tiendaLN = new TiendaLN();
-                tiendaLN.Get_BuscarCaducidadEnTiendaFrom(parametroBuscarCaducidadViewModel);
+                respuestaColeccion = tiendaLN.Get_BuscarCaducidadEnTiendaFrom(parametroBuscarCaducidadViewModel);
 
-                List<int> x = new List<int>();
-                x.Add(12); x.Add(13);
-                return (Ok(x));
+ 
+                return (Ok(respuestaColeccion));
             }
 
             else

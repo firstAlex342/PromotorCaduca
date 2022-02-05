@@ -1116,8 +1116,9 @@ namespace ControlCaducidadesPromotor.Models
         }
 
 
-        public void Get_BuscarCaducidadEnTiendaFrom(ParametroBuscarCaducidadViewModel parametroBuscarCaducidadViewModel)
-        { 
+        public List<CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel> Get_BuscarCaducidadEnTiendaFrom(ParametroBuscarCaducidadViewModel parametroBuscarCaducidadViewModel)
+        {
+            List<CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel> respuestaFinal = new List<CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel>();
             using (var ctx = new palominoEntities())
             {
                 using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
@@ -1198,7 +1199,7 @@ namespace ControlCaducidadesPromotor.Models
                             var caducaJoinProducto = (from resumCaduca in resumenCaduca
                                                       join resumProducto in resumenProducto on resumCaduca.IdProducto equals resumProducto.Id
                                                       select new { Caduca_IdProducto = resumCaduca.IdProducto, Caduca_IdPeriodo = resumCaduca.IdPeriodo,
-                                                      Producto_Id = resumProducto.Id}).ToList();
+                                                      Producto_Id = resumProducto.Id, Producto_CodigoBarras = resumProducto.CodigoBarras }).ToList();
 
                             var caducaJoinProductoJoinProductoConDetalles = (from s in caducaJoinProducto
                                                                              join c in resumenProductoConDetalles on s.Caduca_IdProducto equals c.IdProducto
@@ -1207,6 +1208,7 @@ namespace ControlCaducidadesPromotor.Models
                                                                                  s.Caduca_IdProducto,
                                                                                  s.Caduca_IdPeriodo,
                                                                                  s.Producto_Id,
+                                                                                 s.Producto_CodigoBarras,
                                                                                  ProductoConDetalles_IdProducto = c.IdProducto,
                                                                                  ProductoConDetalles_IdDetalleProducto = c.IdDetalleProducto
                                                                              }).ToList();
@@ -1218,6 +1220,7 @@ namespace ControlCaducidadesPromotor.Models
                                                                                                     s.Caduca_IdProducto,
                                                                                                     s.Caduca_IdPeriodo,
                                                                                                     s.Producto_Id,
+                                                                                                    s.Producto_CodigoBarras,
                                                                                                     s.ProductoConDetalles_IdProducto,
                                                                                                     s.ProductoConDetalles_IdDetalleProducto,
                                                                                                     DetalleProducto_Id = c.Id,
@@ -1229,6 +1232,7 @@ namespace ControlCaducidadesPromotor.Models
                                                                                                            select new {   s.Caduca_IdProducto,
                                                                                                                           s.Caduca_IdPeriodo,
                                                                                                                           s.Producto_Id,
+                                                                                                                          s.Producto_CodigoBarras,
                                                                                                                           s.ProductoConDetalles_IdProducto,
                                                                                                                           s.ProductoConDetalles_IdDetalleProducto,
                                                                                                                           s.DetalleProducto_Id,
@@ -1246,6 +1250,7 @@ namespace ControlCaducidadesPromotor.Models
                                                                                                                                    s.Caduca_IdProducto,
                                                                                                                                    s.Caduca_IdPeriodo,
                                                                                                                                    s.Producto_Id,
+                                                                                                                                   s.Producto_CodigoBarras,
                                                                                                                                    s.ProductoConDetalles_IdProducto,
                                                                                                                                    s.ProductoConDetalles_IdDetalleProducto,
                                                                                                                                    s.DetalleProducto_Id,
@@ -1256,7 +1261,59 @@ namespace ControlCaducidadesPromotor.Models
                                                                                                                                    s.Periodo_Vigente,
                                                                                                                                    PeriodoConUnidad_IdPeriodo = c.IdPeriodo,
                                                                                                                                    PeriodoConUnidad_IdUnidad = c.IdUnidad
-                                                                                                                               }).ToList();   ///falta revisar bien este
+                                                                                                                               }).ToList();  
+
+
+                            var caducaJoinProductoJoinProductoConDetallesJoinDetalleProductoJoinPeriodoJoinPeriodoConUnidadJoinUnidadMedida = (from s in caducaJoinProductoJoinProductoConDetallesJoinDetalleProductoJoinPeriodoJoinPeriodoConUnidad
+                                                                                                                                               join c in resumenUnidadMedida on s.PeriodoConUnidad_IdUnidad equals c.Id
+                                                                                                                                               select new
+                                                                                                                                               {
+                                                                                                                                                   s.Caduca_IdProducto,
+                                                                                                                                                   s.Caduca_IdPeriodo,
+                                                                                                                                                   s.Producto_Id,
+                                                                                                                                                   s.Producto_CodigoBarras,
+                                                                                                                                                   s.ProductoConDetalles_IdProducto,
+                                                                                                                                                   s.ProductoConDetalles_IdDetalleProducto,
+                                                                                                                                                   s.DetalleProducto_Id,
+                                                                                                                                                   s.DetalleProducto_Nombre,
+                                                                                                                                                   s.Periodo_Id,
+                                                                                                                                                   s.Periodo_FechaCaducidad,
+                                                                                                                                                   s.Periodo_NumeroUnidades,
+                                                                                                                                                   s.Periodo_Vigente,
+                                                                                                                                                   s.PeriodoConUnidad_IdPeriodo,
+                                                                                                                                                   s.PeriodoConUnidad_IdUnidad,
+                                                                                                                                                   UnidadMedida_Id = c.Id,
+                                                                                                                                                   UnidadMedida_Nombre = c.Nombre
+                                                                                                                                               }).ToList();
+
+
+                            
+                            caducaJoinProductoJoinProductoConDetallesJoinDetalleProductoJoinPeriodoJoinPeriodoConUnidadJoinUnidadMedida.ForEach(item => {
+                                CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel c = new CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel();
+                                c.MiCaducaViewModel.IdProducto = item.Caduca_IdProducto;
+                                c.MiCaducaViewModel.IdPeriodo = item.Caduca_IdPeriodo; 
+                                c.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.Producto_Id = item.Producto_Id;
+                                c.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.Producto_CodigoBarras = item.Producto_CodigoBarras;
+                                c.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.ProductoConDetalles_IdProducto = item.ProductoConDetalles_IdProducto;
+                                c.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.ProductoConDetalles_IdDetalleProducto = item.ProductoConDetalles_IdDetalleProducto;
+                                c.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.DetalleProducto_Id = item.DetalleProducto_Id;
+                                c.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.DetalleProducto_Nombre = item.DetalleProducto_Nombre;
+                                c.MiPeriodoViewModel.Id = item.Periodo_Id;
+                                c.MiPeriodoViewModel.FechaCaducidad = item.Periodo_FechaCaducidad;
+                                c.MiPeriodoViewModel.NumeroUnidades = item.Periodo_NumeroUnidades;
+                                c.MiPeriodoViewModel.Vigente = item.Periodo_Vigente;
+                                c.MiPeriodoConUnidadViewModel.IdPeriodo = item.PeriodoConUnidad_IdPeriodo;
+                                c.MiPeriodoConUnidadViewModel.IdUnidad = item.PeriodoConUnidad_IdUnidad;
+                                c.MiUnidadMedidaViewModel.Id = item.UnidadMedida_Id;
+                                c.MiUnidadMedidaViewModel.Nombre = item.UnidadMedida_Nombre;
+
+                                respuestaFinal.Add(c);   
+                                });
+
+                            //var x = from s in caducaJoinProductoJoinProductoConDetallesJoinDetalleProductoJoinPeriodoJoinPeriodoConUnidadJoinUnidadMedida
+                            //        select new CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel() { MiCaducaViewModel = new CaducaViewModel(),
+                            //            MiCaducaViewModel};
+
                         }
 
                         else
@@ -1273,6 +1330,8 @@ namespace ControlCaducidadesPromotor.Models
                     }
                 }
             }
+
+            return (respuestaFinal);
         }
     }
 }

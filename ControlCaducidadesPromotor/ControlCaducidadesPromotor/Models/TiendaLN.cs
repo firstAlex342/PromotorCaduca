@@ -998,43 +998,43 @@ namespace ControlCaducidadesPromotor.Models
                                         {
                                             if(estanActivosEnDetalleProducto)
                                             {
-                                                //Obtener nuevo id para tabla Periodo
-                                                var idsPeriodo = (from item in ctx.Periodo
-                                                                  select item.Id).ToList();
-
-                                                var nuevoIdDePeriodo = idsPeriodo.Count == 0 ? 1 : (idsPeriodo.Max() + 1);
-
-                                                //Creo un item en Periodo
-                                                Periodo periodo = new Periodo();
-                                                periodo.Id = nuevoIdDePeriodo;
-                                                periodo.FechaCaducidad = itemTiendaJoinCaducidadesViewModel.MiPeriodoViewModel.FechaCaducidad;
-                                                periodo.NumeroUnidades = itemTiendaJoinCaducidadesViewModel.MiPeriodoViewModel.NumeroUnidades;
-                                                periodo.Vigente = true;
-                                                periodo.IdUsuarioAlta = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
-                                                periodo.IdUsuarioModifico = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
-                                                periodo.FechaAlta = fechaHoraEnServidor;
-                                                periodo.FechaModificacion = fechaHoraEnServidor;
-                                                periodo.Activo = true;
-
-                                                ctx.Periodo.Add(periodo);
-                                                ctx.SaveChanges();
-
-
-                                                //Creo un item en PeriodoConunidad
-                                                PeriodoConUnidad periodoConUnidad = new PeriodoConUnidad();
-                                                periodoConUnidad.IdPeriodo = nuevoIdDePeriodo;
-                                                periodoConUnidad.IdUnidad = itemTiendaJoinCaducidadesViewModel.MiUnidadMedidaViewModel.Id;
-                                                periodoConUnidad.IdUsuarioAlta = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
-                                                periodoConUnidad.IdUsuarioModifico = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
-                                                periodoConUnidad.FechaAlta = fechaHoraEnServidor;
-                                                periodoConUnidad.FechaModificacion = fechaHoraEnServidor;
-                                                periodoConUnidad.Activo = true;
-
-                                                ctx.PeriodoConUnidad.Add(periodoConUnidad);
-                                                ctx.SaveChanges();
-
-                                                coleccionViewModel.ForEach(item =>
+                                                coleccionViewModel.ForEach(item =>      //Aparentemente aqui deberia de hacerse la modificacion para insertar !!!
                                                 {
+                                                    //Obtener nuevo id para tabla Periodo
+                                                    var idsPeriodo = (from elemento in ctx.Periodo
+                                                                      select elemento.Id).ToList();
+
+                                                    var nuevoIdDePeriodo = idsPeriodo.Count == 0 ? 1 : (idsPeriodo.Max() + 1);
+
+                                                    //Creo un item en Periodo
+                                                    Periodo periodo = new Periodo();
+                                                    periodo.Id = nuevoIdDePeriodo;
+                                                    periodo.FechaCaducidad = itemTiendaJoinCaducidadesViewModel.MiPeriodoViewModel.FechaCaducidad;
+                                                    periodo.NumeroUnidades = itemTiendaJoinCaducidadesViewModel.MiPeriodoViewModel.NumeroUnidades;
+                                                    periodo.Vigente = true;
+                                                    periodo.IdUsuarioAlta = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
+                                                    periodo.IdUsuarioModifico = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
+                                                    periodo.FechaAlta = fechaHoraEnServidor;
+                                                    periodo.FechaModificacion = fechaHoraEnServidor;
+                                                    periodo.Activo = true;
+
+                                                    ctx.Periodo.Add(periodo);
+                                                    ctx.SaveChanges();
+
+                                                    //Creo un item en PeriodoConunidad
+                                                    PeriodoConUnidad periodoConUnidad = new PeriodoConUnidad();
+                                                    periodoConUnidad.IdPeriodo = nuevoIdDePeriodo;
+                                                    periodoConUnidad.IdUnidad = itemTiendaJoinCaducidadesViewModel.MiUnidadMedidaViewModel.Id;
+                                                    periodoConUnidad.IdUsuarioAlta = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
+                                                    periodoConUnidad.IdUsuarioModifico = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdUsuarioAlta;
+                                                    periodoConUnidad.FechaAlta = fechaHoraEnServidor;
+                                                    periodoConUnidad.FechaModificacion = fechaHoraEnServidor;
+                                                    periodoConUnidad.Activo = true;
+
+                                                    ctx.PeriodoConUnidad.Add(periodoConUnidad);
+                                                    ctx.SaveChanges();
+
+
                                                     Caduca caduca = new Caduca();
                                                     caduca.IdProducto = item.MiCaducaViewModel.IdProducto;
                                                     caduca.IdDetalleProducto = item.MiCaducaViewModel.IdDetalleProducto;
@@ -1265,7 +1265,7 @@ namespace ControlCaducidadesPromotor.Models
 
 
                             var caducaJoinProductoJoinProductoConDetallesJoinDetalleProductoJoinPeriodoJoinPeriodoConUnidadJoinUnidadMedida = (from s in caducaJoinProductoJoinProductoConDetallesJoinDetalleProductoJoinPeriodoJoinPeriodoConUnidad
-                                                                                                                                               join c in resumenUnidadMedida on s.PeriodoConUnidad_IdUnidad equals c.Id
+                                                                                                                                               join c in resumenUnidadMedida on s.PeriodoConUnidad_IdUnidad equals c.Id                                                                                                                                               
                                                                                                                                                select new
                                                                                                                                                {
                                                                                                                                                    s.Caduca_IdProducto,
@@ -1309,6 +1309,10 @@ namespace ControlCaducidadesPromotor.Models
 
                                 respuestaFinal.Add(c);   
                                 });
+
+                            respuestaFinal = (  respuestaFinal.OrderByDescending(item => item.MiPeriodoViewModel.FechaCaducidad.Year)
+                                .ThenByDescending(item => item.MiPeriodoViewModel.FechaCaducidad.Month)
+                                .ThenByDescending(item=> item.MiPeriodoViewModel.FechaCaducidad.Day)  ).ToList();//.ThenByDescending;
 
                             //var x = from s in caducaJoinProductoJoinProductoConDetallesJoinDetalleProductoJoinPeriodoJoinPeriodoConUnidadJoinUnidadMedida
                             //        select new CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel() { MiCaducaViewModel = new CaducaViewModel(),

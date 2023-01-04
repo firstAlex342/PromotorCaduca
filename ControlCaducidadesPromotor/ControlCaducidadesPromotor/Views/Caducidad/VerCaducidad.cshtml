@@ -78,11 +78,7 @@
                 success: function (result) {
                     //alert();
                     $('#imagenWaiting').attr('style', 'display:none');
-                    var objetoDataTable = $('#miTablaCaducidadesEnTienda').DataTable();  //Genero un objeto dataTable
-                    objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
-                    $('#miTablaCaducidadesEnTienda').hide();
-                    $('#miTablaCaducidadesEnTienda tbody').empty();  //destruyo el contenido
-
+ 
                     var html = '';
                     $.each(result, function (key, item) {
                         html = '<tr>';
@@ -108,12 +104,19 @@
                         $('#miTablaCaducidadesEnTienda tbody').append(html);
                     });
 
-
+                    $('#controlesAdicionales').show();
+                    $('#btnBuscar').show();
                     $('#miTablaCaducidadesEnTienda').show();
                     EstilizarConDataTables('#miTablaCaducidadesEnTienda');
                 },
                 beforeSend: function () {
                     $('#imagenWaiting').attr('style', '');
+                    $('#controlesAdicionales').hide();
+                    $('#btnBuscar').hide();
+                    var objetoDataTable = $('#miTablaCaducidadesEnTienda').DataTable();  //Genero un objeto dataTable
+                    objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+                    $('#miTablaCaducidadesEnTienda').hide();
+                    $('#miTablaCaducidadesEnTienda tbody').empty();  //destruyo el contenido
                 },
 
                 complete: function () {
@@ -199,7 +202,9 @@
                     language: {
                         url: '../Scripts/DataTables/Spanish.json'
                     },                  //https://datatables.net/manual/options
-                    searching: false //https://datatables.net/reference/option/columns.searchable                    
+                    searching: false, //https://datatables.net/reference/option/columns.searchable
+                    order: [],      //https://datatables.net/reference/option/order
+                    columnDefs: [{ targets: [0, 1, 2, 4, 5, 6, 8, 12, 13, 14], visible: false }]  //https://datatables.net/reference/option/columnDefs
                 });
             }
         }
@@ -210,7 +215,7 @@
 {
     <h3>Ver caducidad</h3>
 
-    <div class="row">
+    <div class="row" id="controlesAdicionales">
         <div class="col-sm-4">
             <div class="form-group">
                 <label for="tiendasLista">Tienda</label>

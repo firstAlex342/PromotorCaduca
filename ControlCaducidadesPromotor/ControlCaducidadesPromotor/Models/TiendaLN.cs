@@ -1125,13 +1125,19 @@ namespace ControlCaducidadesPromotor.Models
                 {
                     try
                     {   //Verificar como se comporta el tipo var, cuando un select regresa "vacio"
+                        //verificamos si al momento de la solicitud la tienda y el usuario estan activos
                         List<TiendaViewModel> resumenTiendas = new List<TiendaViewModel>();
                         resumenTiendas = (from s in ctx.Tienda
                                                    select new TiendaViewModel { Id = s.Id, Activo = s.Activo }).ToList();
 
                         RulesEngineLN rulesEngineLN = new RulesEngineLN();
+
+                        var resumenUsuarios = (from s in ctx.Usuario
+                                               select new UsuarioViewModel { Id = s.Id, Activo = s.Activo }).ToList();
+
+                        bool esActivoUsuarioOperador = rulesEngineLN.EsActivoIdUsuario(resumenUsuarios, parametroBuscarCaducidadViewModel.IdUsuarioAlta);
                         bool esActivaTiendaBuscada = rulesEngineLN.EsActivaTienda(resumenTiendas, parametroBuscarCaducidadViewModel.IdTienda);
-                        if(esActivaTiendaBuscada)
+                        if(esActivaTiendaBuscada && esActivoUsuarioOperador)
                         {
                             //Extrayendo info de la tabla caduca
                             var itemsActivosDeCaduca = (from s in ctx.Caduca
@@ -1322,7 +1328,8 @@ namespace ControlCaducidadesPromotor.Models
 
                         else
                         {
-                            //No es activa tienda buscada
+                            //No es activa tienda buscada o usuario esta deshabilitado
+                            throw new Exception("Tienda deshabilitada o usuario no habilitado");
                         }
                         
                     }
@@ -1330,7 +1337,7 @@ namespace ControlCaducidadesPromotor.Models
                     catch (Exception ex)
                     {
                         dbContextTransaction.Rollback();
-                        throw new Exception("Excepcion lanzada y cachada en TiendaLN.Get_BuscarCaducidadEnTiendaFrom", ex);
+                        throw new Exception("Excepcion lanzada y cachada en TiendaLN.Get_BuscarCaducidadEnTiendaFrom." + ex.Message , ex);
                     }
                 }
             }

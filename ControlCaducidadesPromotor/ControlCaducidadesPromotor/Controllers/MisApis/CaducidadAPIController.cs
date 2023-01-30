@@ -43,19 +43,28 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         {
             IList<CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel> respuestaColeccion;
 
-            if (ModelState.IsValid)
-            {   
-                TiendaLN tiendaLN = new TiendaLN();
-                respuestaColeccion = tiendaLN.Get_BuscarCaducidadEnTiendaFrom(parametroBuscarCaducidadViewModel);
-
- 
-                return (Ok(respuestaColeccion));
-            }
-
-            else
+            try
             {
-                return (BadRequest("Fallo en el model binder CaducidadAPIController.Post_BuscarCaducidad"));
+                if (ModelState.IsValid)
+                {
+                    TiendaLN tiendaLN = new TiendaLN();
+                    respuestaColeccion = tiendaLN.Get_BuscarCaducidadEnTiendaFrom(parametroBuscarCaducidadViewModel);
+
+
+                    return (Ok(respuestaColeccion));
+                }
+
+                else
+                {
+                    return (BadRequest("Fallo en el model binder CaducidadAPIController.Post_BuscarCaducidad"));
+                }
             }
+
+            catch(Exception ex)
+            {
+                return (BadRequest(ex.Message));
+            }
+
         }
     }
 }

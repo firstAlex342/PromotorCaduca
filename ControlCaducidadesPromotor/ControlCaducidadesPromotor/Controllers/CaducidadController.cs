@@ -99,7 +99,7 @@ namespace ControlCaducidadesPromotor.Controllers
             if (ModelState.IsValid)
             {
                 UsuarioViewModel usuarioInfoViewModel = LLamarApiBuscarUsuarioXUsuario(User.Identity.Name);
-
+                
                 if (usuarioInfoViewModel != null)
                 {
                     parametroBuscarCaducidadViewModel.IdUsuarioAlta = usuarioInfoViewModel.Id;
@@ -119,36 +119,38 @@ namespace ControlCaducidadesPromotor.Controllers
                             var readTask = result.Content.ReadAsAsync<List<CaducaJoinProductoJoin__JoinPeriodoJoinPeriodoConUnidadJoinUnidadMedidaViewModel>>();
                             readTask.Wait();
                             respuestaColeccion = readTask.Result;
-                            return Json(respuestaColeccion, JsonRequestBehavior.AllowGet);
+                            
+                            return Json(new { success = true, laRespuesta = respuestaColeccion }, JsonRequestBehavior.AllowGet);
                         }
 
                         else
                         {
                             //https://www.thetopsites.net/article/53008477.shtml
-                            var x = result.Content.ReadAsStringAsync();
+                            var x = result.Content.ReadAsStringAsync();  
                             x.Wait(); //x.Result tiene el resultado
 
-                            ModelState.AddModelError(string.Empty, x.Result);
+                            //ModelState.AddModelError(string.Empty, x.Result);  
                             //TiendaViewModel tiendaVM = new TiendaViewModel();
                             //InicializarTiendaViewModelConDatosQueLLegaronAlControlador(tiendaVM);
                             //Response.Cache.SetCacheability(HttpCacheability.NoCache);
                             //Response.Cache.SetNoStore();
                             //return (View("MostrarFormAltaTienda", tiendaVM));
 
-                            return Json("Hola mundo !!", JsonRequestBehavior.AllowGet);
+                            // return Json("Hola mundo !!", JsonRequestBehavior.AllowGet); 
+                            return Json(new { success = false, responseText = x.Result }, JsonRequestBehavior.AllowGet);
                         }
                     }
                 }
 
                 else
-                {
-                    return Json("algo anda mal !!", JsonRequestBehavior.AllowGet);
+                {                    
+                    return Json(new { success = false, responseText = "algo anda mal!!, el usuario no se encontro" }, JsonRequestBehavior.AllowGet);
                 }
             }
 
             else
-            {      //regresar mensaje
-                return Json("algo anda mal !!", JsonRequestBehavior.AllowGet);
+            {      //regresar mensaje              
+                return Json(new { success = false, responseText = "algo anda mal!!, no se pudo enlazar el modelBinder en CaducidadController.BuscarCaducidad" }, JsonRequestBehavior.AllowGet);
             }
             
         }
@@ -156,6 +158,12 @@ namespace ControlCaducidadesPromotor.Controllers
 
 
         //--------------methods
+        /// <summary>
+        /// Regresa los detalles de un usuario de la tabla Usuario. 
+        /// Si Activo = 0 o Si Activo = 1, se incluyen en el valor de retorno.
+        /// </summary>
+        /// <param name="usuario">Nombre de usuario que se desea localizar. El usuario puede estar activo o inactivo</param>
+        /// <returns></returns>
         private UsuarioViewModel LLamarApiBuscarUsuarioXUsuario(string usuario)
         {
             UsuarioViewModel usuarioViewModel = null;

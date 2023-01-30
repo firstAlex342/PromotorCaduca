@@ -30,103 +30,127 @@
         }
 
 
-        function BuscarCaducidades() {
-            //Obtener el id de la tienda
-            var controlSelect = document.getElementById('tiendasLista');
-            var idDeTienda = controlSelect.options[controlSelect.selectedIndex].value;
+        function BuscarCaducidades() {            
+                var validacion = EstaSeleccionadaTiendaYFechas(document.getElementById('tiendasLista'), $('#miFechaInicial').val(), $('#miFechaFinal').val());
+                if (validacion.length == 0) {
+                    //Obtener el id de la tienda
+                    var controlSelect = document.getElementById('tiendasLista');
+                    var idDeTienda = controlSelect.options[controlSelect.selectedIndex].value;
 
 
-            //Extraer info de la fecha inicial
-            var fechaInicial = $('#miFechaInicial').val();
-            fechaInicial = fechaInicial.replace(' ', '/'); // si esta 15 Mayo 2020, regresa 15/Mayo 2020
-            fechaInicial = fechaInicial.replace(' ', '/');  //Si esta 15/Mayo 2020, regresa 15/Mayo/2020
-            fechaInicial = fechaInicial + ' 00:00:00 a.m.'; //La cadena queda en el formato 15/Mayo/2020 00:00:00 a.m.
-            fechaInicial = SubstituirPalabraMesConNumero(fechaInicial); //La cadena queda en el formato 15/05/2021 00:00:00 a.m.
+                    //Extraer info de la fecha inicial
+                    var fechaInicial = $('#miFechaInicial').val();
+                    fechaInicial = fechaInicial.replace(' ', '/'); // si esta 15 Mayo 2020, regresa 15/Mayo 2020
+                    fechaInicial = fechaInicial.replace(' ', '/');  //Si esta 15/Mayo 2020, regresa 15/Mayo/2020
+                    fechaInicial = fechaInicial + ' 00:00:00 a.m.'; //La cadena queda en el formato 15/Mayo/2020 00:00:00 a.m.
+                    fechaInicial = SubstituirPalabraMesConNumero(fechaInicial); //La cadena queda en el formato 15/05/2021 00:00:00 a.m.
 
-            var auxFechaDeCaducidadInicial = new FechaHoraSinMiliSegundos(fechaInicial);
-            //auxFechaDeCaducidadInicial.GenerarEnSintaxisCadena()
+                    var auxFechaDeCaducidadInicial = new FechaHoraSinMiliSegundos(fechaInicial);
+                    //auxFechaDeCaducidadInicial.GenerarEnSintaxisCadena()
 
-            //Extraer info de la fecha final
-            var fechaFinal = $('#miFechaFinal').val();
-            fechaFinal = fechaFinal.replace(' ', '/');  // si esta 15 Mayo 2020, regresa 15/Mayo 2020
-            fechaFinal = fechaFinal.replace(' ', '/');  //Si esta 15/Mayo 2020, regresa 15/Mayo/2020
-            fechaFinal = fechaFinal + ' 11:59:59 p.m.'; //La cadena queda en el formato 15/Mayo/2020 00:00:00 a.m.
-            fechaFinal = SubstituirPalabraMesConNumero(fechaFinal); //La cadena queda en el formato 15/05/2021 00:00:00 a.m.
+                    //Extraer info de la fecha final
+                    var fechaFinal = $('#miFechaFinal').val();
+                    fechaFinal = fechaFinal.replace(' ', '/');  // si esta 15 Mayo 2020, regresa 15/Mayo 2020
+                    fechaFinal = fechaFinal.replace(' ', '/');  //Si esta 15/Mayo 2020, regresa 15/Mayo/2020
+                    fechaFinal = fechaFinal + ' 11:59:59 p.m.'; //La cadena queda en el formato 15/Mayo/2020 00:00:00 a.m.
+                    fechaFinal = SubstituirPalabraMesConNumero(fechaFinal); //La cadena queda en el formato 15/05/2021 00:00:00 a.m.
 
-            var auxFechaCaducidadFinal = new FechaHoraSinMiliSegundos(fechaFinal);
-            // auxFechaCaducidadFinal.GenerarEnSintaxisCadena();
+                    var auxFechaCaducidadFinal = new FechaHoraSinMiliSegundos(fechaFinal);
+                    // auxFechaCaducidadFinal.GenerarEnSintaxisCadena();
 
-            //Se llama al controlador Caducidad.BuscarCaducidad()
+                    //Se llama al controlador Caducidad.BuscarCaducidad()
 
-            var objetoASerializar = {
-                IdTienda: idDeTienda,
-                FechaInicial: auxFechaDeCaducidadInicial.GenerarEnSintaxisCadena(),
-                FechaFinal: auxFechaCaducidadFinal.GenerarEnSintaxisCadena(),
-                IdUsuarioAlta: 0,
-                FechaAlta: auxFechaCaducidadFinal.GenerarEnSintaxisCadena(),
-                IdUsuarioModifico: 0,
-                FechaModificacion: auxFechaCaducidadFinal.GenerarEnSintaxisCadena(),
-                Activo: true
-            };
+                    var objetoASerializar = {
+                        IdTienda: idDeTienda,
+                        FechaInicial: auxFechaDeCaducidadInicial.GenerarEnSintaxisCadena(),
+                        FechaFinal: auxFechaCaducidadFinal.GenerarEnSintaxisCadena(),
+                        IdUsuarioAlta: 0,
+                        FechaAlta: auxFechaCaducidadFinal.GenerarEnSintaxisCadena(),
+                        IdUsuarioModifico: 0,
+                        FechaModificacion: auxFechaCaducidadFinal.GenerarEnSintaxisCadena(),
+                        Activo: true
+                    };
 
-            $.ajax({
-                url: "/Caducidad/BuscarCaducidad",
-                data: JSON.stringify(objetoASerializar),
-                type: "POST",                   //Uso post para enviar una consulta que requiere varios datos. Se pudo usar get.
-                contentType: "application/json;charset=utf-8",
-                dataType: "json",
-                success: function (result) {
-                    //alert();
-                    $('#imagenWaiting').attr('style', 'display:none');
- 
-                    var html = '';
-                    $.each(result, function (key, item) {
-                        html = '<tr>';
-                        html += '<td>' + item.MiCaducaViewModel.IdProducto + '</td>';  //van a ser 16
-                        html += '<td>' + item.MiCaducaViewModel.IdPeriodo + '</td>';
-                        html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.Producto_Id + '</td>';
-                        html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.Producto_CodigoBarras + '</td>';
-                        html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.ProductoConDetalles_IdProducto + '</td>';
-                        html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.ProductoConDetalles_IdDetalleProducto + '</td>';
-                        html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.DetalleProducto_Id + '</td>';
-                        html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.DetalleProducto_Nombre + '</td>';
-                        html += '<td>' + item.MiPeriodoViewModel.Id + '</td>';
-                        var miFechaCaducidad = new Date(parseInt(item.MiPeriodoViewModel.FechaCaducidad.substr(6)));
-                        var miF = miFechaCaducidad.getFullYear().toString() + '-' + (miFechaCaducidad.getMonth() + 1).toString() + '-' + miFechaCaducidad.getDate().toString();
-                        html += '<td>' + miF + '</td>';
-                        html += '<td>' + item.MiPeriodoViewModel.NumeroUnidades + '</td>';
-                        html += '<td>' + item.MiPeriodoViewModel.Vigente + '</td>';
-                        html += '<td>' + item.MiPeriodoConUnidadViewModel.IdPeriodo + '</td>';
-                        html += '<td>' + item.MiPeriodoConUnidadViewModel.IdUnidad + '</td>';
-                        html += '<td>' + item.MiUnidadMedidaViewModel.Id + '</td>';
-                        html += '<td>' + item.MiUnidadMedidaViewModel.Nombre + '</td>';
-                        html += '</tr>';
-                        $('#miTablaCaducidadesEnTienda tbody').append(html);
+                    $.ajax({
+                        url: "/Caducidad/BuscarCaducidad",
+                        data: JSON.stringify(objetoASerializar),
+                        type: "POST",                   //Uso post para enviar una consulta que requiere varios datos. Se pudo usar get.
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            //https://stackoverflow.com/questions/26605065/jquery-ajax-return-success-error-from-mvc-net-controller
+                            // https://patrickdesjardins.com/blog/returning-a-jsonresult-within-the-error-function-of-jquery-ajax
+                            if (result.success != true) {
+                                $('#imagenWaiting').attr('style', 'display:none');
+                                $('#controlesAdicionales').hide();
+                                $('#btnBuscar').hide();
+                                var objetoDataTable = $('#miTablaCaducidadesEnTienda').DataTable();  //Genero un objeto dataTable
+                                objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+                                $('#miTablaCaducidadesEnTienda').hide();
+                                $('#miTablaCaducidadesEnTienda tbody').empty();  //destruyo el contenido
+                                //alert(result.responseText);
+                                document.getElementById("mensajes").innerHTML = "<ul><li>" + result.responseText + "</li></ul>";
+                            }
+                            else {
+                                //alert();
+                                $('#imagenWaiting').attr('style', 'display:none');
+
+                                var html = '';
+                                $.each(result.laRespuesta, function (key, item) {
+                                    html = '<tr>';
+                                    html += '<td>' + item.MiCaducaViewModel.IdProducto + '</td>';  //van a ser 16
+                                    html += '<td>' + item.MiCaducaViewModel.IdPeriodo + '</td>';
+                                    html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.Producto_Id + '</td>';
+                                    html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.Producto_CodigoBarras + '</td>';
+                                    html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.ProductoConDetalles_IdProducto + '</td>';
+                                    html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.ProductoConDetalles_IdDetalleProducto + '</td>';
+                                    html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.DetalleProducto_Id + '</td>';
+                                    html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.DetalleProducto_Nombre + '</td>';
+                                    html += '<td>' + item.MiPeriodoViewModel.Id + '</td>';
+                                    var miFechaCaducidad = new Date(parseInt(item.MiPeriodoViewModel.FechaCaducidad.substr(6)));
+                                    var miF = miFechaCaducidad.getFullYear().toString() + '-' + (miFechaCaducidad.getMonth() + 1).toString() + '-' + miFechaCaducidad.getDate().toString();
+                                    html += '<td>' + miF + '</td>';
+                                    html += '<td>' + item.MiPeriodoViewModel.NumeroUnidades + '</td>';
+                                    html += '<td>' + item.MiPeriodoViewModel.Vigente + '</td>';
+                                    html += '<td>' + item.MiPeriodoConUnidadViewModel.IdPeriodo + '</td>';
+                                    html += '<td>' + item.MiPeriodoConUnidadViewModel.IdUnidad + '</td>';
+                                    html += '<td>' + item.MiUnidadMedidaViewModel.Id + '</td>';
+                                    html += '<td>' + item.MiUnidadMedidaViewModel.Nombre + '</td>';
+                                    html += '</tr>';
+                                    $('#miTablaCaducidadesEnTienda tbody').append(html);
+                                });
+
+                                $('#controlesAdicionales').show();
+                                $('#btnBuscar').show();
+                                $('#miTablaCaducidadesEnTienda').show();
+                                EstilizarConDataTables('#miTablaCaducidadesEnTienda');
+                            }
+
+                        },
+                        beforeSend: function () {
+                            $('#mensajes').empty(); //destruyo el contenido
+                            $('#imagenWaiting').attr('style', '');
+                            $('#controlesAdicionales').hide();
+                            $('#btnBuscar').hide();
+                            var objetoDataTable = $('#miTablaCaducidadesEnTienda').DataTable();  //Genero un objeto dataTable
+                            objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+                            $('#miTablaCaducidadesEnTienda').hide();
+                            $('#miTablaCaducidadesEnTienda tbody').empty();  //destruyo el contenido
+                        },
+
+                        complete: function () {
+                            //Called after runtime call success and error functions
+                        },
+                        error: function (errormessage) {
+                            //DeshabilitarBtnAgregar();
+                            //alert(errormessage.responseText);
+                        }
                     });
-
-                    $('#controlesAdicionales').show();
-                    $('#btnBuscar').show();
-                    $('#miTablaCaducidadesEnTienda').show();
-                    EstilizarConDataTables('#miTablaCaducidadesEnTienda');
-                },
-                beforeSend: function () {
-                    $('#imagenWaiting').attr('style', '');
-                    $('#controlesAdicionales').hide();
-                    $('#btnBuscar').hide();
-                    var objetoDataTable = $('#miTablaCaducidadesEnTienda').DataTable();  //Genero un objeto dataTable
-                    objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
-                    $('#miTablaCaducidadesEnTienda').hide();
-                    $('#miTablaCaducidadesEnTienda tbody').empty();  //destruyo el contenido
-                },
-
-                complete: function () {
-                    //Called after runtime call success and error functions
-                },
-                error: function (errormessage) {
-                    //DeshabilitarBtnAgregar();
-                    //alert(errormessage.responseText);
                 }
-            });
+
+                else {
+                    document.getElementById("mensajes").innerHTML = "<ul><li>Verifique que selecciono la tienda y las fechas.</li></ul>";
+                }
         }
 
 
@@ -208,13 +232,26 @@
                 });
             }
         }
+
+        function EstaSeleccionadaTiendaYFechas(control, fechaInicial, fechaFinal) {
+            var posiblesErrores = "";
+            if (control.selectedIndex == -1) {
+                posiblesErrores = "Seleccione alguna tienda."
+            }
+
+            if (fechaInicial.length < 5 || fechaFinal.length < 5) {
+                posiblesErrores = posiblesErrores += " Es necesario elegir las fechas";
+            }
+
+            return (posiblesErrores);
+        }
     </script>
 }
 
 @section Contenido
 {
     <h3>Ver caducidad</h3>
-
+    <div class="text-danger" id="mensajes"></div>
     <div class="row" id="controlesAdicionales">
         <div class="col-sm-4">
             <div class="form-group">

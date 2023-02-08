@@ -42,27 +42,35 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         [System.Web.Http.HttpPost]
         public IHttpActionResult Post_CrearTienda(TiendaViewModel tiendaViewModel)
         {
-            if (ModelState.IsValid)
+            try
             {
-                RelojServidor relojServidor = new RelojServidor();
-                relojServidor.ColocarMismaFechaHoraEnCamposFechaAltaYFechaModificacion(tiendaViewModel);
-                TiendaLN tiendaLN = new TiendaLN();
-
-                string respuesta = tiendaLN.PostCrearTienda(tiendaViewModel);
-                if (respuesta.Contains("ok"))
+                if (ModelState.IsValid)
                 {
-                    return (Ok(respuesta));
+                    RelojServidor relojServidor = new RelojServidor();
+                    relojServidor.ColocarMismaFechaHoraEnCamposFechaAltaYFechaModificacion(tiendaViewModel);
+                    TiendaLN tiendaLN = new TiendaLN();
+
+                    string respuesta = tiendaLN.PostCrearTienda(tiendaViewModel);                    
+                    if (respuesta.Contains("ok"))
+                    {
+                        return (Ok(respuesta));
+                    }
+
+                    else
+                    {
+                        return (BadRequest(respuesta));
+                    }
                 }
 
                 else
                 {
-                    return (BadRequest(respuesta));
+                    return (BadRequest("Fallo el model binder en TiendaAPIController.Put_CrearTienda"));
                 }
             }
 
-            else
+            catch(Exception ex)
             {
-                return (BadRequest("Fallo el model binder en TiendaAPIController.Put_CrearTienda"));
+                return (BadRequest(ex.Message));
             }
         }
 

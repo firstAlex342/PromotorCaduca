@@ -80,72 +80,85 @@ namespace ControlCaducidadesPromotor.Models
         {
             string respuesta = "";
 
-            using (var ctx = new palominoEntities())
+            tiendaViewModel.AjustarAtributosSupmzaMzaLteCalleNombre();
+            if(tiendaViewModel.MisAtributosSupmzaMzaLteCalleNombreTieneCaracteresPermitidos() && tiendaViewModel.MisAtributosSupmzaMzaLteCalleNombreTieneLongitudPermitida())
             {
-                using(var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                using (var ctx = new palominoEntities())
                 {
-                    try
-                    {   //Ver si existe un nombre de tienda similar, en lo registros tienda del usuarioOperador, si existe no hago algo
-                        var idsDeUsuarioOperador = (from item in ctx.Tienda
-                                                    where item.IdUsuarioAlta == tiendaViewModel.IdUsuarioAlta
-                                                    select item.Id).ToList();
-
-                        var s = (from item in ctx.Tienda
-                                 where idsDeUsuarioOperador.Contains(item.Id)
-                                 select item.Nombre).ToList();
-
-                        bool existeNombreDeTiendaEnBD = s.Contains(tiendaViewModel.Nombre);
-
-
-                        //Busco el Id de usuario que necesitare, y ver que este activo
-                        var resumenUsuarios = (from x in ctx.Usuario
-                                               select new { x.Id, x.Usuario1, x.Activo }).ToList();
-
-                        var usuarioActivoBuscado = resumenUsuarios.SingleOrDefault(item => (item.Id == tiendaViewModel.IdUsuarioAlta)  && 
-                                                                                            (item.Activo == true)  );
-
-                        if ((existeNombreDeTiendaEnBD == false)   &&    (usuarioActivoBuscado != null)    )
-                        {
-                            var ids = (from item in ctx.Tienda
-                                       select item.Id).ToList();
-
-                            var nuevoId = ids.Count == 0 ? 1 : (ids.Max() + 1);
-
-                            Tienda tienda = new Tienda();
-                            tienda.Id = nuevoId;
-                            tienda.Nombre = tiendaViewModel.Nombre;
-                            tienda.Supmza = tiendaViewModel.Supmza;
-                            tienda.Manzana = tiendaViewModel.Manzana;
-                            tienda.Lote = tiendaViewModel.Lote;
-                            tienda.Calle = tiendaViewModel.Calle;
-                            tienda.IdUsuarioAlta = tiendaViewModel.IdUsuarioAlta;
-                            tienda.IdUsuarioModifico = tiendaViewModel.IdUsuarioAlta;
-                            tienda.FechaAlta = tiendaViewModel.FechaAlta;
-                            tienda.FechaModificacion = tiendaViewModel.FechaModificacion;
-                            tienda.Activo = true;
-
-                            ctx.Tienda.Add(tienda);
-                            ctx.SaveChanges();                           
-                            respuesta = "ok";
-                        }
-
-                        else
-                        {
-                            respuesta = "Ya existe una tienda con un nombre similar ó tu nombre de usuario esta inactivo";
-                        }
-
-                        dbContextTransaction.Commit();
-                    }
-
-                    catch(Exception ex)
+                    using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
                     {
-                        dbContextTransaction.Rollback();
-                        throw new Exception("Excepción lanzada y cachada en TiendaLN.PostCrearTienda",ex);
+                        try
+                        {   //Ver si existe un nombre de tienda similar, en lo registros tienda del usuarioOperador, si existe no hago algo
+                            var idsDeUsuarioOperador = (from item in ctx.Tienda
+                                                        where item.IdUsuarioAlta == tiendaViewModel.IdUsuarioAlta
+                                                        select new { item.Id, item.Activo }).ToList();
+
+                            var idsDeUsuarioOperadorActivos = (from item in idsDeUsuarioOperador
+                                                               where item.Activo == true
+                                                               select item.Id).ToList();
+
+                            var s = (from item in ctx.Tienda
+                                     where idsDeUsuarioOperadorActivos.Contains(item.Id)
+                                     select item.Nombre).ToList();
+
+                            bool existeNombreDeTiendaEnBD = s.Contains(tiendaViewModel.Nombre);
+
+
+
+                            //Busco el Id de usuario que necesitare, y ver que este activo
+                            var resumenUsuarios = (from x in ctx.Usuario
+                                                   select new { x.Id, x.Usuario1, x.Activo }).ToList();
+
+                            var usuarioActivoBuscado = resumenUsuarios.SingleOrDefault(item => (item.Id == tiendaViewModel.IdUsuarioAlta) &&
+                                                                                                (item.Activo == true));
+
+                            if ((existeNombreDeTiendaEnBD == false) && (usuarioActivoBuscado != null))
+                            {
+                                var ids = (from item in ctx.Tienda
+                                           select item.Id).ToList();
+
+                                var nuevoId = ids.Count == 0 ? 1 : (ids.Max() + 1);
+
+                                Tienda tienda = new Tienda();
+                                tienda.Id = nuevoId;
+                                tienda.Nombre = tiendaViewModel.Nombre;
+                                tienda.Supmza = tiendaViewModel.Supmza;
+                                tienda.Manzana = tiendaViewModel.Manzana;
+                                tienda.Lote = tiendaViewModel.Lote;
+                                tienda.Calle = tiendaViewModel.Calle;
+                                tienda.IdUsuarioAlta = tiendaViewModel.IdUsuarioAlta;
+                                tienda.IdUsuarioModifico = tiendaViewModel.IdUsuarioAlta;
+                                tienda.FechaAlta = tiendaViewModel.FechaAlta;
+                                tienda.FechaModificacion = tiendaViewModel.FechaModificacion;
+                                tienda.Activo = true;
+
+                                ctx.Tienda.Add(tienda);
+                                ctx.SaveChanges();
+                                respuesta = "ok";
+                            }
+
+                            else
+                            {
+                                respuesta = "Ya existe una tienda con un nombre similar ó tu nombre de usuario esta inactivo";
+                            }
+
+                            dbContextTransaction.Commit();
+                        }
+
+                        catch (Exception ex)
+                        {
+                            dbContextTransaction.Rollback();
+                            throw new Exception("Excepción lanzada y cachada en TiendaLN.PostCrearTienda" + ex.Message , ex);
+                        }
                     }
                 }
+
+                return (respuesta);
             }
 
-            return (respuesta);
+            else
+            { return ("Verifica que el texto de entrada este en el formato permitido.");  }
+
         }
 
 

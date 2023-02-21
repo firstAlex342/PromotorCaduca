@@ -168,61 +168,79 @@ namespace ControlCaducidadesPromotor.Models
         {
             TiendaViewModel tiendaBuscadaVM = null;
 
-            using (var ctx = new palominoEntities())
+            //Eliminar espacios en blanco innecesarios en el atributo nombre de la tienda, y verificar que el nombre de la tienda contenga caracteres permitidos y que NO este vacia.          
+            tiendaViewModel.AjustarAtributosSupmzaMzaLteCalleNombre();
+            bool nombreTiendaContieneLongitudPermitida = (tiendaViewModel.Nombre.Length > 0) ? true : false;
+
+            if (tiendaViewModel.ContieneCaracteresPermitidos(tiendaViewModel.Nombre) && nombreTiendaContieneLongitudPermitida)
             {
-                using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                using (var ctx = new palominoEntities())
                 {
-                    try
+                    using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
                     {
-                        //Busco el Id de usuario que envio la solicitud, y ver que este activo
-                        var resumenUsuarios = (from x in ctx.Usuario
-                                               select new { x.Id, x.Usuario1, x.Activo }).ToList();
-
-                        var usuarioActivoBuscado = resumenUsuarios.SingleOrDefault(item => (item.Id == tiendaViewModel.IdUsuarioAlta) &&
-                                                                                            (item.Activo == true));
-
-                        if(usuarioActivoBuscado != null)
+                        try
                         {
-                            //Busco las tiendas del usuario operador
-                            var ids_Nombre_EstadoTiendas = (from s in ctx.Tienda
-                                                            select new { s.Id, s.Nombre, s.IdUsuarioAlta }).ToList();
+                            //Busco el Id de usuario que envio la solicitud, y ver que este activo
+                            var resumenUsuarios = (from x in ctx.Usuario
+                                                   select new { x.Id, x.Usuario1, x.Activo }).ToList();
 
-                            var ids_Nombre_Estado_TiendasDeUsuario = (from s in ids_Nombre_EstadoTiendas
-                                                                     where s.IdUsuarioAlta == tiendaViewModel.IdUsuarioAlta
-                                                                     select s).ToList();
-                            //Dentro de las tiendas del usuario operador, busco la tienda que me interesa
-                            var resumenTiendaBuscada = ids_Nombre_Estado_TiendasDeUsuario.SingleOrDefault(item => item.Nombre == tiendaViewModel.Nombre);
-                            if(resumenTiendaBuscada != null)
+                            var usuarioActivoBuscado = resumenUsuarios.SingleOrDefault(item => (item.Id == tiendaViewModel.IdUsuarioAlta) &&
+                                                                                                (item.Activo == true));
+
+                            if (usuarioActivoBuscado != null)
                             {
-                                Tienda tiendaX=  ctx.Tienda.Find(resumenTiendaBuscada.Id);
-                                tiendaBuscadaVM = new TiendaViewModel();
-                                tiendaBuscadaVM.Id = tiendaX.Id;
-                                tiendaBuscadaVM.Nombre = tiendaX.Nombre;
-                                tiendaBuscadaVM.Supmza = tiendaX.Supmza;
-                                tiendaBuscadaVM.Manzana = tiendaX.Manzana;
-                                tiendaBuscadaVM.Lote = tiendaX.Lote;
-                                tiendaBuscadaVM.Calle = tiendaX.Calle;
-                                tiendaBuscadaVM.IdUsuarioAlta = tiendaX.IdUsuarioAlta;
-                                tiendaBuscadaVM.FechaAlta = tiendaX.FechaAlta;
-                                tiendaBuscadaVM.IdUsuarioModifico = tiendaX.IdUsuarioModifico;
-                                tiendaBuscadaVM.FechaModificacion = tiendaX.FechaModificacion;
-                                tiendaBuscadaVM.Activo = tiendaX.Activo;
+                                //Busco las tiendas del usuario operador
+                                var idsTiendasActivas = (from s in ctx.Tienda
+                                                         where s.Activo == true
+                                                         select new { s.Id, s.Activo, s.IdUsuarioAlta }).ToList();  //nueva linea
+
+                                var idsTiendasActivasDeUsuarioOperador = (from s in idsTiendasActivas
+                                                                          where s.IdUsuarioAlta == tiendaViewModel.IdUsuarioAlta
+                                                                          select s.Id).ToList();    //nueva linea
+
+                                var detallesTiendasActivasUsuarioOperador = (from s in ctx.Tienda
+                                                                             where idsTiendasActivasDeUsuarioOperador.Contains(s.Id)
+                                                                             select new { s.Id, s.Nombre }).ToList();  //nueva linea
+
+                                var resumenTiendaBuscada = detallesTiendasActivasUsuarioOperador.SingleOrDefault(item => item.Nombre == tiendaViewModel.Nombre); //Nueva linea
+
+                                if (resumenTiendaBuscada != null)
+                                {
+                                    Tienda tiendaX = ctx.Tienda.Find(resumenTiendaBuscada.Id);
+                                    tiendaBuscadaVM = new TiendaViewModel();
+                                    tiendaBuscadaVM.Id = tiendaX.Id;
+                                    tiendaBuscadaVM.Nombre = tiendaX.Nombre;
+                                    tiendaBuscadaVM.Supmza = tiendaX.Supmza;
+                                    tiendaBuscadaVM.Manzana = tiendaX.Manzana;
+                                    tiendaBuscadaVM.Lote = tiendaX.Lote;
+                                    tiendaBuscadaVM.Calle = tiendaX.Calle;
+                                    tiendaBuscadaVM.IdUsuarioAlta = tiendaX.IdUsuarioAlta;
+                                    tiendaBuscadaVM.FechaAlta = tiendaX.FechaAlta;
+                                    tiendaBuscadaVM.IdUsuarioModifico = tiendaX.IdUsuarioModifico;
+                                    tiendaBuscadaVM.FechaModificacion = tiendaX.FechaModificacion;
+                                    tiendaBuscadaVM.Activo = tiendaX.Activo;
+                                }
+
                             }
 
+                            else
+                            {  throw new Exception("El usuario no se encontro ó no esta activo");   }
+
+                            dbContextTransaction.Commit();
                         }
 
-                        dbContextTransaction.Commit();
-                    }
-
-                    catch(Exception ex)
-                    {
-                        dbContextTransaction.Rollback();
-                        throw new Exception("Excepción lanzada y cachada en TiendaLN.Get_BuscarTiendaDeUsuarioXNombre", ex);
+                        catch (Exception ex)
+                        {
+                            dbContextTransaction.Rollback();
+                            throw new Exception("Excepción lanzada y cachada en TiendaLN.Get_BuscarTiendaDeUsuarioXNombre " + ex.Message , ex);
+                        }
                     }
                 }
+                return (tiendaBuscadaVM);
             }
 
-            return (tiendaBuscadaVM);
+            else
+            {  throw new Exception("Excepción lanzada y cachada en TiendaLN.Get_BuscarTiendaDeUsuarioXNombre. El nombre de tienda esta vacio."); }                       
         }
 
 
@@ -231,65 +249,94 @@ namespace ControlCaducidadesPromotor.Models
         {
             string respuesta = "";
 
-            using (var ctx = new palominoEntities())
+            tiendaViewModel.AjustarAtributosSupmzaMzaLteCalleNombre(); 
+
+            if(tiendaViewModel.MisAtributosSupmzaMzaLteCalleNombreTieneCaracteresPermitidos() && tiendaViewModel.MisAtributosSupmzaMzaLteCalleNombreTieneLongitudPermitida())
             {
-                using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                using (var ctx = new palominoEntities())
                 {
-                    try
+                    using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
                     {
-                        //Busco el Id de usuario que envio la solicitud, y ver que este activo
-                        var resumenUsuarios = (from x in ctx.Usuario
-                                               select new { x.Id, x.Usuario1, x.Activo }).ToList();
-
-                        var usuarioActivoBuscado = resumenUsuarios.SingleOrDefault(item => (item.Id == tiendaViewModel.IdUsuarioAlta) &&
-                                                                                            (item.Activo == true));
-                        if(usuarioActivoBuscado != null)
+                        try
                         {
-                            //Buscar la tienda almacenada en la BD y ver que este activa
-                            Tienda tiendaOriginal = ctx.Tienda.Find(tiendaViewModel.Id);
-                            if (tiendaOriginal != null)
-                            {   //Veo que la tienda este activo
-                                if(tiendaOriginal.Activo == true)
-                                {
-                                    //Verifico que la tiendaViewModel que viene llegando en la solicitud( que es la que este viendo el usuario)
-                                    //sea la que esta almacenada en la bd, a través de la fechas y hora
-                                    RelojServidor relojServidor = new RelojServidor();
-                                    if(   (relojServidor.EsMismaFechaYHoraSinMilisegundos(tiendaViewModel.FechaAlta, tiendaOriginal.FechaAlta)) 
-                                        &&    (relojServidor.EsMismaFechaYHoraSinMilisegundos(tiendaViewModel.FechaModificacion, tiendaOriginal.FechaModificacion))  )
+                            //Busco el Id de usuario que envio la solicitud, y ver que este activo
+                            var resumenUsuarios = (from x in ctx.Usuario
+                                                   select new { x.Id, x.Usuario1, x.Activo }).ToList();
+
+                            var usuarioActivoBuscado = resumenUsuarios.SingleOrDefault(item => (item.Id == tiendaViewModel.IdUsuarioAlta) &&
+                                                                                                (item.Activo == true));
+                            if (usuarioActivoBuscado != null)
+                            {
+                                //Buscar la tienda almacenada en la BD y ver que este activa
+                                Tienda tiendaOriginal = ctx.Tienda.Find(tiendaViewModel.Id);
+                                if (tiendaOriginal != null)
+                                {   //Veo que la tienda este activo
+                                    if (tiendaOriginal.Activo == true)
                                     {
-                                        //Ver que el nombre de tienda que viene en la solicitud este disponible
-                                        var resumenTiendas = (from s in ctx.Tienda
-                                                             select new { s.Id, s.Nombre, s.IdUsuarioAlta }).ToList();
-
-                                        var tiendasDeUsuarioOperador = (from s in resumenTiendas
-                                                                        where s.IdUsuarioAlta == tiendaViewModel.IdUsuarioAlta
-                                                                        select s).ToList();
-
-                                        var nombresAVerificar = (from s in tiendasDeUsuarioOperador
-                                                                 where s.Id != tiendaViewModel.Id
-                                                                 select s.Nombre).ToList();
-
-                                        if(nombresAVerificar.Contains(tiendaViewModel.Nombre) == false )
+                                        //Verifico que la tiendaViewModel que viene llegando en la solicitud( que es la que este viendo el usuario)
+                                        //sea la que esta almacenada en la bd, a través de la fechas y hora
+                                        RelojServidor relojServidor = new RelojServidor();
+                                        if ((relojServidor.EsMismaFechaYHoraSinMilisegundos(tiendaViewModel.FechaAlta, tiendaOriginal.FechaAlta))
+                                            && (relojServidor.EsMismaFechaYHoraSinMilisegundos(tiendaViewModel.FechaModificacion, tiendaOriginal.FechaModificacion)))
                                         {
-                                            //Modifico
-                                            tiendaOriginal.Supmza = tiendaViewModel.Supmza;
-                                            tiendaOriginal.Manzana = tiendaViewModel.Manzana;
-                                            tiendaOriginal.Lote = tiendaViewModel.Lote;
-                                            tiendaOriginal.Calle = tiendaViewModel.Calle;
-                                            tiendaOriginal.Nombre = tiendaViewModel.Nombre;
-                                            tiendaOriginal.IdUsuarioAlta = tiendaViewModel.IdUsuarioAlta;
-                                            tiendaOriginal.IdUsuarioModifico = tiendaViewModel.IdUsuarioModifico;
-                                            tiendaOriginal.FechaAlta = tiendaOriginal.FechaAlta;
-                                            tiendaOriginal.FechaModificacion = relojServidor.RegresarHoraEnServidor();
-                                            tiendaOriginal.Activo = tiendaViewModel.Activo;
-                                            ctx.SaveChanges();
+                                            //ver que el nombre de tienda que viene en la solicitud este disponible
+                                            var resumenTiendas = (from s in ctx.Tienda
+                                                                  select new { s.Id, s.IdUsuarioAlta, s.Activo }).ToList();
 
-                                            respuesta = "ok";
+                                            var resumenTiendasActivas = (from s in resumenTiendas
+                                                                         where s.Activo == true
+                                                                         select s).ToList();
+                                            var resumenTiendasActivasUsuarioOperador = (from s in resumenTiendasActivas
+                                                                                        where s.IdUsuarioAlta == tiendaViewModel.IdUsuarioAlta
+                                                                                        select s).ToList();
+
+                                            var idsTiendasARecuperar = (from s in resumenTiendasActivasUsuarioOperador
+                                                                        where s.Id != tiendaViewModel.Id
+                                                                        select s.Id).ToList();
+
+
+                                            var nombresAVerificar = (from s in ctx.Tienda
+                                                                     where idsTiendasARecuperar.Contains(s.Id)
+                                                                     select s.Nombre).ToList();
+                                            //Ver que el nombre de tienda que viene en la solicitud este disponible
+                                            /*var resumenTiendas = (from s in ctx.Tienda
+                                                                 select new { s.Id, s.Nombre, s.IdUsuarioAlta }).ToList();
+
+                                            var tiendasDeUsuarioOperador = (from s in resumenTiendas
+                                                                            where s.IdUsuarioAlta == tiendaViewModel.IdUsuarioAlta
+                                                                            select s).ToList();
+
+                                            var nombresAVerificar = (from s in tiendasDeUsuarioOperador
+                                                                     where s.Id != tiendaViewModel.Id
+                                                                     select s.Nombre).ToList();*/
+
+                                            if (nombresAVerificar.Contains(tiendaViewModel.Nombre) == false)
+                                            {
+                                                //Modifico
+                                                tiendaOriginal.Supmza = tiendaViewModel.Supmza;
+                                                tiendaOriginal.Manzana = tiendaViewModel.Manzana;
+                                                tiendaOriginal.Lote = tiendaViewModel.Lote;
+                                                tiendaOriginal.Calle = tiendaViewModel.Calle;
+                                                tiendaOriginal.Nombre = tiendaViewModel.Nombre;
+                                                tiendaOriginal.IdUsuarioAlta = tiendaViewModel.IdUsuarioAlta;
+                                                tiendaOriginal.IdUsuarioModifico = tiendaViewModel.IdUsuarioModifico;
+                                                tiendaOriginal.FechaAlta = tiendaOriginal.FechaAlta;
+                                                tiendaOriginal.FechaModificacion = relojServidor.RegresarHoraEnServidor();
+                                                tiendaOriginal.Activo = tiendaViewModel.Activo;
+                                                ctx.SaveChanges();
+
+                                                respuesta = "ok";
+                                            }
+
+                                            else
+                                            {
+                                                respuesta = "El nombre  de la tienda ya esta en uso";
+                                            }
                                         }
 
                                         else
                                         {
-                                            respuesta = "El nombre  de la tienda ya esta en uso";
+                                            respuesta = "La tienda no se encuentra disponible en este momento";
                                         }
                                     }
 
@@ -301,33 +348,31 @@ namespace ControlCaducidadesPromotor.Models
 
                                 else
                                 {
-                                    respuesta = "La tienda no se encuentra disponible en este momento";
+                                    respuesta = "La tienda no esta activa en este momento";
                                 }
                             }
 
                             else
                             {
-                                respuesta = "La tienda no esta activa en este momento";
+                                respuesta = "El usuario operador no esta activo en este momento";
                             }
+
+                            dbContextTransaction.Commit();
                         }
 
-                        else
+                        catch (Exception ex)
                         {
-                            respuesta = "El usuario operador no esta activo en este momento";
+                            dbContextTransaction.Rollback();
+                            throw new Exception("Excepción lanzada y cachada en TiendaLN.Put_ActualizarTienda" + ex.Message, ex);
                         }
-                        
-                        dbContextTransaction.Commit();
-                    }
-
-                    catch (Exception ex)
-                    {
-                        dbContextTransaction.Rollback();
-                        throw new Exception("Excepción lanzada y cachada en TiendaLN.Put_ActualizarTienda", ex);
                     }
                 }
-            }
 
-            return (respuesta);
+                return (respuesta);
+            }
+            
+            else
+            { return ("Verifica que el texto de entrada este en el formato permitido."); }
         }
 
 

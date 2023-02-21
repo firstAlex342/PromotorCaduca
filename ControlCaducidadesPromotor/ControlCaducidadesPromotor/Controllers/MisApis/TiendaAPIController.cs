@@ -79,27 +79,34 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         [System.Web.Http.HttpGet]
         public IHttpActionResult Get_BuscarTiendaDeUsuarioXNombre(string nombreTienda, int idUsuarioOperador)
         {
-            if(ModelState.IsValid)
-            {
-                TiendaViewModel tiendaViewModel = new TiendaViewModel();
-                tiendaViewModel.Nombre = nombreTienda;
-                tiendaViewModel.IdUsuarioAlta = idUsuarioOperador;
-                TiendaLN tiendaLN = new TiendaLN();
-                TiendaViewModel tiendaBuscadaViewModel = tiendaLN.Get_BuscarTiendaDeUsuarioXNombre(tiendaViewModel); 
-                if( tiendaBuscadaViewModel != null)
+            try {
+                if (ModelState.IsValid)
                 {
-                    return (Ok(tiendaBuscadaViewModel));
+                    TiendaViewModel tiendaViewModel = new TiendaViewModel();
+                    tiendaViewModel.Nombre = nombreTienda;
+                    tiendaViewModel.IdUsuarioAlta = idUsuarioOperador;
+                    TiendaLN tiendaLN = new TiendaLN();
+                    TiendaViewModel tiendaBuscadaViewModel = tiendaLN.Get_BuscarTiendaDeUsuarioXNombre(tiendaViewModel);
+                    if (tiendaBuscadaViewModel != null)
+                    {
+                        return (Ok(tiendaBuscadaViewModel));
+                    }
+
+                    else
+                    {
+                        return (BadRequest("No se encontro la tienda buscada"));
+                    }
                 }
 
                 else
                 {
-                    return (BadRequest("No se encontro la tienda buscada"));
+                    return (BadRequest("Fallo en el model binder TiendaAPIController.Get_BuscarTiendaDeUsuarioXNombre"));
                 }
             }
 
-            else
+            catch(Exception ex)
             {
-                return (BadRequest("Fallo en el model binder TiendaAPIController.Get_BuscarTiendaDeUsuarioXNombre"));
+                return (  BadRequest(ex.Message)  );
             }
         }
 
@@ -108,25 +115,32 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         [System.Web.Http.HttpPut]
         public IHttpActionResult Put_ActualizarTiendaDeUsuario(TiendaViewModel tiendaViewModel)
         {
-            if(ModelState.IsValid)
-            {
-                TiendaLN tiendaLN = new TiendaLN();
-                string res = tiendaLN.Put_ActualizarTiendaDeUsuario(tiendaViewModel);
-
-                if(res.Contains("ok"))
+            try{
+                if (ModelState.IsValid)
                 {
-                    return (Ok());
+                    TiendaLN tiendaLN = new TiendaLN();
+                    string res = tiendaLN.Put_ActualizarTiendaDeUsuario(tiendaViewModel);
+
+                    if (res.Contains("ok"))
+                    {
+                        return (Ok());
+                    }
+
+                    else
+                    {
+                        return (BadRequest(res));
+                    }
                 }
 
                 else
                 {
-                    return (BadRequest(res));
+                    return (BadRequest("Fallo el model binder en TiendaAPIController.Put_ActualizarTiendaDeUsuario"));
                 }
             }
 
-            else
+            catch(Exception ex)
             {
-                return (BadRequest("Fallo el model binder en TiendaAPIController.Put_ActualizarTiendaDeUsuario"));
+                return ( BadRequest(ex.Message)  );
             }
         }
 

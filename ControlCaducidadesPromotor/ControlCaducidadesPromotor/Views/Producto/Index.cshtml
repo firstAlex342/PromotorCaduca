@@ -8,6 +8,34 @@
 
 @section MisFuncionesJavaScript
 {
+    <script type="text/javascript">
+        'use strict';
+        var x = $(document);
+        x.ready(inicializarEventos);
+
+        function inicializarEventos() {
+            EstilizarConDataTables('#misProductos');
+        }
+
+        function EstilizarConDataTables(nomTabla) {
+            //https://datatables.net/manual/data/
+            var objetoDataTable = $(nomTabla).DataTable();  //Genero un objeto dataTable
+            objetoDataTable.destroy(); //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+
+            if (nomTabla === '#misProductos') {
+                $(nomTabla).DataTable({
+                    language: {
+                        url: '../Scripts/DataTables/Spanish.json'
+                    },                  //https://datatables.net/manual/options
+                    //searching: false, //https://datatables.net/reference/option/columns.searchable
+                    order: [],      //https://datatables.net/reference/option/order
+                    columnDefs: [{ searchable: false, targets: [0, 3] }  //https://datatables.net/reference/option/columnDefs
+                        //{ visible: false, targets: [0, 3], }
+                    ]                      
+                });
+            }
+        }
+    </script>
 }
 
 @section Contenido{
@@ -17,7 +45,7 @@
 
 
     <div class="table-responsive">
-        <table class="table table-striped">
+        <table id="misProductos" class="table table-striped">
             <thead>
                 <tr>
                     <th>Id</th>

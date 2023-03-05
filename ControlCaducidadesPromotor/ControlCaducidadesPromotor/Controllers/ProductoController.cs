@@ -21,7 +21,7 @@ namespace WebApplication3.Controllers
                 if(usuarioViewModel != null)
                 {
                     cliente.BaseAddress = new Uri("http://localhost:51339/");
-                    var responseTask = cliente.GetAsync("api/ProductoAPI/MostrarTodosRegistradosDeOperador?idUsuarioOperador=" + usuarioViewModel.Id.ToString());
+                    var responseTask = cliente.GetAsync("api/ProductoAPI/MostrarActivosRegistradosDeOperador?idUsuarioOperador=" + usuarioViewModel.Id.ToString());
                     responseTask.Wait();
 
                     var result = responseTask.Result;

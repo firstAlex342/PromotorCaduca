@@ -21,6 +21,15 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
             return (Ok(lista));
         }
 
+        [HttpGet]
+        public IHttpActionResult MostrarActivosRegistradosDeOperador(int idUsuarioOperador)
+        {
+            ProductoLN p = new ProductoLN();
+            IList<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel> lista = p.MostrarActivosDeOperador(idUsuarioOperador);
+
+            return (Ok(lista));
+        }
+
 
         [HttpGet]
         public IHttpActionResult BuscarProductoxCodigoBarras(string codigoBarrasBuscado, int idUsuarioOperador)

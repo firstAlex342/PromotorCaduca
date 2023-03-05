@@ -111,6 +111,7 @@ C:\Users\cruz\Documents\Visual Studio 2017\Projects\ControlCaducidadesPromotor\C
 C:\Users\cruz\Documents\Visual Studio 2017\Projects\ControlCaducidadesPromotor\ControlCaducidadesPromotor\obj\Debug\ControlCaducidadesPromotor.dll
 C:\Users\cruz\Documents\Visual Studio 2017\Projects\ControlCaducidadesPromotor\ControlCaducidadesPromotor\obj\Debug\ControlCaducidadesPromotor.pdb
 C:\Users\cruz\Documents\Visual Studio 2017\Projects\ControlCaducidadesPromotor\ControlCaducidadesPromotor\obj\Debug\ControlCaducidadesPromotor.csprojAssemblyReference.cache
+C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\EntityFramework.xml
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\ApplicationInsights.config
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\ControlCaducidadesPromotor.dll.config
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\ControlCaducidadesPromotor.dll
@@ -189,7 +190,6 @@ C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\Control
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\System.Web.WebPages.dll
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\System.Web.WebPages.Razor.dll
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\WebGrease.dll
-C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\EntityFramework.xml
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\EntityFramework.SqlServer.xml
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\System.Web.Helpers.xml
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\System.Web.Mvc.xml
@@ -219,7 +219,6 @@ C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\Control
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\es\System.Net.Http.Formatting.resources.dll
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\es\System.Web.Http.resources.dll
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\bin\es\System.Web.Http.WebHost.resources.dll
-C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\obj\Debug\ControlCaducidadesPromotor.csprojAssemblyReference.cache
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\obj\Debug\ControlCaducidadesPromotor.csproj.CoreCompileInputs.cache
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\obj\Debug\ControlCaducidadesPromotor.csproj.CopyComplete
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\obj\Debug\ControlCaducidadesPromotor.dll

@@ -22,11 +22,27 @@ namespace ControlCaducidadesPromotor.Models
                 {
                     try
                     {   //Buscar los codigosBarras del usuario operador
-                        var codigosBarrasExisten = (from s in ctx.Producto
+                        var resumenTodosProductos = (from s in ctx.Producto
+                                               select new { s.Id, s.IdUsuarioAlta, s.Activo }).ToList();
+
+                        var resumenProductosUsuario = (from s in resumenTodosProductos
+                                                    where s.IdUsuarioAlta == productoViewModel.IdUsuarioAlta
+                                                    select s).ToList();
+
+                        var idsActivosUsuario = (from s in resumenProductosUsuario
+                                                 where s.Activo == true
+                                                 select s.Id).ToList();
+
+                        var codigosBarrasUsuario = (from s in ctx.Producto
+                                                    where idsActivosUsuario.Contains(s.Id)
+                                                    select s.CodigoBarras).ToList();
+
+                        bool existeProductoEnActivos = productoViewModel.ExisteEn(codigosBarrasUsuario);
+                        /*var codigosBarrasExisten = (from s in ctx.Producto
                                                     where s.IdUsuarioAlta == productoViewModel.IdUsuarioAlta
                                                     select s.CodigoBarras
                                                     ).ToList();
-                        bool existeProductoEnActivosOInactivos = productoViewModel.ExisteEn(codigosBarrasExisten);
+                        bool existeProductoEnActivosOInactivos = productoViewModel.ExisteEn(codigosBarrasExisten);*/
 
                         //Busco el Id de usuario que necesitare, y ver que este activo
                         var resumenUsuarios = (from x in ctx.Usuario
@@ -35,7 +51,7 @@ namespace ControlCaducidadesPromotor.Models
                         var usuarioActivoBuscado = resumenUsuarios.SingleOrDefault(item => (item.Id == productoViewModel.IdUsuarioAlta) &&
                                                                                             (item.Activo == true));
 
-                        if (!existeProductoEnActivosOInactivos && (usuarioActivoBuscado != null)   )
+                        if (!existeProductoEnActivos && (usuarioActivoBuscado != null)   )
                         {
                             var listaIdsProducto = (from s in ctx.Producto
                                                     select s.Id).ToList();
@@ -80,7 +96,7 @@ namespace ControlCaducidadesPromotor.Models
 
                         else
                         { 
-                            mensaje = existeProductoEnActivosOInactivos == true ? "Ya existe este código de barras en la BD" : "El usuario esta inactivo";
+                            mensaje = existeProductoEnActivos == true ? "Ya existe este código de barras en la BD" : "El usuario esta inactivo";
                         }
                         dbContextTransaction.Commit();
                     }
@@ -168,6 +184,124 @@ namespace ControlCaducidadesPromotor.Models
             return (res);
         }
 
+
+        public List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel> MostrarActivosDeOperador(int idUsuarioOperador)
+        {
+            List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel> res = new List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel>();
+
+            using (var ctx = new palominoEntities())
+            {
+                using (var dbContextTransaction = ctx.Database.BeginTransaction())
+                {
+                    try
+                    {   //Busco el Id de usuario que necesitare, y ver que este activo
+                        var resumenUsuarios = (from x in ctx.Usuario
+                                               select new { x.Id, x.Usuario1, x.Activo }).ToList();
+                        var usuarioActivoBuscado = resumenUsuarios.SingleOrDefault(item => (item.Id == idUsuarioOperador) &&
+                                                                    (item.Activo == true));
+
+                        if (usuarioActivoBuscado != null)
+                        {
+                            //https://www.syncfusion.com/blogs/post/8-tips-writing-best-linq-to-entities-queries.aspx#use-AsNoTracking
+                            var idsYEstadoDeProductosDeOperador = (from s in ctx.Producto.AsNoTracking()
+                                                                   where s.IdUsuarioAlta == idUsuarioOperador
+                                                                   select new { s.Id, s.Activo }).ToList();
+
+                            var idsActivosDeOperador = (from s in idsYEstadoDeProductosDeOperador
+                                                        where s.Activo == true
+                                                        select s.Id).ToList();
+
+                            var misProductos = (from s in ctx.Producto.AsNoTracking()
+                                                where idsActivosDeOperador.Contains(s.Id)
+                                                select new
+                                                {
+                                                    Producto_Id = s.Id,
+                                                    Producto_CodigoBarras = s.CodigoBarras,
+                                                    Producto_Activo = s.Activo
+                                                }).ToList();
+
+
+                            var miRelacionActivosEInactivos = (from s in misProductos
+                                              join x in ctx.ProductoConDetalles.AsNoTracking()
+                                              on s.Producto_Id equals x.IdProducto
+                                              select new
+                                              {
+                                                  s.Producto_Id,
+                                                  s.Producto_CodigoBarras,
+                                                  s.Producto_Activo,
+                                                  ProductoConDetalles_IdDetalles = x.IdDetalleProducto,
+                                                  ProductoConDetalles_Activo = x.Activo
+                                              }).ToList();
+
+                            var miRelacionActivos = (from s in miRelacionActivosEInactivos
+                                                     where s.ProductoConDetalles_Activo == true
+                                                     select s).ToList();
+
+                            res = (from d in miRelacionActivos
+                                  join x in ctx.DetalleProducto.AsNoTracking()
+                                  on d.ProductoConDetalles_IdDetalles equals x.Id
+                                  where x.Activo == true
+                                  select new ProductoJoinProductoConDetallesJoinDetalleProductoViewModel
+                                  {
+                                      Producto_Id = d.Producto_Id,
+                                      Producto_CodigoBarras = d.Producto_CodigoBarras,
+                                      Producto_Activo = d.Producto_Activo,
+                                      DetalleProducto_Nombre = x.Nombre
+                                  }).ToList();
+
+                            /*var idsDeOperador = (from s in ctx.Producto.AsNoTracking()
+                                                 where s.IdUsuarioAlta == idUsuarioOperador
+                                                 select s.Id).ToList();
+
+
+                            var misProductos = (from s in ctx.Producto.AsNoTracking()
+                                                where idsDeOperador.Contains(s.Id)
+                                                select new
+                                                {
+                                                    Producto_Id = s.Id,
+                                                    Producto_CodigoBarras = s.CodigoBarras,
+                                                    Producto_Activo = s.Activo
+                                                }).ToList();
+
+                            var miRelacion = (from s in misProductos
+                                              join x in ctx.ProductoConDetalles.AsNoTracking()
+                                              on s.Producto_Id equals x.IdProducto
+                                              select new
+                                              {
+                                                  s.Producto_Id,
+                                                  s.Producto_CodigoBarras,
+                                                  s.Producto_Activo,
+                                                  ProductoConDetalles_IdDetalles = x.IdDetalleProducto
+                                              }).ToList();
+
+                            res = (from d in miRelacion
+                                   join x in ctx.DetalleProducto.AsNoTracking()
+                                   on d.ProductoConDetalles_IdDetalles equals x.Id
+                                   where x.Activo == true
+                                   select new ProductoJoinProductoConDetallesJoinDetalleProductoViewModel
+                                   {
+                                       Producto_Id = d.Producto_Id,
+                                       Producto_CodigoBarras = d.Producto_CodigoBarras,
+                                       Producto_Activo = d.Producto_Activo,
+                                       DetalleProducto_Nombre = x.Nombre
+                                   }).ToList();   */
+                        }
+
+
+                        
+                        dbContextTransaction.Commit();
+                    }
+
+                    catch (Exception ex)
+                    {
+                        dbContextTransaction.Rollback();
+                        throw new Exception("Excepcion cachada y lanzada en ProductoLN.MostrarTodosLosActivos ", ex);
+                    }
+                }
+            }
+
+            return (res);
+        }
 
 
         public string Modificar(ProductoJoinProductoConDetallesJoinDetalleProductoViewModel productoConNuevosValores)

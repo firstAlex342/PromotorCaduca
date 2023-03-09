@@ -61,17 +61,26 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         public IHttpActionResult CrearProducto(ProductoViewModel productoViewModel)
         {
             string respuesta = "";
-            if (ModelState.IsValid)
+
+            try
             {
-                RelojServidor relojServidor = new RelojServidor();
-                relojServidor.ColocarMismaFechaHoraEnCamposFechaAltaYFechaModificacion(productoViewModel);
+                if (ModelState.IsValid)
+                {                    
+                    RelojServidor relojServidor = new RelojServidor();
+                    relojServidor.ColocarMismaFechaHoraEnCamposFechaAltaYFechaModificacion(productoViewModel);
 
-                ProductoLN p = new ProductoLN();
-                respuesta = p.Crear(productoViewModel);
+                    ProductoLN p = new ProductoLN();
+                    respuesta = p.Crear(productoViewModel);
 
-                if (respuesta.Contains("ok"))
-                {
-                    return (Ok());
+                    if (respuesta.Contains("ok"))
+                    {
+                        return (Ok());
+                    }
+
+                    else
+                    {
+                        return (BadRequest(respuesta));
+                    }
                 }
 
                 else
@@ -80,9 +89,9 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
                 }
             }
 
-            else
+            catch(Exception ex)
             {
-                return (BadRequest(respuesta));
+                return (BadRequest(ex.Message));
             }
         }
 

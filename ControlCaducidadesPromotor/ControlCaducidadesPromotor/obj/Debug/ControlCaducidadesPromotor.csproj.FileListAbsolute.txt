@@ -223,3 +223,4 @@ C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\Control
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\obj\Debug\ControlCaducidadesPromotor.csproj.CopyComplete
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\obj\Debug\ControlCaducidadesPromotor.dll
 C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\obj\Debug\ControlCaducidadesPromotor.pdb
+C:\Users\cruz\Documents\GitHub\PromotorCaduca\ControlCaducidadesPromotor\ControlCaducidadesPromotor\obj\Debug\ControlCaducidadesPromotor.csprojAssemblyReference.cache

@@ -16,99 +16,104 @@ namespace ControlCaducidadesPromotor.Models
         public string Crear(ProductoViewModel productoViewModel)
         {
             string mensaje = "";
-            using (var ctx = new palominoEntities())
+
+            productoViewModel.AjustarAtributosCodigoBarrasYNombre();
+
+            if(productoViewModel.MisAtributosCodbarrasNombreTieneCaracteresPermitidos()  &&  productoViewModel.MisAtributosCodbarrasNombreTieneLongitudPermitida())
             {
-                using (var dbContextTransaction = ctx.Database.BeginTransaction(IsolationLevel.Serializable))
+                using (var ctx = new palominoEntities())
                 {
-                    try
-                    {   //Buscar los codigosBarras del usuario operador
-                        var resumenTodosProductos = (from s in ctx.Producto
-                                               select new { s.Id, s.IdUsuarioAlta, s.Activo }).ToList();
-
-                        var resumenProductosUsuario = (from s in resumenTodosProductos
-                                                    where s.IdUsuarioAlta == productoViewModel.IdUsuarioAlta
-                                                    select s).ToList();
-
-                        var idsActivosUsuario = (from s in resumenProductosUsuario
-                                                 where s.Activo == true
-                                                 select s.Id).ToList();
-
-                        var codigosBarrasUsuario = (from s in ctx.Producto
-                                                    where idsActivosUsuario.Contains(s.Id)
-                                                    select s.CodigoBarras).ToList();
-
-                        bool existeProductoEnActivos = productoViewModel.ExisteEn(codigosBarrasUsuario);
-                        /*var codigosBarrasExisten = (from s in ctx.Producto
-                                                    where s.IdUsuarioAlta == productoViewModel.IdUsuarioAlta
-                                                    select s.CodigoBarras
-                                                    ).ToList();
-                        bool existeProductoEnActivosOInactivos = productoViewModel.ExisteEn(codigosBarrasExisten);*/
-
-                        //Busco el Id de usuario que necesitare, y ver que este activo
-                        var resumenUsuarios = (from x in ctx.Usuario
-                                               select new { x.Id, x.Usuario1, x.Activo }).ToList();
-
-                        var usuarioActivoBuscado = resumenUsuarios.SingleOrDefault(item => (item.Id == productoViewModel.IdUsuarioAlta) &&
-                                                                                            (item.Activo == true));
-
-                        if (!existeProductoEnActivos && (usuarioActivoBuscado != null)   )
-                        {
-                            var listaIdsProducto = (from s in ctx.Producto
-                                                    select s.Id).ToList();
-                            int idUltimoEnProducto = listaIdsProducto.Count() == 0 ? 0 : listaIdsProducto.Max();
-                            Producto p = new Producto();   //Producto es una clase del edmx                                                          
-                            p.Id = idUltimoEnProducto + 1;
-                            p.CodigoBarras = productoViewModel.CodigoBarras;
-                            p.IdUsuarioAlta = productoViewModel.IdUsuarioAlta;
-                            p.FechaAlta = productoViewModel.FechaAlta;
-                            p.IdUsuarioModifico = productoViewModel.IdUsuarioModifico;
-                            p.FechaModificacion = productoViewModel.FechaModificacion;
-                            p.Activo = true;
-                            ctx.Producto.Add(p);
-
-
-                            var idsDetalleProducto = (from s in ctx.DetalleProducto
-                                                      select s.Id).ToList();
-                            int idUltimoEnDetalleProduto = idsDetalleProducto.Count() == 0 ? 0 : idsDetalleProducto.Max();
-                            DetalleProducto detalleProducto = new DetalleProducto();
-                            detalleProducto.Id = idUltimoEnDetalleProduto + 1;
-                            detalleProducto.Nombre = productoViewModel.Nombre;
-                            detalleProducto.IdUsuarioAlta = productoViewModel.IdUsuarioAlta;
-                            detalleProducto.IdUsuarioModifico = productoViewModel.IdUsuarioModifico;
-                            detalleProducto.FechaAlta = productoViewModel.FechaAlta;
-                            detalleProducto.FechaModificacion = productoViewModel.FechaModificacion;
-                            detalleProducto.Activo = true;
-                            ctx.DetalleProducto.Add(detalleProducto);
-
-                            ProductoConDetalles productoConDetalles = new ProductoConDetalles();
-                            productoConDetalles.IdProducto = p.Id;
-                            productoConDetalles.IdDetalleProducto = detalleProducto.Id;
-                            productoConDetalles.IdUsuarioAlta = productoViewModel.IdUsuarioAlta;
-                            productoConDetalles.FechaAlta = productoViewModel.FechaAlta;
-                            productoConDetalles.IdUsuarioModifico = productoViewModel.IdUsuarioModifico;
-                            productoConDetalles.FechaModificacion = productoViewModel.FechaModificacion;
-                            productoConDetalles.Activo = true;
-                            ctx.ProductoConDetalles.Add(productoConDetalles);
-
-                            ctx.SaveChanges();                            
-                            mensaje = "ok";
-                        }
-
-                        else
-                        { 
-                            mensaje = existeProductoEnActivos == true ? "Ya existe este código de barras en la BD" : "El usuario esta inactivo";
-                        }
-                        dbContextTransaction.Commit();
-                    }
-
-                    catch (Exception ex)
+                    using (var dbContextTransaction = ctx.Database.BeginTransaction(IsolationLevel.Serializable))
                     {
-                        dbContextTransaction.Rollback();
-                        throw new Exception("Excepcion cachada y lanzada en ProductoLN.Crear", ex);
+                        try
+                        {   //Buscar los codigosBarras del usuario operador
+                            var resumenTodosProductos = (from s in ctx.Producto
+                                                         select new { s.Id, s.IdUsuarioAlta, s.Activo }).ToList();
+
+                            var resumenProductosUsuario = (from s in resumenTodosProductos
+                                                           where s.IdUsuarioAlta == productoViewModel.IdUsuarioAlta
+                                                           select s).ToList();
+
+                            var idsActivosUsuario = (from s in resumenProductosUsuario
+                                                     where s.Activo == true
+                                                     select s.Id).ToList();
+
+                            var codigosBarrasUsuario = (from s in ctx.Producto
+                                                        where idsActivosUsuario.Contains(s.Id)
+                                                        select s.CodigoBarras).ToList();
+
+                            bool existeProductoEnActivos = productoViewModel.ExisteEn(codigosBarrasUsuario);
+
+
+                            //Busco el Id de usuario que necesitare, y ver que este activo
+                            var resumenUsuarios = (from x in ctx.Usuario
+                                                   select new { x.Id, x.Usuario1, x.Activo }).ToList();
+
+                            var usuarioActivoBuscado = resumenUsuarios.SingleOrDefault(item => (item.Id == productoViewModel.IdUsuarioAlta) &&
+                                                                                                (item.Activo == true));
+
+                            if (!existeProductoEnActivos && (usuarioActivoBuscado != null))
+                            {
+                                var listaIdsProducto = (from s in ctx.Producto
+                                                        select s.Id).ToList();
+                                int idUltimoEnProducto = listaIdsProducto.Count() == 0 ? 0 : listaIdsProducto.Max();
+                                Producto p = new Producto();   //Producto es una clase del edmx                                                          
+                                p.Id = idUltimoEnProducto + 1;
+                                p.CodigoBarras = productoViewModel.CodigoBarras;
+                                p.IdUsuarioAlta = productoViewModel.IdUsuarioAlta;
+                                p.FechaAlta = productoViewModel.FechaAlta;
+                                p.IdUsuarioModifico = productoViewModel.IdUsuarioModifico;
+                                p.FechaModificacion = productoViewModel.FechaModificacion;
+                                p.Activo = true;
+                                ctx.Producto.Add(p);
+
+
+                                var idsDetalleProducto = (from s in ctx.DetalleProducto
+                                                          select s.Id).ToList();
+                                int idUltimoEnDetalleProduto = idsDetalleProducto.Count() == 0 ? 0 : idsDetalleProducto.Max();
+                                DetalleProducto detalleProducto = new DetalleProducto();
+                                detalleProducto.Id = idUltimoEnDetalleProduto + 1;
+                                detalleProducto.Nombre = productoViewModel.Nombre;
+                                detalleProducto.IdUsuarioAlta = productoViewModel.IdUsuarioAlta;
+                                detalleProducto.IdUsuarioModifico = productoViewModel.IdUsuarioModifico;
+                                detalleProducto.FechaAlta = productoViewModel.FechaAlta;
+                                detalleProducto.FechaModificacion = productoViewModel.FechaModificacion;
+                                detalleProducto.Activo = true;
+                                ctx.DetalleProducto.Add(detalleProducto);
+
+                                ProductoConDetalles productoConDetalles = new ProductoConDetalles();
+                                productoConDetalles.IdProducto = p.Id;
+                                productoConDetalles.IdDetalleProducto = detalleProducto.Id;
+                                productoConDetalles.IdUsuarioAlta = productoViewModel.IdUsuarioAlta;
+                                productoConDetalles.FechaAlta = productoViewModel.FechaAlta;
+                                productoConDetalles.IdUsuarioModifico = productoViewModel.IdUsuarioModifico;
+                                productoConDetalles.FechaModificacion = productoViewModel.FechaModificacion;
+                                productoConDetalles.Activo = true;
+                                ctx.ProductoConDetalles.Add(productoConDetalles);
+
+                                ctx.SaveChanges();
+                                mensaje = "ok";
+                            }
+
+                            else
+                            {
+                                mensaje = existeProductoEnActivos == true ? "Ya existe este código de barras en la BD" : "El usuario esta inactivo";
+                            }
+                            dbContextTransaction.Commit();
+                        }
+
+                        catch (Exception ex)
+                        {
+                            dbContextTransaction.Rollback();
+                            throw new Exception("Excepcion cachada y lanzada en ProductoLN.Crear. " + ex.Message, ex);
+                        }
                     }
                 }
+                return (mensaje);
             }
-            return (mensaje);
+
+            else
+            { return ("Verifica que el texto de entrada este en el formato permitido");  }
         }
 
 

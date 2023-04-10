@@ -33,23 +33,39 @@
                 contentType: "application/json;charset=utf-8",
                 dataType: "json",
                 success: function (result) {
-                    var id = parseInt(result.Producto_Id);
-                    if (id == 0) {
-                        $('#errorSpan').html('<ul><li>No se encontro el codigo de barras</li></ul>');
+
+                    if (result.success != true) {
+                        $('#errorSpan').html('<ul><li>' + result.resultado + '</ul></li>');
                         LimpiarContenidoDeFormularioDetalles();
                     }
 
                     else {
-                        $('#errorSpan').empty();                       
+                        $('#errorSpan').empty();
                         LimpiarContenidoDeFormularioDetalles();
                         DeshabilitarBotonBuscarYTextBoxBuscar();
                         HabilitarBotonActualizarYCancelar();
                         $("#NombreRecuperado").removeAttr("disabled");
 
-                        $('#IdRecuperado').val(result.Producto_Id);
-                        $('#CodigoBarrasRecuperado').val(result.Producto_CodigoBarras);
-                        $('#IdDetalleProducto').val(result.DetalleProducto_Id)
-                        $('#NombreRecuperado').val(result.DetalleProducto_Nombre);
+                        $('#IdRecuperado').val(result.resultado.Producto_Id);
+                        $('#CodigoBarrasRecuperado').val(result.resultado.Producto_CodigoBarras);
+                        var productoFechaAlta = new Date(parseInt(result.resultado.Producto_FechaAlta.substr(6)));
+                        $('#productoFechaAlta').html(productoFechaAlta);
+                        var productoFechaModificacion = new Date(parseInt(result.resultado.Producto_FechaModificacion.substr(6)));
+                        $('#productoFechaModificacion').html(productoFechaModificacion);
+
+                        $('#productoConDetalles_IdProducto').val(result.resultado.ProductoConDetalles_IdProducto);
+                        $('#productoConDetalles_IdDetalleProducto').val(result.resultado.ProductoConDetalles_IdDetalleProducto);
+                        var productoConDetallesFechaAlta = new Date(parseInt(result.resultado.ProductoConDetalles_FechaAlta.substr(6)));
+                        $('#productoConDetallesFechaAlta').html(productoConDetallesFechaAlta);
+                        var productoConDetallesFechaModificacion = new Date(parseInt(result.resultado.ProductoConDetalles_FechaModificacion.substr(6)));
+                        $('#productoConDetallesFechaModificacion').html(productoConDetallesFechaModificacion);
+
+                        $('#detalleProducto_Id').val(result.resultado.DetalleProducto_Id);
+                        $('#NombreRecuperado').val(result.resultado.DetalleProducto_Nombre);
+                        var detalleProductoFechaAlta = new Date(parseInt(result.resultado.DetalleProducto_FechaAlta.substr(6)));
+                        $('#detalleProductoFechaAlta').html(detalleProductoFechaAlta);
+                        var detalleProductoFechaModificacion = new Date(parseInt(result.resultado.DetalleProducto_FechaModificacion.substr(6)));
+                        $('#detalleProductoFechaModificacion').html(detalleProductoFechaModificacion);
                     }
                 },
 
@@ -63,15 +79,46 @@
 
 
         function PresionoBotonActualizar() {
+            var objInteligente = new FechaHoraSinMiliSegundos('30/09/2020 09:50:47 p.m.'); //Este objeto solo es para que me proporcione herramientas de trabajo con fechas
+            var valorEnNodo = document.getElementById('productoFechaAlta').childNodes[0].nodeValue;
+            var fa = new Date(valorEnNodo);
+            var objetoDateProducto_FechaAlta = objInteligente.FuckYou(fa); //regresa un objeto Date en un formato que json permite
+
+            var valorEnNodo2 = document.getElementById('productoFechaModificacion').childNodes[0].nodeValue;
+            var fb = new Date(valorEnNodo2);
+            var objetoDateProducto_FechaModificacion = objInteligente.FuckYou(fb);
+
+            var valorEnNodo3 = document.getElementById('productoConDetallesFechaAlta').childNodes[0].nodeValue;
+            var fc = new Date(valorEnNodo3);
+            var objetoDateProductoConDetalles_FechaAlta = objInteligente.FuckYou(fc);
+
+            var valorEnNodo4 = document.getElementById('productoConDetallesFechaModificacion').childNodes[0].nodeValue;
+            var fd = new Date(valorEnNodo4);
+            var objetoDateProductoConDetalles_FechaModificacion = objInteligente.FuckYou(fd);
+
+            var valorEnNodo5 = document.getElementById('detalleProductoFechaAlta').childNodes[0].nodeValue;
+            var fe = new Date(valorEnNodo5);
+            var objetoDateDetalleProducto_FechaAlta = objInteligente.FuckYou(fe);
+
+            var valorEnNodo6 = document.getElementById('detalleProductoFechaModificacion').childNodes[0].nodeValue
+            var ff = new Date(valorEnNodo6);
+            var objetoDateDetalleProducto_FechaModificacion = objInteligente.FuckYou(ff);
+
             var productoObj = {
                 Producto_Id: $("#IdRecuperado").val(),
                 Producto_CodigoBarras: $("#CodigoBarrasRecuperado").val(),/*document.getElementById("codigoBarras").value,*/
-                DetalleProducto_Id: $('#IdDetalleProducto').val(),
+                Producto_FechaAlta: objetoDateProducto_FechaAlta,
+                Producto_FechaModificacion: objetoDateProducto_FechaModificacion,
+                ProductoConDetalles_IdProducto: $('#productoConDetalles_IdProducto').val(),
+                ProductoConDetalles_IdDetalleProducto: $('#productoConDetalles_IdDetalleProducto').val(),
+                ProductoConDetalles_FechaAlta: objetoDateProductoConDetalles_FechaAlta,
+                ProductoConDetalles_FechaModificacion: objetoDateProductoConDetalles_FechaModificacion,
+                DetalleProducto_Id: $('#detalleProducto_Id').val(),
                 DetalleProducto_Nombre: $("#NombreRecuperado").val(),
                 DetalleProducto_IdUsuarioAlta: 0,
-                DetalleProducto_FechaAlta: new Date(),
+                DetalleProducto_FechaAlta: objetoDateDetalleProducto_FechaAlta,
                 DetalleProducto_IdUsuarioModifico: 0,
-                DetalleProducto_FechaModificacion: new Date(),
+                DetalleProducto_FechaModificacion: objetoDateDetalleProducto_FechaModificacion,
                 DetalleProducto_Activo: true
             };
             $.ajax({
@@ -117,8 +164,16 @@
         function LimpiarContenidoDeFormularioDetalles() {
             $('#IdRecuperado').val('');
             $('#CodigoBarrasRecuperado').val('');
-            $('#IdDetalleProducto').val('');
+            $('#productoFechaAlta').empty();
+            $('#productoFechaModificacion').empty();
+            $('#productoConDetalles_IdProducto').val('');
+            $('#productoConDetalles_IdDetalleProducto').val('');
+            $('#productoConDetallesFechaAlta').empty();
+            $('#productoConDetallesFechaModificacion').empty();
+            $('#detalleProducto_Id').val('');
             $('#NombreRecuperado').val('');
+            $('#detalleProductoFechaAlta').empty();
+            $('#detalleProductoFechaModificacion').empty();
         }
 
         function HabilitarBotonActualizarYCancelar() {
@@ -163,42 +218,82 @@
 
 
 
+
+    <div class="form-group">
+        <label for="IdRecuperado">Id</label>
+        <input type="text" class="form-control" id="IdRecuperado" disabled="disabled" />
+    </div> <!--original-->
+
+    <div class="form-group">
+        <label for="CodigoBarrasRecuperado">Codigo de barras</label>
+        <input type="text" class="form-control" id="CodigoBarrasRecuperado" disabled="disabled" />
+    </div><!--original-->
+
+    <div class="form-group" style="display:none"> <!--aqui añadi display-->
+        <label>ProductoFechaAlta</label>
+        <span id="productoFechaAlta" disabled="disabled"></span>
+    </div>
+
+    <div class="form-group" style="display:none">  <!--aqui añadi display-->
+        <label>ProductoFechaModificacion</label>
+        <span id="productoFechaModificacion" disabled="disabled"></span>
+    </div>
+
+    <div class="form-group" style="display:none">        <!--aqui añadi display-->
+        <label for="productoConDetalles_IdProducto">ProductoConDetalles_IdProducto</label>
+        <input type="text" class="form-control" id="productoConDetalles_IdProducto" disabled="disabled" />
+    </div>
+
+    <div class="form-group" style="display:none">        <!--aqui añadi display-->
+        <label for="productoConDetalles_IdDetalleProducto">ProductoConDetalles_IdDetalleProducto</label>
+        <input type="text" class="form-control" id="productoConDetalles_IdDetalleProducto" disabled="disabled" />
+    </div>
     
-        <div class="form-group">
-            <label for="IdRecuperado">Id</label>
-            <input type="text" class="form-control" id="IdRecuperado"  disabled="disabled"/>
-        </div>
 
-        <div class="form-group">
-            <label for="CodigoBarrasRecuperado">Codigo de barras</label>
-            <input type="text" class="form-control" id="CodigoBarrasRecuperado" disabled="disabled" />
-        </div>
+    <div class="form-group" style="display:none">        <!--aqui añadi display-->
+        <label>ProductoConDetallesFechaAlta</label>
+        <span id="productoConDetallesFechaAlta" disabled="disabled"></span>
+    </div>
 
-        <div class="form-group">
-            <label for="IdDetalleProducto">IdDetalleProducto</label>
-            <input type="text" class="form-control" id="IdDetalleProducto" disabled="disabled"/>
-        </div>
+    <div class="form-group" style="display:none">        <!--aqui añadi display-->
+        <label>ProductoConDetallesFechaModificacion</label>
+        <span id="productoConDetallesFechaModificacion" disabled="disabled"></span>
+    </div>
 
-        <div class="form-group">
-            <label for="NombreRecuperado">Nombre</label>
-            <input type="text" class="form-control" id="NombreRecuperado" disabled="disabled" />
-        </div>
+    <div class="form-group" style="display:none">        <!--aqui añadi display-->
+        <label for="detalleProducto_Id">DetalleProducto_Id</label>
+        <input type="text" class="form-control" id="detalleProducto_Id" disabled="disabled" />
+    </div>
+
+    <div class="form-group">
+        <label for="NombreRecuperado">Nombre</label>
+        <input type="text" class="form-control" id="NombreRecuperado" disabled="disabled" />
+    </div><!--original-->
+
+    <div class="form-group" style="display:none">        <!--aqui añadi display-->
+        <label>DetalleProductoFechaAlta</label>
+        <span id="detalleProductoFechaAlta" disabled="disabled"></span>
+    </div>
+
+    <div class="form-group" style="display:none">        <!--aqui añadi display-->
+        <label>DetalleProductoFechaModificacion</label>
+        <span id="detalleProductoFechaModificacion" disabled="disabled"></span>
+    </div>
 
 
-
-        <div class="btn-toolbar">
-            <div class="btn-group">
-                <div class="form-group">
-                    <button id="boton2" type="submit" class="btn btn-primary" disabled="disabled">Actualizar</button>
-                </div>
+    <div class="btn-toolbar">
+        <div class="btn-group">
+            <div class="form-group">
+                <button id="boton2" type="submit" class="btn btn-primary" disabled="disabled">Actualizar</button>
             </div>
-            <div class="btn-group">
-                <div class="form-group">
-                    <button id="boton3" type="submit" class="btn btn-primary" disabled="disabled">Cancelar</button>
-                </div>
+        </div>
+        <div class="btn-group">
+            <div class="form-group">
+                <button id="boton3" type="submit" class="btn btn-primary" disabled="disabled">Cancelar</button>
             </div>
         </div>
-    
+    </div>
+
 }
 
 

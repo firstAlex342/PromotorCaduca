@@ -33,25 +33,33 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
 
         [HttpGet]
         public IHttpActionResult BuscarProductoxCodigoBarras(string codigoBarrasBuscado, int idUsuarioOperador)
-        {
-            if (ModelState.IsValid)
+        {   
+            try
             {
-                ProductoLN productoLN = new ProductoLN();
-                ProductoJoinProductoConDetallesJoinDetalleProductoViewModel pJoin = productoLN.BuscarProductoXCodigoBarras(codigoBarrasBuscado, idUsuarioOperador);
-                if (pJoin.Producto_Id != 0)
+                if (ModelState.IsValid)
                 {
-                    return (Ok(pJoin));
+                    ProductoLN productoLN = new ProductoLN();
+                    ProductoJoinProductoConDetallesJoinDetalleProductoViewModel pJoin = productoLN.BuscarProductoXCodigoBarras(codigoBarrasBuscado, idUsuarioOperador);
+                    if (pJoin.Producto_Id != 0)
+                    {
+                        return (Ok(pJoin));
+                    }
+
+                    else
+                    {
+                        return (BadRequest("No se encontro codigo de barras"));
+                    }
                 }
 
                 else
                 {
-                    return (BadRequest("No se encontro codigo de barras"));
+                    return (BadRequest("ProductoAPIController.BuscarProductoXCodigoBarras no pudo recibir el parametro codigoBarrasBuscado"));
                 }
             }
 
-            else
+            catch(Exception ex)
             {
-                return (BadRequest("ProductoAPIController.BuscarProductoXCodigoBarras no pudo recibir el parametro codigoBarrasBuscado"));
+                return BadRequest(ex.Message);
             }
         }
 
@@ -102,8 +110,6 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         {
             if(ModelState.IsValid)
             {
-                RelojServidor relojServidor = new RelojServidor();
-                relojServidor.ColocarMismaFechaHoraEnCamposFechaAltaYFechaModificacion(pJoinViewModel);
                 ProductoLN productoLN = new ProductoLN();
                 string res = productoLN.Modificar(pJoinViewModel);
                 

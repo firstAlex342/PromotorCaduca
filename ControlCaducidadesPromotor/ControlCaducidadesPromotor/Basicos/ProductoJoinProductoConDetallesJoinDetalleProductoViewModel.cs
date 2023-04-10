@@ -58,5 +58,112 @@ namespace ControlCaducidadesPromotor.Basicos
             this.DetalleProducto_FechaModificacion = DateTime.MinValue;
             this.DetalleProducto_Activo = false;
         }
+
+
+        //-------------------Methods
+        public void AjustarAtributosCodigoBarrasYNombre()
+        {
+            SuprimirEspaciosEnBlancoEnCodbarrasYNombre();
+            PonerMisAtributosAMinusculasCodBarrasYNombre();
+        }
+
+        public string EliminarTodosEspaciosEnBlanco(string texto)
+        {
+            string[] separators = new string[] { " " };
+            var coleccion = texto.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+
+            string textoSinEspaciosEnBlanco = "";
+            foreach (var item in coleccion)
+            {
+                textoSinEspaciosEnBlanco = textoSinEspaciosEnBlanco + item;
+            }
+
+            return (textoSinEspaciosEnBlanco.TrimEnd());
+        }
+
+        public string EliminarExcesoDeEspaciosEnBlanco(string texto)
+        {
+            string[] separators = new string[] { " " };
+            var coleccion = texto.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+
+            string textoConEspacionEnBlancoNecesarios = "";
+            foreach (var item in coleccion)
+            {
+                textoConEspacionEnBlancoNecesarios = textoConEspacionEnBlancoNecesarios + item + " ";
+            }
+
+            return (textoConEspacionEnBlancoNecesarios.TrimEnd());
+        }
+
+        public void SuprimirEspaciosEnBlancoEnCodbarrasYNombre()
+        {
+            this.Producto_CodigoBarras = EliminarTodosEspaciosEnBlanco(this.Producto_CodigoBarras);
+            this.DetalleProducto_Nombre = EliminarExcesoDeEspaciosEnBlanco(this.DetalleProducto_Nombre);
+        }
+
+        public void PonerMisAtributosAMinusculasCodBarrasYNombre()
+        {
+            this.Producto_CodigoBarras = this.Producto_CodigoBarras.ToLower();
+            this.DetalleProducto_Nombre = this.DetalleProducto_Nombre.ToLower();
+        }
+
+        public bool MisAtributosCodbarrasNombreTieneCaracteresPermitidos()
+        {
+            bool respuesta = false;
+            bool EsPermitidoCaracteresEnCodbarras = ContieneCaracteresPermitidos(this.Producto_CodigoBarras);
+            bool EsPermitidoCaracteresEnNombre = ContieneCaracteresPermitidos(this.DetalleProducto_Nombre);
+
+            if (EsPermitidoCaracteresEnCodbarras && EsPermitidoCaracteresEnNombre)
+            { respuesta = true; }
+
+            return (respuesta);
+        }
+
+        public bool ContieneCaracteresPermitidos(string texto)
+        {
+            bool respuesta = false;
+
+            var textoVar = texto.ToArray<char>();
+
+            string caracteresPermitidosString = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ abcdefghijklmnñopqrstuvwxyz1234567890";
+            var caracteresPermitidosVar = caracteresPermitidosString.ToArray<char>();
+
+            foreach (var caracter in textoVar)
+            {
+                if (caracteresPermitidosVar.Contains(caracter) == true)
+                {
+                    respuesta = true;
+                }
+
+                else
+                {
+                    respuesta = false;
+                    break;
+                }
+            }
+            return (respuesta);
+        }
+
+        public bool MisAtributosCodbarrasNombreTieneLongitudPermitida()
+        {
+            int longitudCodBarras = this.Producto_CodigoBarras.Length;
+            int longitudNombre = this.DetalleProducto_Nombre.Length;
+            bool respuesta = false;
+
+            if ((longitudCodBarras > 0) && (longitudNombre > 0))
+            {
+                respuesta = true;
+            }
+            return (respuesta);
+        }
+
+        public bool ExisteEn(List<string> codigosDeBarras)
+        {
+            bool respuesta = false;
+
+            respuesta = codigosDeBarras.Contains(this.Producto_CodigoBarras);
+
+            return (respuesta);
+        }
     }
 }

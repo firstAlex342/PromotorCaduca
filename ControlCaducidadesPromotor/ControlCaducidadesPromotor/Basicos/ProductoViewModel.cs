@@ -36,7 +36,6 @@ namespace ControlCaducidadesPromotor.Basicos
             this.Activo = true;
         }
 
-
         //-----------------Methods
         public bool ExisteEn(List<string> codigosDeBarras)
         {

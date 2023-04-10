@@ -137,6 +137,7 @@ namespace WebApplication3.Controllers
         public JsonResult BuscarProductoxCodigoBarras(string codigoBarrasBuscado)
         {
             ProductoJoinProductoConDetallesJoinDetalleProductoViewModel respuesta = new ProductoJoinProductoConDetallesJoinDetalleProductoViewModel();
+            ProductoJoinProductoConDetallesJoinDetalleProductoViewModel aux = new ProductoJoinProductoConDetallesJoinDetalleProductoViewModel();
             UsuarioViewModel usuarioViewModel = LLamarApiBuscarUsuarioXUsuario(User.Identity.Name);
 
 
@@ -144,33 +145,55 @@ namespace WebApplication3.Controllers
             {
                 if(usuarioViewModel != null)
                 {
-                    using (var cliente = new HttpClient())
+                    //Debo de eliminar caracteres especiales antes de llamar al API, puesto que si lo envio como esta, corro el riesgo de que el navegador no acepte los caracteres al recibir el URL.
+                    aux.Producto_CodigoBarras = codigoBarrasBuscado;
+                    aux.DetalleProducto_Nombre = "nombre ficticio";  //asigno un valor al atributo Nombre, solo para poder usar los metodos de ProductoJoinProductoConDetallesJoinDetalleProductoViewModel.
+                    aux.AjustarAtributosCodigoBarrasYNombre();
+
+                    if(aux.MisAtributosCodbarrasNombreTieneCaracteresPermitidos() && aux.MisAtributosCodbarrasNombreTieneLongitudPermitida())
                     {
-                        cliente.BaseAddress = new Uri("http://localhost:51339/");
-                        var responseTask = cliente.GetAsync("api/ProductoAPI/BuscarProductoxCodigoBarras?codigoBarrasBuscado=" + codigoBarrasBuscado + "&idUsuarioOperador=" + usuarioViewModel.Id.ToString());
-                        responseTask.Wait();
-
-                        var result = responseTask.Result;
-                        if (result.IsSuccessStatusCode)
+                        
+                        using (var cliente = new HttpClient())
                         {
-                            var readTask = result.Content.ReadAsAsync<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel>();
-                            readTask.Wait();
+                            cliente.BaseAddress = new Uri("http://localhost:51339/");
+                            var responseTask = cliente.GetAsync("api/ProductoAPI/BuscarProductoxCodigoBarras?codigoBarrasBuscado=" + aux.Producto_CodigoBarras + "&idUsuarioOperador=" + usuarioViewModel.Id.ToString());
+                            responseTask.Wait();
 
-                            respuesta = readTask.Result;
-                        }
-                        else //web api sent error response 
-                        {
+                            var result = responseTask.Result;
+                            if (result.IsSuccessStatusCode)
+                            {
+                                var readTask = result.Content.ReadAsAsync<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel>();
+                                readTask.Wait();
+
+                                respuesta = readTask.Result;
+
+                                return (Json(new { success = true, resultado = respuesta }, JsonRequestBehavior.AllowGet));
+                            }
+                            else //web api sent error response 
+                            {   /*contenido original
                             var x = result.Content.ReadAsStringAsync();
                             x.Wait(); //x.Result tiene el resultado
-                            ModelState.AddModelError(string.Empty, x.Result);
+                            ModelState.AddModelError(string.Empty, x.Result);*/
+
+                                var x = result.Content.ReadAsStringAsync();
+                                x.Wait(); //x.Result tiene el resultado
+                                return (Json(new { success = false, resultado = x.Result }, JsonRequestBehavior.AllowGet));
+                            }
                         }
                     }
+
+                    else
+                    { return Json(new { success = false, resultado = "Verifique el formato de entrada." }, JsonRequestBehavior.AllowGet );      }
+
                 }
             }
 
+
+            return Json(new { success = false, resultado = "No se pudo en lazar el model binder" }, JsonRequestBehavior.AllowGet);
+            /*contenido original
             Response.Cache.SetCacheability(HttpCacheability.NoCache);
             Response.Cache.SetNoStore();
-            return Json(respuesta, JsonRequestBehavior.AllowGet);
+            return Json(respuesta, JsonRequestBehavior.AllowGet);*/
         }
 
 

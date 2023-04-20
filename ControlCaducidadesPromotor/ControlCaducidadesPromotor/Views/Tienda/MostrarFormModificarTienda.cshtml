@@ -34,9 +34,10 @@
                 contentType: "application/json;charset=utf-8",
                 dataType: "json",
                 success: function (result) {
-                    var id = parseInt(result.Id);
-                    if (id == 0) {
-                        $('#errorSpan').html('<ul><li>No se encontro ese nombre</li></ul>');
+                    //var id = parseInt(result.Id);
+                    if (result.success != true) {
+                        var texto = result.responseText;
+                        $('#errorSpan').html('<ul><li>' + texto +'</li></ul>');
                         LimpiarContenidoDeFormularioDetalles();
                     }
 
@@ -47,21 +48,21 @@
                         HabilitarBotonActualizarYCancelar();
                         HabilitarInputsParaModificacion();
 
-                        $('#idTienda').val(result.Id);
-                        $('#nombreTienda').val(result.Nombre);
-                        $('#supermanzana').val(result.Supmza);
-                        $('#manzana').val(result.Manzana);
-                        $('#lote').val(result.Lote);
-                        $('#calle').val(result.Calle);
-                        $('#idUsuarioAlta').val(result.IdUsuarioAlta);
-                        $('#idUsuarioModifico').val(result.IdUsuarioModifico);
+                        $('#idTienda').val(result.laRespuesta.Id);
+                        $('#nombreTienda').val(result.laRespuesta.Nombre);
+                        $('#supermanzana').val(result.laRespuesta.Supmza);
+                        $('#manzana').val(result.laRespuesta.Manzana);
+                        $('#lote').val(result.laRespuesta.Lote);
+                        $('#calle').val(result.laRespuesta.Calle);
+                        $('#idUsuarioAlta').val(result.laRespuesta.IdUsuarioAlta);
+                        $('#idUsuarioModifico').val(result.laRespuesta.IdUsuarioModifico);
 
-                        if (result.Activo == true) {
+                        if (result.laRespuesta.Activo == true) {
                             $('#activo').attr('checked', 'true');
                         }
 
-                        var miFechaAlta = new Date(parseInt(result.FechaAlta.substr(6)));
-                        var miFechaModificacion = new Date(parseInt(result.FechaModificacion.substr(6)));
+                        var miFechaAlta = new Date(parseInt(result.laRespuesta.FechaAlta.substr(6)));
+                        var miFechaModificacion = new Date(parseInt(result.laRespuesta.FechaModificacion.substr(6)));
                         $('#fechaAlta').html(miFechaAlta);
                         $('#fechaModificacion').html(miFechaModificacion);
                     }

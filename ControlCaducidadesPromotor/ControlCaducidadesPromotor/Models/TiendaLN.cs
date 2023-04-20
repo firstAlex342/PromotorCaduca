@@ -240,7 +240,7 @@ namespace ControlCaducidadesPromotor.Models
             }
 
             else
-            {  throw new Exception("Excepción lanzada y cachada en TiendaLN.Get_BuscarTiendaDeUsuarioXNombre. El nombre de tienda esta vacio."); }                       
+            {  throw new Exception("Excepción lanzada y cachada en TiendaLN.Get_BuscarTiendaDeUsuarioXNombre. Verifique el formato de entrada."); }                       
         }
 
 

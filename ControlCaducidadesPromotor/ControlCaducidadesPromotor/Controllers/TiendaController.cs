@@ -133,40 +133,60 @@ namespace ControlCaducidadesPromotor.Controllers
         {
             TiendaViewModel tiendaBuscadaViewModel = new TiendaViewModel();
             UsuarioViewModel usuarioViewModel = LLamarApiBuscarUsuarioXUsuario(User.Identity.Name);
-
+            TiendaViewModel auxTiendaViewModel = new TiendaViewModel();
 
             if(ModelState.IsValid)
             {
-                if(usuarioViewModel!=null)
+                if (usuarioViewModel != null)
                 {
-                    using (var cliente = new HttpClient())
+                    //Debo de eliminar caracteres especiales antes de llamar al API, puesto que si lo envio como esta, corro el riesgo de que el navegador no acepte los caracteres al recibir el URL.
+                    auxTiendaViewModel.Nombre = nombreDeTienda;
+                    //Falto inicializar supmza, manzana, lote, calle, nombre ?????
+                    auxTiendaViewModel.AjustarAtributosSupmzaMzaLteCalleNombre();
+                    bool nombreTieneLongitudPermitida = auxTiendaViewModel.Nombre.Length > 0;
+
+                    if (auxTiendaViewModel.ContieneCaracteresPermitidos(auxTiendaViewModel.Nombre) && nombreTieneLongitudPermitida)
                     {
-                        cliente.BaseAddress = new Uri("http://localhost:51339/");
-                        var responseTask = cliente.GetAsync("api/TiendaAPI/Get_BuscarTiendaDeUsuarioXNombre?nombreTienda=" + nombreDeTienda + "&idUsuarioOperador=" + usuarioViewModel.Id.ToString());
-                        responseTask.Wait();
-
-                        var result = responseTask.Result;
-                        if (result.IsSuccessStatusCode)
+                        using (var cliente = new HttpClient())
                         {
-                            var readTask = result.Content.ReadAsAsync<TiendaViewModel>();
-                            readTask.Wait();
+                            cliente.BaseAddress = new Uri("http://localhost:51339/");
+                            var responseTask = cliente.GetAsync("api/TiendaAPI/Get_BuscarTiendaDeUsuarioXNombre?nombreTienda=" + auxTiendaViewModel.Nombre + "&idUsuarioOperador=" + usuarioViewModel.Id.ToString());
+                            responseTask.Wait();
 
-                            tiendaBuscadaViewModel = readTask.Result;
-                        }
-                        else //web api sent error response 
-                        {
-                            var x = result.Content.ReadAsStringAsync();
-                            x.Wait(); //x.Result tiene el resultado
-                            ModelState.AddModelError(string.Empty, x.Result);   //Falta agregar el ModelState.Summary en la GUI
+                            var result = responseTask.Result;
+                            if (result.IsSuccessStatusCode)
+                            {
+                                var readTask = result.Content.ReadAsAsync<TiendaViewModel>();
+                                readTask.Wait();
+
+                                tiendaBuscadaViewModel = readTask.Result;
+                                return Json(new { success = true, laRespuesta = tiendaBuscadaViewModel }, JsonRequestBehavior.AllowGet);
+                            }
+                            else //web api sent error response 
+                            {
+                                var x = result.Content.ReadAsStringAsync();
+                                x.Wait(); //x.Result tiene el resultado
+                                //ModelState.AddModelError(string.Empty, x.Result);   //Falta agregar el ModelState.Summary en la GUI
+                                return Json(new { success = false, responseText = x.Result }, JsonRequestBehavior.AllowGet);
+                            }
                         }
                     }
+
+                    else { return Json(new { success = false, responseText = "Verifique el formato de entrada" }, JsonRequestBehavior.AllowGet);
+                    }
                 }
+
+                else { return Json(new { success = false, responseText = "Verifique el nombre de usuario y su estado" }, JsonRequestBehavior.AllowGet);
+                } 
             }
 
-            //La GUI evalua el objeto json regresado, lo interpreta
-            Response.Cache.SetCacheability(HttpCacheability.NoCache);
-            Response.Cache.SetNoStore();
-            return (Json(tiendaBuscadaViewModel.MostrarEnTiposPrimitivos(), JsonRequestBehavior.AllowGet));
+            else
+            {
+                //La GUI evalua el objeto json regresado, lo interpreta
+                //Response.Cache.SetCacheability(HttpCacheability.NoCache);
+                //Response.Cache.SetNoStore();
+                return (Json(new { success = false, responseText = "Fallo en el modelBinder TiendaController.BuscarTiendaXNombreDeTienda" }, JsonRequestBehavior.AllowGet));
+            }
         }
 
 

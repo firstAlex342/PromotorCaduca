@@ -18,48 +18,6 @@ namespace ControlCaducidadesPromotor.Controllers
         }
 
 
-        [Authorize]
-        public JsonResult MostrarTiendasYProductosDeUsuario()
-        {
-            TiendasYProductosViewModel respuesta = new TiendasYProductosViewModel();
-            UsuarioViewModel usuarioViewModel = LLamarApiBuscarUsuarioXUsuario(User.Identity.Name);
-
-
-            if (ModelState.IsValid)
-            {
-                if (usuarioViewModel != null)
-                {
-                    using (var cliente = new HttpClient())
-                    {
-                        cliente.BaseAddress = new Uri("http://localhost:51339/");
-                        var responseTask = cliente.GetAsync("api/TiendaYProductoAPI/Get_MostrarTiendasYProductos?idUsuarioOperador="+usuarioViewModel.Id.ToString());
-                        responseTask.Wait();
-
-                        var result = responseTask.Result;
-                        if (result.IsSuccessStatusCode)
-                        {
-                            var readTask = result.Content.ReadAsAsync<TiendasYProductosViewModel>();
-                            readTask.Wait();
-
-                            respuesta = readTask.Result;
-                        }
-                        else //web api sent error response 
-                        {
-                            var x = result.Content.ReadAsStringAsync();
-                            x.Wait(); //x.Result tiene el resultado
-                            ModelState.AddModelError(string.Empty, x.Result);
-                        }
-                    }
-                }
-            }
-
-            Response.Cache.SetCacheability(HttpCacheability.NoCache);
-            Response.Cache.SetNoStore();
-            return Json(respuesta, JsonRequestBehavior.AllowGet);
-        }
-
-
-
         //---------------------------Methods
         private UsuarioViewModel LLamarApiBuscarUsuarioXUsuario(string usuario)
         {

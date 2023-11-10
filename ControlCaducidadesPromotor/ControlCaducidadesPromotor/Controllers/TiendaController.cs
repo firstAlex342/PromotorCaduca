@@ -33,7 +33,9 @@ namespace ControlCaducidadesPromotor.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                    var x = result.Content.ReadAsStringAsync();
+                    x.Wait(); //x.Result tiene el resultado
+                    ModelState.AddModelError(string.Empty, x.Result);
                 }
             }
 
@@ -203,7 +205,7 @@ namespace ControlCaducidadesPromotor.Controllers
                 using (var client = new HttpClient())
                 {
                     client.BaseAddress = new Uri("http://localhost:51339/");
-
+                    
                     //HTTP PUT
                     var putTask = client.PutAsJsonAsync<TiendaViewModel>("api/TiendaAPI/Put_ActualizarTiendaDeUsuario", tiendaViewModel);
                     putTask.Wait();
@@ -251,85 +253,71 @@ namespace ControlCaducidadesPromotor.Controllers
                 {
                     var readTask = result.Content.ReadAsAsync<List<TiendaViewModel>>();
                     readTask.Wait();
-
                     respuesta = readTask.Result;
+
+                    return Json(new { success = true, elResultado = respuesta }, JsonRequestBehavior.AllowGet);
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                    //ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                    var x = result.Content.ReadAsStringAsync();
+                    x.Wait();
+                    return Json(new { success = false, elResultado = x.Result }, JsonRequestBehavior.AllowGet);
                 }
             }
 
-            Response.Cache.SetCacheability(HttpCacheability.NoCache);
-            Response.Cache.SetNoStore();
-            return (Json(respuesta, JsonRequestBehavior.AllowGet));
+            //Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            //Response.Cache.SetNoStore();
+            //return (Json(respuesta, JsonRequestBehavior.AllowGet));
         }
 
 
 
         [Authorize]
-        public JsonResult RecuperarProductosDeTiendaXId(int idTienda)
+        public JsonResult RecuperarProductosDeTiendaXId(TiendaViewModel tiendaViewModel)
         {
-            List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM> respuesta = new List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM>();
-            using (var cliente = new HttpClient())
+            TiendaYProductosViewModel respuesta = new TiendaYProductosViewModel();
+
+            if (ModelState.IsValid)
             {
+                UsuarioViewModel usuarioViewModel = LLamarApiBuscarUsuarioXUsuario(User.Identity.Name);
+                tiendaViewModel.IdUsuarioAlta = usuarioViewModel.Id;
+                tiendaViewModel.IdUsuarioModifico = usuarioViewModel.Id;
 
-                cliente.BaseAddress = new Uri("http://localhost:51339/");
-                var responseTask = cliente.GetAsync("api/TiendaAPI/Get_RecuperarProductosDeTiendaXId?idTienda=" + idTienda + "&usuario=" + User.Identity.Name);
-
-                responseTask.Wait();
-
-                var result = responseTask.Result;
-                if (result.IsSuccessStatusCode)
+                using (var cliente = new HttpClient())
                 {
-                    var readTask = result.Content.ReadAsAsync<List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM>>();
-                    readTask.Wait();
+                    cliente.BaseAddress = new Uri("http://localhost:51339/");
+                    var responseTask = cliente.PostAsJsonAsync<TiendaViewModel>("api/TiendaAPI/Post_RecuperarProductosDeTiendaXId", tiendaViewModel);
 
-                    respuesta = readTask.Result;
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                    responseTask.Wait();
+
+                    var result = responseTask.Result;
+                    if (result.IsSuccessStatusCode)
+                    {
+                        var readTask = result.Content.ReadAsAsync<TiendaYProductosViewModel>();
+                        readTask.Wait();
+
+                        respuesta = readTask.Result;
+                        return Json(new { success = true, laRespuesta = respuesta }, JsonRequestBehavior.AllowGet);
+                    }
+                    else
+                    {
+                        var x = result.Content.ReadAsStringAsync();
+                        x.Wait(); //x.Result tiene el resultado
+                        //ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                        return Json(new { success=false, laRespuesta = x.Result }, JsonRequestBehavior.AllowGet);
+                    }
                 }
             }
 
-            Response.Cache.SetCacheability(HttpCacheability.NoCache);
-            Response.Cache.SetNoStore();
-            return (Json(respuesta, JsonRequestBehavior.AllowGet));
-        }
-
-
-
-        [Authorize]
-        public JsonResult RecuperarProductosKNoPertenecenATienda(int idTienda)
-        {
-            List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel> respuesta = new List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel>();
-
-            using (var cliente = new HttpClient())
+            else
             {
-                cliente.BaseAddress = new Uri("http://localhost:51339/");
-                var responseTask = cliente.GetAsync("api/TiendaAPI/Get_RecuperarProductosNoPertenecenATienda?idTienda=" + idTienda + "&usuario=" + User.Identity.Name + "&dummy=" + idTienda);
-
-                responseTask.Wait();
-
-                var result = responseTask.Result;
-                if (result.IsSuccessStatusCode)
-                {
-                    var readTask = result.Content.ReadAsAsync<List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel>>();
-                    readTask.Wait();
-
-                    respuesta = readTask.Result;
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
-                }
-            } 
-
-            Response.Cache.SetCacheability(HttpCacheability.NoCache);
-            Response.Cache.SetNoStore();
-            return (Json(respuesta, JsonRequestBehavior.AllowGet));
+               //Response.Cache.SetCacheability(HttpCacheability.NoCache); mantener comentada esta linea
+                //Response.Cache.SetNoStore(); mantener comentada esta linea
+                return Json(new { success = false, laRespuesta = "Fallo en el model binder TiendaController.RecuperarProductosDeTiendaXId" }, JsonRequestBehavior.AllowGet);
+            }
         }
+
 
         
         /// <summary>
@@ -339,10 +327,10 @@ namespace ControlCaducidadesPromotor.Controllers
         /// <returns></returns>
         [Authorize]
         [System.Web.Mvc.HttpPost]
-        public JsonResult AgregarProductosATienda(List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM> tiendaYProductosColecc)
+        public JsonResult AgregarProductosATienda(TiendaYProductosViewModel tiendaYProductosColecc)
         {
             string respuesta="";
-
+            
             if(ModelState.IsValid)
             {
                 //crear api y llamarla
@@ -350,10 +338,11 @@ namespace ControlCaducidadesPromotor.Controllers
                 {
                     client.BaseAddress = new Uri("http://localhost:51339/");
 
-                    AgregarUserIdACadaObjeto(tiendaYProductosColecc);
+                    AgregarUserIdAObjeto(tiendaYProductosColecc);
 
                     //HTTP POST
-                    var postTask = client.PostAsJsonAsync<List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM>>("api/TiendaAPI/Post_AgregarProductosATienda", tiendaYProductosColecc);
+                    //var postTask = client.PostAsJsonAsync<List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM>>("api/TiendaAPI/Post_AgregarProductosATienda", tiendaYProductosColecc);
+                    var postTask = client.PostAsJsonAsync<TiendaYProductosViewModel>("api/TiendaAPI/Post_AgregarProductosATienda", tiendaYProductosColecc);
                     postTask.Wait();
 
                     var result = postTask.Result;
@@ -380,7 +369,7 @@ namespace ControlCaducidadesPromotor.Controllers
             {
                 respuesta = "Fallo en el model binder en Tienda.AgregarProductosATienda";
             }
-
+            
             return (Json(respuesta, JsonRequestBehavior.AllowGet));
         }
 
@@ -424,13 +413,10 @@ namespace ControlCaducidadesPromotor.Controllers
         }
 
 
-        private void AgregarUserIdACadaObjeto(List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM> tiendaYProductosColecc)
+        private void AgregarUserIdAObjeto(TiendaYProductosViewModel tiendaYProductosColecc)
         {
             UsuarioViewModel usuarioViewModel = LLamarApiBuscarUsuarioXUsuario(User.Identity.Name);
-
-            Action<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM> funcion = s => { s.DetalleProducto_IdUsuarioAlta = usuarioViewModel.Id;  };
-
-            tiendaYProductosColecc.ForEach(funcion);
+            tiendaYProductosColecc.InfoTienda.IdUsuarioAlta = usuarioViewModel.Id;
         }
 
     }

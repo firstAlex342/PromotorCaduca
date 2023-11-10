@@ -44,17 +44,25 @@
                 contentType: "application/json;charset=utf-8",
                 dataType: "json",
                 success: function (result) {
-                    var html = '';
-                    $.each(result, function (key, item) {
-                        html = '<div class="radio">';
-                        html += '<label>';
-                        html += '<input type="radio" ';
-                        html += 'onclick="RecuperarProductosDeTienda(this)" ';
-                        html += 'name = "radioTiendas" value = "' + item.Id + '"/>' + item.Nombre;
-                        html += '</label> </div>';
-                        $('#tiendasRecuperadas').append(html);
-                    });
 
+                    if (result.success != true) {
+                        var texto = result.elResultado;
+                        //$('#errorSpan').html('<ul><li>' + texto + '</li></ul>'); No creee este span, por ello lo muestro en un alert
+                        alert(texto);
+                    }
+
+                    else {
+                        var html = '';
+                        $.each(result.elResultado, function (key, item) {
+                            html = '<div class="radio">';
+                            html += '<label>';
+                            html += '<input type="radio" ';
+                            html += 'onclick="RecuperarProductosDeTienda(this)" ';
+                            html += 'name = "radioTiendas" value = "' + item.Id + '"/>' + item.Nombre;
+                            html += '</label> </div>';
+                            $('#tiendasRecuperadas').append(html);
+                        });
+                    }
                 },
                 error: function (errormessage) {
                     QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
@@ -390,7 +398,7 @@
 @section Contenido
 {
     <h3>Agregar caducidad</h3>
-
+    <h4>Ahora no muestra los productos de tienda, y en lad tiendas no muestra la fecha de alta y fecha modificacion</h4>
     <div class="row">
         <div class="col-sm-2">
             <h4>Mis tiendas</h4>

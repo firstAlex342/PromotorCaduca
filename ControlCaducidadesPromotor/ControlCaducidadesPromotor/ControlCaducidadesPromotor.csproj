@@ -223,7 +223,7 @@
     <Compile Include="Basicos\PeriodoConUnidadViewModel.cs" />
     <Compile Include="Basicos\PeriodoViewModel.cs" />
     <Compile Include="Basicos\ProductoConDetallesViewModel.cs" />
-    <Compile Include="Basicos\TiendasYProductosViewModel.cs" />
+    <Compile Include="Basicos\TiendaYProductosViewModel.cs" />
     <Compile Include="Basicos\TiendaJoinCaducidadesViewModel.cs" />
     <Compile Include="Basicos\UnidadMedidaViewModel.cs" />
     <Compile Include="Basicos\UsuarioViewModel.cs" />
@@ -237,7 +237,6 @@
     <Compile Include="Controllers\MisApis\CaducidadAPIController.cs" />
     <Compile Include="Controllers\MisApis\ProductoAPIController.cs" />
     <Compile Include="Controllers\MisApis\TiendaAPIController.cs" />
-    <Compile Include="Controllers\MisApis\TiendaYProductoAPIController.cs" />
     <Compile Include="Controllers\MisApis\UsuarioAPIController.cs" />
     <Compile Include="Controllers\MisApis\ValuesController1.cs" />
     <Compile Include="Controllers\ProductoController.cs" />

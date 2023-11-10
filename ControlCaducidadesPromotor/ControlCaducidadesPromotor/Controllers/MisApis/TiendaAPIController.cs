@@ -22,20 +22,43 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         {
             TiendaLN tiendaLN = new TiendaLN();
 
-            IList<TiendaViewModel> res = tiendaLN.MostrarTodasTiendasDeUsuario(usuario);
+            try
+            {
+                IList<TiendaViewModel> res = tiendaLN.MostrarTodasTiendasDeUsuario(usuario);
 
-            return (Ok(res));
+                return (Ok(res));
+            }
+
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
 
-        [System.Web.Http.HttpGet]
-        public IHttpActionResult Get_RecuperarProductosDeTiendaXId(int idTienda, string usuario)
+        [System.Web.Http.HttpPost]
+        public IHttpActionResult Post_RecuperarProductosDeTiendaXId(TiendaViewModel tiendaViewModel)
         {
-            TiendaLN tiendaLN = new TiendaLN();
-            IList<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM> res;
-            res = tiendaLN.Get_RecuperarProductosDeTienda(idTienda, usuario);
+            try
+            {
+                if(ModelState.IsValid)
+                {                    
+                    TiendaLN tiendaLN = new TiendaLN();
+                    TiendaYProductosViewModel res;                   
+                    res = tiendaLN.Get_RecuperarProductosDeTienda(tiendaViewModel);
+                    return (Ok(res));
+                }
 
-            return (Ok(res));
+                else
+                {
+                    return (BadRequest("Fallo en el model binder TiendaAPIController.Post_RecuperarProductosDeTiendaXId"));
+                }
+            }
+
+            catch(Exception ex)
+            {
+                return (BadRequest(ex.Message));
+            }
         }
 
 
@@ -145,58 +168,37 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         }
 
 
-        [System.Web.Http.HttpGet]
-        public IHttpActionResult Get_RecuperarProductosNoPertenecenATienda(int idTienda, string usuario, int dummy)
-        { //El parametro dummy solo es para que la firma de este metodo sea diferente a cualquier otro metodo de este mismo
-            //controlador, ya que si 2 metodos de este controlador tiene la misma firma y son del mismo tipo de solocitud (get,put,delete, etc)
-            //falla el controlador
-            if (ModelState.IsValid)
-            {
-                List<ProductoJoinProductoConDetallesJoinDetalleProductoViewModel> resViewModel = null;
-                TiendaLN tiendaLN = new TiendaLN();
-
-                resViewModel = tiendaLN.Get_RecuperarProductosNoPertenecenATienda(idTienda, usuario);
-                if (resViewModel != null)
-                {
-                    return (Ok(resViewModel));
-                }
-
-                else
-                {
-                    return (BadRequest("No fue posible obtener la lista de productos buscada"));
-                }
-            }
-
-            else
-            {
-                return BadRequest("Fallo en model binder en TiendaAPIController.Get_RecuperarProductosNoPertenecenATienda");
-            }
-        }
-
 
         [System.Web.Http.HttpPost]
-        public IHttpActionResult Post_AgregarProductosATienda(List<AlmacenaJoinProductoJoinProductoConDetallesJoinDetalleProductoVM> coleccion)
+        public IHttpActionResult Post_AgregarProductosATienda(TiendaYProductosViewModel coleccion)
         {
-            if (ModelState.IsValid)
-            {
-                TiendaLN tiendaLN = new TiendaLN();
-                string respuesta = tiendaLN.Post_AgregarProductosATienda(coleccion);
-
-                if(respuesta.Contains("ok"))
+            try {
+                if (ModelState.IsValid)
                 {
-                    return (Ok(respuesta));
+                    TiendaLN tiendaLN = new TiendaLN();
+                    string respuesta = tiendaLN.Post_AgregarProductosATienda(coleccion);
+
+                    if (respuesta.Contains("ok"))
+                    {
+                        return (Ok(respuesta));
+                    }
+
+                    else
+                    {
+                        return BadRequest(respuesta);
+                    }
                 }
 
                 else
                 {
-                    return BadRequest(respuesta);
+                    return BadRequest("Fallo en el model binder TiendaAPIController.Post_AgregarProductosATienda");
                 }
-                
+
             }
 
-            else
+            catch(Exception ex)
             {
-                return BadRequest("Fallo en el model binder TiendaAPIController.Post_AgregarProductosATienda");
+                return BadRequest(ex.Message);
             }
         }
     }

@@ -83,7 +83,9 @@ namespace ControlCaducidadesPromotor.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                    var x = result.Content.ReadAsStringAsync();
+                    x.Wait();
+                    ModelState.AddModelError(string.Empty, x.Result);
                 }
             }
 

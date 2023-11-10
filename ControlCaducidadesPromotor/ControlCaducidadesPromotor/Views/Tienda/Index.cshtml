@@ -17,7 +17,7 @@
 
 
         function inicializarEventos() {
-            EstilizarConDataTables("#misTiendas")       
+            EstilizarConDataTables("#misTiendas")
         }
 
         function EstilizarConDataTables(nomTabla) {
@@ -45,6 +45,7 @@
 @section Contenido
 {
     <h3>Ver tiendas</h3>
+    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
     <div class="table-responsive">
         <table id="misTiendas" class="table table-striped">
             <thead>

@@ -165,5 +165,18 @@ namespace ControlCaducidadesPromotor.Basicos
 
             return (respuesta);
         }
+
+        public bool EsIgualXFechaAltaYFechaModificacion(ProductoJoinProductoConDetallesJoinDetalleProductoViewModel param)
+        {
+            RelojServidor relojServidor = new RelojServidor();
+            bool res1 = relojServidor.EsMismaFechaYHoraSinMilisegundos(this.Producto_FechaAlta, param.Producto_FechaAlta);
+            bool res2 = relojServidor.EsMismaFechaYHoraSinMilisegundos(this.Producto_FechaModificacion, param.Producto_FechaModificacion);
+            bool res3 = relojServidor.EsMismaFechaYHoraSinMilisegundos(this.ProductoConDetalles_FechaAlta, param.ProductoConDetalles_FechaAlta);
+            bool res4 = relojServidor.EsMismaFechaYHoraSinMilisegundos(this.ProductoConDetalles_FechaModificacion, param.ProductoConDetalles_FechaModificacion);
+            bool res5 = relojServidor.EsMismaFechaYHoraSinMilisegundos(this.DetalleProducto_FechaAlta, param.DetalleProducto_FechaAlta);
+            bool res6 = relojServidor.EsMismaFechaYHoraSinMilisegundos(this.DetalleProducto_FechaModificacion, param.DetalleProducto_FechaModificacion);
+
+            return (res1 && res2 && res3 && res4 && res5 && res6);
+        }
     }
 }

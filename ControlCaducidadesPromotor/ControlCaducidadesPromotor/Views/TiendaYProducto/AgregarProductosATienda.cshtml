@@ -50,8 +50,8 @@
 
                             let miFechaAlta = new Date(parseInt(item.FechaAlta.substr(6)));
                             let miFechaModificacion = new Date(parseInt(item.FechaModificacion.substr(6)));
-                            html += '<td>' + miFechaAlta + '</td>';
-                            html += '<td>' + miFechaModificacion + '</td>';
+                            html += '<td style="display:none;">' + miFechaAlta + '</td>';
+                            html += '<td style="display:none;">' + miFechaModificacion + '</td>';
                             html += '</tr>'
                             $('#miTablaDeTiendasRecuperadas tbody').append(html);
                         });
@@ -621,8 +621,8 @@
                     <thead>
                         <tr>
                             <th>Nombre</th>
-                            <th>Fecha Alta</th>
-                            <th>Fecha Modificacion</th>
+                            <th style="display:none;">Fecha Alta</th>
+                            <th style="display:none;">Fecha Modificacion</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

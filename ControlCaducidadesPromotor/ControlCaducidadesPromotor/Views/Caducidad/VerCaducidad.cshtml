@@ -10,7 +10,7 @@
 {
     <script type="text/javascript">
         'use strict';
-        var x = $(document);
+        let x = $(document);
         x.ready(InicializarEventos);
 
         function InicializarEventos() {
@@ -31,36 +31,36 @@
 
 
         function BuscarCaducidades() {            
-                var validacion = EstaSeleccionadaTiendaYFechas(document.getElementById('tiendasLista'), $('#miFechaInicial').val(), $('#miFechaFinal').val());
+                let validacion = EstaSeleccionadaTiendaYFechas(document.getElementById('tiendasLista'), $('#miFechaInicial').val(), $('#miFechaFinal').val());
                 if (validacion.length == 0) {
                     //Obtener el id de la tienda
-                    var controlSelect = document.getElementById('tiendasLista');
-                    var idDeTienda = controlSelect.options[controlSelect.selectedIndex].value;
+                    let controlSelect = document.getElementById('tiendasLista');
+                    let idDeTienda = controlSelect.options[controlSelect.selectedIndex].value;
 
 
                     //Extraer info de la fecha inicial
-                    var fechaInicial = $('#miFechaInicial').val();
+                    let fechaInicial = $('#miFechaInicial').val();
                     fechaInicial = fechaInicial.replace(' ', '/'); // si esta 15 Mayo 2020, regresa 15/Mayo 2020
                     fechaInicial = fechaInicial.replace(' ', '/');  //Si esta 15/Mayo 2020, regresa 15/Mayo/2020
                     fechaInicial = fechaInicial + ' 00:00:00 a.m.'; //La cadena queda en el formato 15/Mayo/2020 00:00:00 a.m.
                     fechaInicial = SubstituirPalabraMesConNumero(fechaInicial); //La cadena queda en el formato 15/05/2021 00:00:00 a.m.
 
-                    var auxFechaDeCaducidadInicial = new FechaHoraSinMiliSegundos(fechaInicial);
+                    let auxFechaDeCaducidadInicial = new FechaHoraSinMiliSegundos(fechaInicial);
                     //auxFechaDeCaducidadInicial.GenerarEnSintaxisCadena()
 
                     //Extraer info de la fecha final
-                    var fechaFinal = $('#miFechaFinal').val();
+                    let fechaFinal = $('#miFechaFinal').val();
                     fechaFinal = fechaFinal.replace(' ', '/');  // si esta 15 Mayo 2020, regresa 15/Mayo 2020
                     fechaFinal = fechaFinal.replace(' ', '/');  //Si esta 15/Mayo 2020, regresa 15/Mayo/2020
                     fechaFinal = fechaFinal + ' 11:59:59 p.m.'; //La cadena queda en el formato 15/Mayo/2020 00:00:00 a.m.
                     fechaFinal = SubstituirPalabraMesConNumero(fechaFinal); //La cadena queda en el formato 15/05/2021 00:00:00 a.m.
 
-                    var auxFechaCaducidadFinal = new FechaHoraSinMiliSegundos(fechaFinal);
+                    let auxFechaCaducidadFinal = new FechaHoraSinMiliSegundos(fechaFinal);
                     // auxFechaCaducidadFinal.GenerarEnSintaxisCadena();
 
                     //Se llama al controlador Caducidad.BuscarCaducidad()
 
-                    var objetoASerializar = {
+                    let objetoASerializar = {
                         IdTienda: idDeTienda,
                         FechaInicial: auxFechaDeCaducidadInicial.GenerarEnSintaxisCadena(),
                         FechaFinal: auxFechaCaducidadFinal.GenerarEnSintaxisCadena(),
@@ -84,7 +84,7 @@
                                 $('#imagenWaiting').attr('style', 'display:none');
                                 $('#controlesAdicionales').hide();
                                 $('#btnBuscar').hide();
-                                var objetoDataTable = $('#miTablaCaducidadesEnTienda').DataTable();  //Genero un objeto dataTable
+                                let objetoDataTable = $('#miTablaCaducidadesEnTienda').DataTable();  //Genero un objeto dataTable
                                 objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
                                 $('#miTablaCaducidadesEnTienda').hide();
                                 $('#miTablaCaducidadesEnTienda tbody').empty();  //destruyo el contenido
@@ -95,7 +95,7 @@
                                 //alert();
                                 $('#imagenWaiting').attr('style', 'display:none');
 
-                                var html = '';
+                                let html = '';
                                 $.each(result.laRespuesta, function (key, item) {
                                     html = '<tr>';
                                     html += '<td>' + item.MiCaducaViewModel.IdProducto + '</td>';  //van a ser 16
@@ -107,8 +107,8 @@
                                     html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.DetalleProducto_Id + '</td>';
                                     html += '<td>' + item.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.DetalleProducto_Nombre + '</td>';
                                     html += '<td>' + item.MiPeriodoViewModel.Id + '</td>';
-                                    var miFechaCaducidad = new Date(parseInt(item.MiPeriodoViewModel.FechaCaducidad.substr(6)));
-                                    var miF = miFechaCaducidad.getFullYear().toString() + '-' + (miFechaCaducidad.getMonth() + 1).toString() + '-' + miFechaCaducidad.getDate().toString();
+                                    let miFechaCaducidad = new Date(parseInt(item.MiPeriodoViewModel.FechaCaducidad.substr(6)));
+                                    let miF = miFechaCaducidad.getFullYear().toString() + '-' + (miFechaCaducidad.getMonth() + 1).toString() + '-' + miFechaCaducidad.getDate().toString();
                                     html += '<td>' + miF + '</td>';
                                     html += '<td>' + item.MiPeriodoViewModel.NumeroUnidades + '</td>';
                                     html += '<td>' + item.MiPeriodoViewModel.Vigente + '</td>';
@@ -132,7 +132,7 @@
                             $('#imagenWaiting').attr('style', '');
                             $('#controlesAdicionales').hide();
                             $('#btnBuscar').hide();
-                            var objetoDataTable = $('#miTablaCaducidadesEnTienda').DataTable();  //Genero un objeto dataTable
+                            let objetoDataTable = $('#miTablaCaducidadesEnTienda').DataTable();  //Genero un objeto dataTable
                             objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
                             $('#miTablaCaducidadesEnTienda').hide();
                             $('#miTablaCaducidadesEnTienda tbody').empty();  //destruyo el contenido
@@ -156,69 +156,69 @@
 
         function SubstituirPalabraMesConNumero(texto) {
             if (texto.indexOf('Enero') != -1) {
-                var nuevoTexto = texto.replace('Enero', '01');
+                let nuevoTexto = texto.replace('Enero', '01');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Febrero') != -1) {
-                var nuevoTexto = texto.replace('Febrero', '02');
+                let nuevoTexto = texto.replace('Febrero', '02');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Marzo') != -1) {
-                var nuevoTexto = texto.replace('Marzo', '03');
+                let nuevoTexto = texto.replace('Marzo', '03');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Abril') != -1) {
-                var nuevoTexto = texto.replace('Abril', '04');
+                let nuevoTexto = texto.replace('Abril', '04');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Mayo') != -1) {
-                var nuevoTexto = texto.replace('Mayo', '05');
+                let nuevoTexto = texto.replace('Mayo', '05');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Junio') != -1) {
-                var nuevoTexto = texto.replace('Junio', '06');
+                let nuevoTexto = texto.replace('Junio', '06');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Julio') != -1) {
-                var nuevoTexto = texto.replace('Julio', '07');
+                let nuevoTexto = texto.replace('Julio', '07');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Agosto') != -1) {
-                var nuevoTexto = texto.replace('Agosto', '08');
+                let nuevoTexto = texto.replace('Agosto', '08');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Septiembre') != -1) {
-                var nuevoTexto = texto.replace('Septiembre', '09');
+                let nuevoTexto = texto.replace('Septiembre', '09');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Octubre') != -1) {
-                var nuevoTexto = texto.replace('Octubre', '10');
+                let nuevoTexto = texto.replace('Octubre', '10');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Noviembre') != -1) {
-                var nuevoTexto = texto.replace('Noviembre', '11');
+                let nuevoTexto = texto.replace('Noviembre', '11');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Diciembre') != -1) {
-                var nuevoTexto = texto.replace('Diciembre', '12');
+                let nuevoTexto = texto.replace('Diciembre', '12');
                 return (nuevoTexto);
             }
         }
 
         function EstilizarConDataTables(nomTabla) {
             //https://datatables.net/manual/data/
-            var objetoDataTable = $(nomTabla).DataTable();  //Genero un objeto dataTable
+            let objetoDataTable = $(nomTabla).DataTable();  //Genero un objeto dataTable
             objetoDataTable.destroy(); //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
 
             if (nomTabla === '#miTablaCaducidadesEnTienda') {
@@ -234,7 +234,7 @@
         }
 
         function EstaSeleccionadaTiendaYFechas(control, fechaInicial, fechaFinal) {
-            var posiblesErrores = "";
+            let posiblesErrores = "";
             if (control.selectedIndex == -1) {
                 posiblesErrores = "Seleccione alguna tienda."
             }

@@ -686,7 +686,7 @@ namespace ControlCaducidadesPromotor.Models
         public string Post_AgregarNuevaCaducidad(List<TiendaJoinCaducidadesViewModel> coleccionViewModel)
         {
             string respuesta = "Inicializar.";
-
+            /*
             using (var ctx = new palominoEntities())
             {
                 using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
@@ -867,7 +867,7 @@ namespace ControlCaducidadesPromotor.Models
                     }
                 }
             }
-
+            */
             return (respuesta);
         }
 
@@ -884,7 +884,7 @@ namespace ControlCaducidadesPromotor.Models
                         //verificamos si al momento de la solicitud la tienda y el usuario estan activos
                         List<TiendaViewModel> resumenTiendas = new List<TiendaViewModel>();
                         resumenTiendas = (from s in ctx.Tienda
-                                                   select new TiendaViewModel { Id = s.Id, Activo = s.Activo }).ToList();
+                                                   select new TiendaViewModel { Id = s.Id, FechaAlta = s.FechaAlta, FechaModificacion= s.FechaModificacion, Activo = s.Activo }).ToList();
 
                         RulesEngineLN rulesEngineLN = new RulesEngineLN();
 
@@ -892,7 +892,7 @@ namespace ControlCaducidadesPromotor.Models
                                                select new UsuarioViewModel { Id = s.Id, Activo = s.Activo }).ToList();
 
                         bool esActivoUsuarioOperador = rulesEngineLN.EsActivoIdUsuario(resumenUsuarios, parametroBuscarCaducidadViewModel.IdUsuarioAlta);
-                        bool esActivaTiendaBuscada = rulesEngineLN.EsActivaTienda(resumenTiendas, parametroBuscarCaducidadViewModel.IdTienda);
+                        bool esActivaTiendaBuscada = rulesEngineLN.EsActivaTienda(resumenTiendas, parametroBuscarCaducidadViewModel);
                         if(esActivaTiendaBuscada && esActivoUsuarioOperador)
                         {
                             //Extrayendo info de la tabla caduca
@@ -932,15 +932,43 @@ namespace ControlCaducidadesPromotor.Models
                             var idsPeriodosDeTienda = (from s in resumenCaduca
                                                        select s.IdPeriodo).ToList();
 
+                            List<Periodo> auxPeriodos;
+                            if (parametroBuscarCaducidadViewModel.MostrarVigentes == true)
+                            { 
+                                //solo vigentes
+                                var itemsDPeriodoVigentesYActivos = (from s in ctx.Periodo
+                                                                     where idsPeriodosDeTienda.Contains(s.Id) && s.Activo == true && s.Vigente == true
+                                                                     select s).ToList();
+
+                                auxPeriodos = (from s in itemsDPeriodoVigentesYActivos
+                                                      where s.FechaCaducidad >= parametroBuscarCaducidadViewModel.FechaInicial &&
+                                                             s.FechaCaducidad <= parametroBuscarCaducidadViewModel.FechaFinal
+                                                      select s).ToList();  //esta coleccion se debe enlazar para consulta final
+                            }
+
+                            else
+                            { //vigentes y no vigentes
+                                var itemsDPeriodoVigentesYNoVigentesYActivos = (from s in ctx.Periodo
+                                                                                where idsPeriodosDeTienda.Contains(s.Id) && s.Activo == true
+                                                                                select s).ToList();
+
+                                auxPeriodos = (from s in itemsDPeriodoVigentesYNoVigentesYActivos
+                                               where s.FechaCaducidad >= parametroBuscarCaducidadViewModel.FechaInicial &&
+                                                      s.FechaCaducidad <= parametroBuscarCaducidadViewModel.FechaFinal
+                                               select s).ToList();  //esta coleccion se debe enlazar para consulta final
+                            }
+
+                            var resumenPeriodo = auxPeriodos.ToList();
+                            /*
                             var itemsDPeriodoVigentesYActivos = (from s in ctx.Periodo
                                                                  where idsPeriodosDeTienda.Contains(s.Id) &&  s.Activo == true && s.Vigente == true 
                                                                  select s).ToList();
 
-                            var resumenPeriodo = (from s in itemsDPeriodoVigentesYActivos
+                             var resumenPeriodo = (from s in itemsDPeriodoVigentesYActivos
                                                   where s.FechaCaducidad >= parametroBuscarCaducidadViewModel.FechaInicial &&
                                                          s.FechaCaducidad <= parametroBuscarCaducidadViewModel.FechaFinal
                                                   select s).ToList();  //esta coleccion se debe enlazar para consulta final
-
+                            */
                             var resumenIdsDeResumenPeriodo = (from s in resumenPeriodo
                                                               select s.Id).ToList();
 
@@ -1084,8 +1112,8 @@ namespace ControlCaducidadesPromotor.Models
 
                         else
                         {
-                            //No es activa tienda buscada o usuario esta deshabilitado
-                            throw new Exception("Tienda deshabilitada o usuario no habilitado");
+                            //La info de la tienda que esta en la GUI no coincide con la que esta en la BD al momento de ejecutar esta consulta o usuario esta deshabilitado
+                            throw new Exception("La información de la tienda ha sido actualizada o usuario no habilitado");
                         }
                         
                     }

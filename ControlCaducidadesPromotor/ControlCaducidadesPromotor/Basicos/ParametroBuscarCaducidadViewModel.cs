@@ -11,6 +11,7 @@ namespace ControlCaducidadesPromotor.Basicos
         public int IdTienda { set; get; }
         public DateTime FechaInicial { set; get; }
         public DateTime FechaFinal { set; get; }
+        public bool MostrarVigentes { set; get; } //true = muestra solo vigentes, false = muestra vigentes y no vigentes
 
         public int IdUsuarioAlta { set; get; }
         public DateTime FechaAlta { set; get; }
@@ -24,6 +25,7 @@ namespace ControlCaducidadesPromotor.Basicos
             this.IdTienda = 0;
             this.FechaInicial = DateTime.MinValue;
             this.FechaFinal = DateTime.MinValue;
+            this.MostrarVigentes = false;
 
             this.IdUsuarioAlta = 0;
             this.FechaAlta = DateTime.MinValue;

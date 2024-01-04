@@ -42,16 +42,28 @@ namespace ControlCaducidadesPromotor.Models
         /// <param name="idsTienda">una lista de los ids de tiendas</param>
         /// <param name="idTiendaBuscada">el id de tienda a buscar</param>
         /// <returns>bool</returns>
-        public bool EsActivaTienda(List<TiendaViewModel> resumenTiendas, int idTiendaBuscada)
+        public bool EsActivaTienda(List<TiendaViewModel> resumenTiendas, ParametroBuscarCaducidadViewModel parametroBuscarCaducidadViewModel)
         {
             bool res = false;
 
-            var idsTiendasActivos = (from s in resumenTiendas
+            /*var idsTiendasActivos = (from s in resumenTiendas       <----estas eran las lineas originales
                                      where s.Activo == true
                                      select s.Id).ToList();
 
-            res = idsTiendasActivos.Contains(idTiendaBuscada);
+            res = idsTiendasActivos.Contains(idTiendaBuscada);*/
 
+            var resumenTiendasActivas = (from s in resumenTiendas
+                                         where s.Activo == true
+                                         select s).ToList();
+            var elementoBuscado = resumenTiendasActivas.FirstOrDefault(s => { return (s.Id == parametroBuscarCaducidadViewModel.IdTienda); });
+            if(elementoBuscado !=null)
+            {
+                RelojServidor relojServidor = new RelojServidor();
+                bool esMismaFechaAlta = relojServidor.EsMismaFechaYHoraSinMilisegundos(elementoBuscado.FechaAlta, parametroBuscarCaducidadViewModel.FechaAlta);
+                bool esMismaFechaModificacion = relojServidor.EsMismaFechaYHoraSinMilisegundos(elementoBuscado.FechaModificacion, parametroBuscarCaducidadViewModel.FechaModificacion);
+
+                res = esMismaFechaAlta && esMismaFechaModificacion;
+            }
             return (res);
         }
 

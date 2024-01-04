@@ -35,7 +35,12 @@
                 if (validacion.length == 0) {
                     //Obtener el id de la tienda
                     let controlSelect = document.getElementById('tiendasLista');
-                    let idDeTienda = controlSelect.options[controlSelect.selectedIndex].value;
+                    //let idDeTienda = controlSelect.options[controlSelect.selectedIndex].value; ----esta era linea original
+                    let valorDeItemSeleccionado = controlSelect.options[controlSelect.selectedIndex].value; // el valor del item seleccionado asi se ve: idTienda=1-fechaAlta=06/11/2023 05:58:43 p.m.-fechaModificacion=16/11/2023 02:19:54 p.m.
+                    let cadenasEnValorDeItemSeleccionado = valorDeItemSeleccionado.split(/-/);  //split recibe un objeto de tipo RegExp
+                    let primeraCadenaEnValorDeItemSeleccionado = cadenasEnValorDeItemSeleccionado[0];
+                    let valoresEnPrimeraCadenaDeItemSeleccionado = primeraCadenaEnValorDeItemSeleccionado.split(/=/);
+                    let idDeTienda = parseInt(valoresEnPrimeraCadenaDeItemSeleccionado[1]);  //aqui obtengo el id de la tienda que se ha seleccionado
 
 
                     //Extraer info de la fecha inicial
@@ -46,7 +51,6 @@
                     fechaInicial = SubstituirPalabraMesConNumero(fechaInicial); //La cadena queda en el formato 15/05/2021 00:00:00 a.m.
 
                     let auxFechaDeCaducidadInicial = new FechaHoraSinMiliSegundos(fechaInicial);
-                    //auxFechaDeCaducidadInicial.GenerarEnSintaxisCadena()
 
                     //Extraer info de la fecha final
                     let fechaFinal = $('#miFechaFinal').val();
@@ -56,7 +60,25 @@
                     fechaFinal = SubstituirPalabraMesConNumero(fechaFinal); //La cadena queda en el formato 15/05/2021 00:00:00 a.m.
 
                     let auxFechaCaducidadFinal = new FechaHoraSinMiliSegundos(fechaFinal);
-                    // auxFechaCaducidadFinal.GenerarEnSintaxisCadena();
+
+
+                    //Extraigo info de la fechaAlta y fechaModificacion de la tienda
+                    let segundaCadenaEnValorDeItemSeleccionado = cadenasEnValorDeItemSeleccionado[1];
+                    let valoresEnSegundaCadenaDeItemSeleccionado = segundaCadenaEnValorDeItemSeleccionado.split(/=/);
+                    let fechaAltaTienda = new FechaHoraSinMiliSegundos(valoresEnSegundaCadenaDeItemSeleccionado[1]);
+
+                    let terceraCadenaEnValorDeItemSeleccionado = cadenasEnValorDeItemSeleccionado[2];
+                    let valoresEnTerceraCadenaDeItemSeleccionado = terceraCadenaEnValorDeItemSeleccionado.split(/=/);
+                    let fechaModificacionTienda = new FechaHoraSinMiliSegundos(valoresEnTerceraCadenaDeItemSeleccionado[1]);
+
+                    //Extraigo info del checkbox, para ver si esta ó no seleccionado
+                    let chkBoxVigenciaSeleccionado;
+                    if (document.getElementById('chkBoxVigencia').checked) {
+                        chkBoxVigenciaSeleccionado = true;
+                    }
+                    else {
+                        chkBoxVigenciaSeleccionado = false;
+                    }
 
                     //Se llama al controlador Caducidad.BuscarCaducidad()
 
@@ -64,10 +86,11 @@
                         IdTienda: idDeTienda,
                         FechaInicial: auxFechaDeCaducidadInicial.GenerarEnSintaxisCadena(),
                         FechaFinal: auxFechaCaducidadFinal.GenerarEnSintaxisCadena(),
+                        MostrarVigentes: chkBoxVigenciaSeleccionado,
                         IdUsuarioAlta: 0,
-                        FechaAlta: auxFechaCaducidadFinal.GenerarEnSintaxisCadena(),
+                        FechaAlta: fechaAltaTienda.GenerarEnSintaxisCadena(),
                         IdUsuarioModifico: 0,
-                        FechaModificacion: auxFechaCaducidadFinal.GenerarEnSintaxisCadena(),
+                        FechaModificacion: fechaModificacionTienda.GenerarEnSintaxisCadena(),
                         Activo: true
                     };
 
@@ -83,6 +106,7 @@
                             if (result.success != true) {
                                 $('#imagenWaiting').attr('style', 'display:none');
                                 $('#controlesAdicionales').hide();
+                                $('#otrosControlesAdicionales').hide();
                                 $('#btnBuscar').hide();
                                 let objetoDataTable = $('#miTablaCaducidadesEnTienda').DataTable();  //Genero un objeto dataTable
                                 objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
@@ -121,6 +145,7 @@
                                 });
 
                                 $('#controlesAdicionales').show();
+                                $('#otrosControlesAdicionales').show();
                                 $('#btnBuscar').show();
                                 $('#miTablaCaducidadesEnTienda').show();
                                 EstilizarConDataTables('#miTablaCaducidadesEnTienda');
@@ -131,6 +156,7 @@
                             $('#mensajes').empty(); //destruyo el contenido
                             $('#imagenWaiting').attr('style', '');
                             $('#controlesAdicionales').hide();
+                            $('#otrosControlesAdicionales').hide();
                             $('#btnBuscar').hide();
                             let objetoDataTable = $('#miTablaCaducidadesEnTienda').DataTable();  //Genero un objeto dataTable
                             objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
@@ -261,7 +287,8 @@
                     @{
                         foreach (var item in Model)
                         {
-                            <option value="@item.Id">@item.Nombre</option>
+                            var teto = "idTienda=" +item.Id.ToString() + "-fechaAlta="+item.FechaAlta.ToString() + "-fechaModificacion=" + item.FechaModificacion.ToString();
+                            <option value="@teto">@item.Nombre</option>
                         }
                     }
                 </select>
@@ -289,6 +316,17 @@
                 <input type="hidden" id="dtp_input2" value="" /><br />
             </div>
         </div>
+    </div>
+
+    <div class="row" id="otrosControlesAdicionales">
+        <div class="col-sm-4">
+            <div class="form-group">
+                <div class="checkbox">
+                    <label><input type="checkbox" id="chkBoxVigencia" />Mostrar solo vigentes</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-8"></div>
     </div>
 
     <div class="row">

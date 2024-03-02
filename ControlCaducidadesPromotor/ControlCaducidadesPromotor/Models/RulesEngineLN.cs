@@ -46,12 +46,6 @@ namespace ControlCaducidadesPromotor.Models
         {
             bool res = false;
 
-            /*var idsTiendasActivos = (from s in resumenTiendas       <----estas eran las lineas originales
-                                     where s.Activo == true
-                                     select s.Id).ToList();
-
-            res = idsTiendasActivos.Contains(idTiendaBuscada);*/
-
             var resumenTiendasActivas = (from s in resumenTiendas
                                          where s.Activo == true
                                          select s).ToList();
@@ -77,6 +71,7 @@ namespace ControlCaducidadesPromotor.Models
         public bool EstanActivosTodosLosProductosEnTienda(List<TiendaJoinCaducidadesViewModel> coleccionViewModel, List<AlmacenaViewModel> resumenAlmacenaViewModel)
         {
             bool res = false;
+            RelojServidor relojServidor = new RelojServidor();
 
             var resumenActivosEnAlmacenaViewModel = (from s in resumenAlmacenaViewModel
                                                      where s.Activo == true
@@ -93,7 +88,9 @@ namespace ControlCaducidadesPromotor.Models
 
                 if(elementoBuscado != null)
                 {
-                    return (true);
+                    bool esMismaFechaAlta = relojServidor.EsMismaFechaYHoraSinMilisegundos(s.MiAlmacenaViewModel.FechaAlta, elementoBuscado.FechaAlta);
+                    bool esMismaFechaModificacion = relojServidor.EsMismaFechaYHoraSinMilisegundos(s.MiAlmacenaViewModel.FechaModificacion, elementoBuscado.FechaModificacion);
+                    return (esMismaFechaAlta && esMismaFechaModificacion);
                 }
 
                 else
@@ -115,15 +112,31 @@ namespace ControlCaducidadesPromotor.Models
         public bool EstanActivosLosProductos(List<TiendaJoinCaducidadesViewModel> coleccionViewModel, List<ProductoViewModel> resumenProductoViewModel)
         {
             bool res = false;
+            RelojServidor relojServidor = new RelojServidor();
 
-            if(coleccionViewModel.Count == 0)
+            if (coleccionViewModel.Count == 0)
             { return (false); } //Esta condicion es porque TrueForAll regresa true por default, si coleccionViewModel esta vacío
 
             var resumenActivosEnListProductoViewModel = (from s in resumenProductoViewModel
                                                          where s.Activo == true
-                                                         select s.Id).ToList();
+                                                         select s).ToList();
 
-            res = coleccionViewModel.TrueForAll(s => resumenActivosEnListProductoViewModel.Contains(s.MiCaducaViewModel.IdProducto));
+            res = coleccionViewModel.TrueForAll(s =>
+            {
+                var elementoBuscado = resumenActivosEnListProductoViewModel.FirstOrDefault(x => { return (x.Id == s.MiCaducaViewModel.IdProducto);  });
+                if (elementoBuscado != null)
+                {
+                    bool esMismaFechaAlta = relojServidor.EsMismaFechaYHoraSinMilisegundos(elementoBuscado.FechaAlta, s.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.Producto_FechaAlta);
+                    bool esMismaFechaModificacion = relojServidor.EsMismaFechaYHoraSinMilisegundos(elementoBuscado.FechaModificacion, s.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.Producto_FechaModificacion);
+                    return (esMismaFechaAlta && esMismaFechaModificacion);
+                }
+
+                else
+                {
+                    return (false);
+                }
+
+            });
 
             return (res);
         }
@@ -138,6 +151,8 @@ namespace ControlCaducidadesPromotor.Models
         public bool EstanActivaRelacionEnProductoConDetalles(List<TiendaJoinCaducidadesViewModel> coleccionViewModel, List<ProductoConDetallesViewModel> resumenProductoConDetallesViewModel)
         {
             bool res = false;
+            RelojServidor relojServidor = new RelojServidor();
+
             var activosEnProductoConDetallesVM = (from s in resumenProductoConDetallesViewModel
                                                 where s.Activo == true
                                                 select s).ToList();
@@ -155,7 +170,11 @@ namespace ControlCaducidadesPromotor.Models
                 });
 
                 if (productoConDetallesViewModel != null)
-                { return (true); }
+                {
+                    bool esMismaFechaAlta = relojServidor.EsMismaFechaYHoraSinMilisegundos(productoConDetallesViewModel.FechaAlta, s.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.ProductoConDetalles_FechaAlta);
+                    bool esMismaFechaModificacion = relojServidor.EsMismaFechaYHoraSinMilisegundos(productoConDetallesViewModel.FechaModificacion, s.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.ProductoConDetalles_FechaModificacion);
+                    return (esMismaFechaAlta && esMismaFechaModificacion);
+                }
 
                 else
                 {
@@ -176,14 +195,28 @@ namespace ControlCaducidadesPromotor.Models
         public bool EstanActivosLosIdDetalleProducto(List<TiendaJoinCaducidadesViewModel> coleccionViewModel, List<DetalleProductoViewModel> resumenDetalleProductoViewModel)
         {
             bool res = false;
+            RelojServidor relojServidor = new RelojServidor();
 
             var activosDetalleProductoViewModel = (from s in resumenDetalleProductoViewModel
                                                    where s.Activo == true
-                                                   select s.Id).ToList();
+                                                   select s).ToList();
             if (coleccionViewModel.Count == 0)
             { return (false);  } // Esta condición es porque TrueForAll regresa true por default si coleccionViewModel esta vacío.
 
-            res = coleccionViewModel.TrueForAll(s =>  activosDetalleProductoViewModel.Contains(s.MiCaducaViewModel.IdDetalleProducto)  );
+            res = coleccionViewModel.TrueForAll(s =>{
+                var elementoBuscado = activosDetalleProductoViewModel.FirstOrDefault(x => { return (x.Id == s.MiCaducaViewModel.IdDetalleProducto); });
+                //var elementoBuscado = activosDetalleProductoViewModel.FirstOrDefault(x => { return (false); });
+                if (elementoBuscado != null)
+                {
+                    bool esMismaFechaAlta = relojServidor.EsMismaFechaYHoraSinMilisegundos(elementoBuscado.FechaAlta, s.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.DetalleProducto_FechaAlta);
+                    bool esMismaFechaModificacion = relojServidor.EsMismaFechaYHoraSinMilisegundos(elementoBuscado.FechaModificacion, s.MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel.DetalleProducto_FechaModificacion);
+                    return (esMismaFechaAlta && esMismaFechaModificacion);   
+                }
+                else
+                {
+                    return (false);
+                }
+            });
 
             return (res);
         }

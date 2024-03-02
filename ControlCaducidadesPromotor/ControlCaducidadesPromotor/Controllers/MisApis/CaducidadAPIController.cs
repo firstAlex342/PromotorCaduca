@@ -15,25 +15,34 @@ namespace ControlCaducidadesPromotor.Controllers.MisApis
         public IHttpActionResult Post_InsertarNuevaCaducidad(List<TiendaJoinCaducidadesViewModel> coleccionViewModel)
         {
             string respuesta = "";
-            if (ModelState.IsValid)
-            {
-                TiendaLN tiendaLN = new TiendaLN();
-                respuesta = tiendaLN.Post_AgregarNuevaCaducidad(coleccionViewModel);
 
-                if (respuesta.Contains("ok"))
+            try
+            {
+                if (ModelState.IsValid)
                 {
-                    return (Ok());
+                    TiendaLN tiendaLN = new TiendaLN();
+                    respuesta = tiendaLN.Post_AgregarNuevaCaducidad(coleccionViewModel);
+
+                    if (respuesta.Contains("ok"))
+                    {
+                        return (Ok());
+                    }
+
+                    else
+                    {
+                        return (BadRequest(respuesta));
+                    }
                 }
 
                 else
                 {
-                    return (BadRequest(respuesta));
+                    return (BadRequest("Fallo en el model binder CaducidadAPIController.Post_InsertarNuevaCaducidad"));
                 }
             }
 
-            else
+            catch(Exception ex)
             {
-                return (BadRequest("Fallo en el model binder CaducidadAPIController.Post_InsertarNuevaCaducidad"));
+                return (BadRequest(ex.Message));
             }
         }
 

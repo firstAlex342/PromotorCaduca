@@ -8,9 +8,9 @@
 
 @section MisFuncionesJavaScript
 {
-    <script type="text/javascript">
+<script type="text/javascript">
         'use strict';
-        var x = $(document);
+        let x = $(document);
         x.ready(InicializarEventos);
 
         function InicializarEventos() {
@@ -35,7 +35,7 @@
 
 
         function RecuperarYMostrarTiendasDeUsuario() {
-            $('#tiendasRecuperadas').empty();
+            $('#miTablaDeTiendasRecuperadas tbody').empty();
 
             //solicutud ajax sin parametros
             $.ajax({
@@ -46,22 +46,30 @@
                 success: function (result) {
 
                     if (result.success != true) {
-                        var texto = result.elResultado;
+                        let texto = result.elResultado;
                         //$('#errorSpan').html('<ul><li>' + texto + '</li></ul>'); No creee este span, por ello lo muestro en un alert
                         alert(texto);
                     }
 
                     else {
-                        var html = '';
+                        let html = '';
                         $.each(result.elResultado, function (key, item) {
-                            html = '<div class="radio">';
+                            html = "<tr><td>";
+                            html += '<div class="radio">';
                             html += '<label>';
                             html += '<input type="radio" ';
                             html += 'onclick="RecuperarProductosDeTienda(this)" ';
                             html += 'name = "radioTiendas" value = "' + item.Id + '"/>' + item.Nombre;
-                            html += '</label> </div>';
-                            $('#tiendasRecuperadas').append(html);
+                            html += '</label></div></td>';
+
+                            let miFechaAlta = new Date(parseInt(item.FechaAlta.substr(6)));
+                            let miFechaModificacion = new Date(parseInt(item.FechaModificacion.substr(6)));
+                            html += '<td>' + miFechaAlta + '</td>'; @* decia style = "display:none;"    y se ocultaba la columna *@
+                            html += '<td>' + miFechaModificacion + '</td>'; @* decia style = "display:none;"    y se ocultaba la columna *@
+                            html += '</tr>'
+                            $('#miTablaDeTiendasRecuperadas tbody').append(html);;
                         });
+
                     }
                 },
                 error: function (errormessage) {
@@ -77,49 +85,141 @@
 
         function RecuperarProductosDeTienda(control) {
             //alert(control.value);
+            //Recorrer la tabla y averiguar en que fila se hizo click.
+            //Localizar la fechaAlta y fechaModificacion, salir del bucle.
+            let numeroFilasEnTablaMisTiendas = document.getElementById('miTablaDeTiendasRecuperadas').rows.length;
+            let i;
+            let fechaAlta;
+            let fechaModificacion;
+            let objInteligente = new FechaHoraSinMiliSegundos('30/09/2020 09:50:47 p.m.'); //Este objeto solo es para que me proporcione herramientas de trabajo con fechas
+
+            //la fila 0 de la tabla viene siendo la del titulo de la columna
+            for (i = 1; i < numeroFilasEnTablaMisTiendas; i++) {
+                let nodoDiv = document.getElementById('miTablaDeTiendasRecuperadas').rows[i].cells[0].childNodes[0];
+
+                let nodoLabel = nodoDiv.childNodes[0];
+                let nodocheckBox = nodoLabel.childNodes[0];
+                if (control.value == nodocheckBox.getAttribute('value')) {
+
+                    fechaAlta = document.getElementById('miTablaDeTiendasRecuperadas').rows[i].cells[1].childNodes[0].nodeValue;
+                    fechaModificacion = document.getElementById('miTablaDeTiendasRecuperadas').rows[i].cells[2].childNodes[0].nodeValue;
+                    break;
+                }
+            }
+
+            let fa = new Date(fechaAlta);
+            let objetoFechaAlta = objInteligente.FuckYou(fa);
+
+            let fm = new Date(fechaModificacion);
+            let objetoFechaModificacion = objInteligente.FuckYou(fm);
+
+            let tiendaObj = {
+                Id: control.value,
+                Supmza: "valor tonto",/*document.getElementById("codigoBarras").value,*/
+                Manzana: "valor tonto",
+                Lote: "valor tonto",
+                Calle: "valor tonto",
+                Nombre: "valor tonto",
+                IdUsuarioAlta: 0,
+                FechaAlta: objetoFechaAlta,
+                IdUsuarioModifico: 0,
+                FechaModificacion: objetoFechaModificacion,
+                Activo: true
+            };
+
+            $('#miTablaDeTiendasRecuperadas').hide();
+
+            //-------la funcion ajax estaba originalmente
             $.ajax({
-                url: "/Tienda/RecuperarProductosDeTiendaXId?idTienda=" + control.value,
+                url: "/Tienda/RecuperarProductosDeTiendaXId",
                 //data: { 'idTienda': control.value },  // asegurate que asi se serialize un entero
-                type: "GET",
+                data: JSON.stringify(tiendaObj),
+                type: "POST",
                 contentType: "application/json;charset=utf-8",
                 dataType: "json",
-                success: function (result) {
-                    var objetoDataTable = $('#miTablaProductosEnTienda').DataTable();  //Genero un objeto dataTable
+                success: function (result) {    
+                    if (result.success != true) {
+                        let texto = result.laRespuesta;
+                        @*$('#errorSpan').html('<ul><li>' + texto + '</li></ul>');  ---no tenemos errorSPan en este cshtml *@
+                        alert(texto);
+                        $('#miTablaDeTiendasRecuperadas').show();
+
+                        let objetoDataTable = $('#miTablaProductosEnTienda').DataTable();  //Genero un objeto dataTable
+                        objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
+                        $('#miTablaProductosEnTienda').hide();
+                        $('#miTablaProductosEnTienda tbody').empty();  //destruyo el contenido
+                        $('#miTablaProductosEnTienda').show();
+                        EstilizarConDataTables('#miTablaProductosEnTienda');
+                        $('#controlesAdicionales').show();
+                        DeshabilitarBtnAgregar();
+                    }
+
+                    else {
+                        let html = '';
+
+                        $.each(result.laRespuesta.ProductosDeTienda, function (key, item) {
+                            let Almacena_FechaAlta = new Date(parseInt(item.Almacena_FechaAlta.substr(6)));
+                            let Almacena_FechaModificacion = new Date(parseInt(item.Almacena_FechaModificacion.substr(6)));
+                            let Producto_FechaAlta = new Date(parseInt(item.Producto_FechaAlta.substr(6)));
+                            let Producto_FechaModificacion = new Date(parseInt(item.Producto_FechaModificacion.substr(6)));
+                            let ProductoConDetalles_FechaAlta = new Date(parseInt(item.ProductoConDetalles_FechaAlta.substr(6)));
+                            let ProductoConDetalles_FechaModificacion = new Date(parseInt(item.ProductoConDetalles_FechaModificacion.substr(6)));
+                            let DetalleProducto_FechaAlta = new Date(parseInt(item.DetalleProducto_FechaAlta.substr(6)));
+                            let DetalleProducto_FechaModificacion = new Date(parseInt(item.DetalleProducto_FechaModificacion.substr(6)));
+
+                            html = '<tr>';
+                            html += '<td>' + '<input type="checkbox" id="idCheckBox' + item.Producto_Id + '"/></td>';
+                            html += '<td>' + item.Almacena_IdTienda + '</td>'; /*era style="display:none;"*/
+                            html += '<td>' + item.Almacena_IdProducto + '</td>'; /*style = "display:none;"*/
+                            html += '<td>' + Almacena_FechaAlta + '</td>';  /*style = "display:none;"*/
+                            html += '<td>' + Almacena_FechaModificacion + '</td>'; /*style = "display:none;"*/
+                            html += '<td>' + item.Producto_Id + '</td>';  /*style = "display:none;"*/
+                            html += '<td>' + item.Producto_CodigoBarras + '</td>';
+                            html += '<td>' + Producto_FechaAlta + '</td>';
+                            html += '<td>' + Producto_FechaModificacion + '</td>';
+                            html += '<td>' + item.ProductoConDetalles_IdProducto + '</td>'; /*style = "display:none;"*/
+                            html += '<td>' + item.ProductoConDetalles_IdDetalleProducto + '</td>'; /*style = "display:none;"*/
+                            html += '<td>' + ProductoConDetalles_FechaAlta + '</td>';
+                            html += '<td>' + ProductoConDetalles_FechaModificacion + '</td>';
+                            html += '<td>' + item.DetalleProducto_Id + '</td>'; /*style = "display:none;"*/
+                            html += '<td>' + item.DetalleProducto_Nombre + '</td>';
+                            html += '<td>' + DetalleProducto_FechaAlta + '</td>';
+                            html += '<td>' + DetalleProducto_FechaModificacion + '</td>';
+                            html += '<td>' + item.DetalleProducto_IdUsuarioAlta + '</td>';  /*style = "display:none;"*/
+
+                            html += '</tr>';
+
+                            $('#miTablaProductosEnTienda tbody').append(html);
+                        });
+
+                        $('#miTablaDeTiendasRecuperadas').show();
+
+                        $('#miTablaProductosEnTienda').show();
+                        EstilizarConDataTables('#miTablaProductosEnTienda');
+                        $('#controlesAdicionales').show();
+                    }
+                },
+                beforeSend: function () {
+                    @*$('#errorSpan').empty(); ---------No tiene errorSpan esta hoja .cshtml*@
+                    let objetoDataTable = $('#miTablaProductosEnTienda').DataTable();  //Genero un objeto dataTable
                     objetoDataTable.destroy();  //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
                     $('#miTablaProductosEnTienda').hide();
                     $('#miTablaProductosEnTienda tbody').empty();  //destruyo el contenido
-                    var html = '';
+                    $('#controlesAdicionales').hide();
+                    $('#imagenWaiting').attr('style', '');
+                },
 
-                    $.each(result, function (key, item) {
-                        var miFechaAlta = new Date(parseInt(item.Almacena_FechaAlta.substr(6)));
-                        var miFechaModificacion = new Date(parseInt(item.Almacena_FechaModificacion.substr(6)));
-
-                        html = '<tr>';
-                        html += '<td>' + '<input type="checkbox" id="idCheckBox' + item.Producto_Id + '"/></td>';
-                        html += '<td>' + item.Almacena_IdTienda + '</td>'; /*era style="display:none;"*/
-                        html += '<td>' + item.Almacena_IdProducto + '</td>'; /*style = "display:none;"*/
-                        html += '<td>' + miFechaAlta + '</td>';  /*style = "display:none;"*/
-                        html += '<td>' + miFechaModificacion + '</td>'; /*style = "display:none;"*/
-                        html += '<td>' + item.Producto_Id + '</td>';  /*style = "display:none;"*/
-                        html += '<td>' + item.Producto_CodigoBarras + '</td>';
-                        html += '<td>' + item.ProductoConDetalles_IdProducto + '</td>'; /*style = "display:none;"*/
-                        html += '<td>' + item.ProductoConDetalles_IdDetalleProducto + '</td>'; /*style = "display:none;"*/
-                        html += '<td>' + item.DetalleProducto_Id + '</td>'; /*style = "display:none;"*/
-                        html += '<td>' + item.DetalleProducto_Nombre + '</td>';
-                        html += '<td>' + item.DetalleProducto_IdUsuarioAlta + '</td>';  /*style = "display:none;"*/
-
-                        html += '</tr>';
-
-                        $('#miTablaProductosEnTienda tbody').append(html);
-                    });
-
-                    $('#miTablaProductosEnTienda').show();
-                    EstilizarConDataTables('#miTablaProductosEnTienda');
+                complete: function () {
+                    $('#imagenWaiting').attr('style', 'display:none');
                 },
                 error: function (errormessage) {
-                    QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
-                    $('#tiendasRecuperadas').html('');
 
+                    $('#imagenWaiting').attr('style', 'display:none');
+                    @*$('#errorSpan').empty();    --------  No tiene errorSpan esta hoja .cshtml*@
+                    QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
+
+                    $('#tiendasRecuperadas').html(''); //deshabilita todo el div en el que se encuentra la tabla
+                    $('#controlesAdicionales').hide();
                     DeshabilitarBtnAgregar();
                     alert(errormessage.responseText);
                 }
@@ -129,7 +229,7 @@
 
         function EstilizarConDataTables(nomTabla) {
             //https://datatables.net/manual/data/
-            var objetoDataTable = $(nomTabla).DataTable();  //Genero un objeto dataTable
+            let objetoDataTable = $(nomTabla).DataTable();  //Genero un objeto dataTable
             objetoDataTable.destroy(); //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
 
             if (nomTabla === '#miTablaProductosEnTienda') {
@@ -137,7 +237,7 @@
                     language: {
                         url: '../Scripts/DataTables/Spanish.json'
                     },
-                    columnDefs: [{ visible: false, targets: [1, 2, 3, 4, 5, 7, 8, 9, 11] },
+                    columnDefs: [/*{ visible: false, targets: [1, 2, 3, 4, 5, 7, 8, 9, 11] },*/
                     { searchable: false, targets: [0, 1, 2, 3, 4, 5, 7, 8, 9, 11] }] //https://datatables.net/reference/option/columns.searchable
                 });
             }
@@ -150,12 +250,12 @@
             $('#btnAgregarCaducidad').hide();
 
             //Desconecto de las propiedades DataTable para poder ocultar la tabla
-            var objetoDataTable = $('#miTablaProductosEnTienda').DataTable();
+            let objetoDataTable = $('#miTablaProductosEnTienda').DataTable();
             objetoDataTable.destroy(); //lo desconecto de las propiedades dataTable (paso necesario para poder modificar la <table>), no se destruye el contenido de la <table></table>
             $('#miTablaProductosEnTienda').hide();
 
 
-            var posiblesErrores = EstaSeleccionadoCheckBoxYEstaElegidaFechaYEstaElegidoNumeroUnidades();
+            let posiblesErrores = EstaSeleccionadoCheckBoxYEstaElegidaFechaYEstaElegidoNumeroUnidades();
             if (posiblesErrores.length > 0) {  //Verifico que selecciono algún checkBox, seleccioon fecha y captura un numero de unidades
                 $('#tiendasRecuperadas').show();
                 $('#controlesAdicionales').show();
@@ -168,38 +268,102 @@
             }
 
             else {
+                //Recorrer la tabla de tiendas disponibles y averiguar en que fila se hizo click.
+                //Localizar la fechaAlta y fechaModificacion, salir del bucle.
+                let numeroFilasEnTablaMisTiendas = document.getElementById('miTablaDeTiendasRecuperadas').rows.length;
+                let j;
+                let fechaAlta;
+                let fechaModificacion;
+                let objInteligente = new FechaHoraSinMiliSegundos('30/09/2020 09:50:47 p.m.'); //Este objeto solo es para que me proporcione herramientas de trabajo con fechas
+
+                //la fila 0 de la tabla viene siendo la del titulo de la columna
+                for (j = 1; j < numeroFilasEnTablaMisTiendas; j++) {
+                    let nodoDiv = document.getElementById('miTablaDeTiendasRecuperadas').rows[j].cells[0].childNodes[0];
+
+                    let nodoLabel = nodoDiv.childNodes[0];
+                    let nodocheckBox = nodoLabel.childNodes[0];
+                    if (nodocheckBox.checked) {
+                        fechaAlta = document.getElementById('miTablaDeTiendasRecuperadas').rows[j].cells[1].childNodes[0].nodeValue;
+                        fechaModificacion = document.getElementById('miTablaDeTiendasRecuperadas').rows[j].cells[2].childNodes[0].nodeValue;
+                        break;
+                    }
+                }
+
+                let fa = new Date(fechaAlta); //Aqui obtengo la fechaAlta de la Tienda
+                let objetoFechaAlta = objInteligente.FuckYou(fa);
+
+                let fm = new Date(fechaModificacion); //Aqui obtengo la fechaModificacion de la Tienda
+                let objetoFechaModificacion = objInteligente.FuckYou(fm);
+
 
                 //Extraer info de la fecha, numero de unidades, tipo de unidad seleccionada
-                var fechaDeCaducidad = $('#laFechaDeCaducidad').val();
+                let fechaDeCaducidad = $('#laFechaDeCaducidad').val();
                 fechaDeCaducidad = fechaDeCaducidad.replace(' ', '/'); // si esta 15 Mayo 2020, regresa 15/Mayo 2020
                 fechaDeCaducidad = fechaDeCaducidad.replace(' ', '/');  //Si esta 15/Mayo 2020, regresa 15/Mayo/2020
                 fechaDeCaducidad = fechaDeCaducidad + ' 11:59:59 p.m.'; //La cadena queda en el formato 15/Mayo/2020 11:59:59 p.m.
                 fechaDeCaducidad = SubstituirPalabraMesConNumero(fechaDeCaducidad); //La cadena queda en el formato 15/05/2021 11:59:59 p.m.
 
-                var auxFechaDeCaducidad = new FechaHoraSinMiliSegundos(fechaDeCaducidad);
+                let auxFechaDeCaducidad = new FechaHoraSinMiliSegundos(fechaDeCaducidad);
 
-                var numeroDeUnidades = $('#numeroUnidades').val();
-                var controlSelect = document.getElementById('tipoUnidad');
-                var valorDeItemSeleccionado = controlSelect.options[controlSelect.selectedIndex].value;
+                let numeroDeUnidades = $('#numeroUnidades').val();
+                let controlSelect = document.getElementById('tipoUnidad');
+                let valorDeItemSeleccionado = controlSelect.options[controlSelect.selectedIndex].value;
 
                 //Recorrer la lista de productos en tienda
-                var i;
-                var numeroDeFilasEnTablaProductosEnTienda;
+                let i;
+                let numeroDeFilasEnTablaProductosEnTienda;
                 numeroDeFilasEnTablaProductosEnTienda = document.getElementById('miTablaProductosEnTienda').rows.length;
 
-                var arregloDeProductosConFechaCaducidad = new Array();
+                let arregloDeProductosConFechaCaducidad = new Array();
                 for (i = 1; i < numeroDeFilasEnTablaProductosEnTienda; i++) { //la fila 0 de la tabla viene siendo la del titulo de la columna
-                    var textoProductoId = document.getElementById('miTablaProductosEnTienda').rows[i].cells[2].childNodes[0].nodeValue;
-                    var idChkBoxARecuperar = 'idCheckBox' + textoProductoId;
+                    let textoProductoId = document.getElementById('miTablaProductosEnTienda').rows[i].cells[2].childNodes[0].nodeValue;
+                    let idChkBoxARecuperar = 'idCheckBox' + textoProductoId;
                     //alert('elemeto recuperado' + idChkBoxARecuperar);
                     if (document.getElementById(idChkBoxARecuperar).checked) {
+                        //Obtengo fechas de tienda, etc..
+                        let objInteligente = new FechaHoraSinMiliSegundos('30/09/2020 09:50:47 p.m.'); //Este objeto solo es para que me proporcione herramientas de trabajo con fechas
+                        let productoFechaAlta = document.getElementById('miTablaProductosEnTienda').rows[i].cells[7].childNodes[0].nodeValue;
+                        let p1 = new Date(productoFechaAlta);
+                        let objetoDateProductoFechaAlta = objInteligente.FuckYou(p1);
+
+                        let productoFechaModificacion = document.getElementById('miTablaProductosEnTienda').rows[i].cells[8].childNodes[0].nodeValue;
+                        let p2 = new Date(productoFechaModificacion);
+                        let objetoDateProductoFechaModificacion = objInteligente.FuckYou(p2);
+
+                        let productoConDetallesFechaAlta = document.getElementById('miTablaProductosEnTienda').rows[i].cells[11].childNodes[0].nodeValue;
+                        let p3 = new Date(productoConDetallesFechaAlta);
+                        let objetoDateProductoConDetallesFechaAlta = objInteligente.FuckYou(p3);
+
+                        let productoConDetallesFechaModificacion = document.getElementById('miTablaProductosEnTienda').rows[i].cells[12].childNodes[0].nodeValue;
+                        let p4 = new Date(productoConDetallesFechaModificacion);
+                        let objetoDateProductoConDetallesFechaModificacion = objInteligente.FuckYou(p4);
+
+                        let detalleProductoFechaAlta = document.getElementById('miTablaProductosEnTienda').rows[i].cells[15].childNodes[0].nodeValue;
+                        let p5 = new Date(detalleProductoFechaAlta);
+                        let objetoDateDetalleProductoFechaAlta = objInteligente.FuckYou(p5);
+
+                        let detalleProductoFechaModificacion = document.getElementById('miTablaProductosEnTienda').rows[i].cells[16].childNodes[0].nodeValue;
+                        let p6 = new Date(detalleProductoFechaModificacion);
+                        let objetoDateDetalleProductoFechaModificacion = objInteligente.FuckYou(p6);
+
+                        let almacenaFechaAlta = document.getElementById('miTablaProductosEnTienda').rows[i].cells[3].childNodes[0].nodeValue;
+                        let p7 = new Date(almacenaFechaAlta);
+                        let objetoDateAlmacenaFechaAlta = objInteligente.FuckYou(p7);
+
+                        let almacenaFechaModificacion = document.getElementById('miTablaProductosEnTienda').rows[i].cells[4].childNodes[0].nodeValue;
+                        let p8 = new Date(almacenaFechaModificacion);
+                        let objetoDateAlmacenaFechaModificacion = objInteligente.FuckYou(p8);
+                        /*var valorEnNodo = document.getElementById('productoFechaAlta').childNodes[0].nodeValue;
+                        var fa = new Date(valorEnNodo);
+                        var objetoDateProducto_FechaAlta = objInteligente.FuckYou(fa); //regresa un objeto Date en un formato que json permite*/
+
                         //crear tupla
-                        var objetoASerializar = {
+                        let objetoASerializar = {
                             MiCaducaViewModel: {
                                 IdProducto: document.getElementById('miTablaProductosEnTienda').rows[i].cells[2].childNodes[0].nodeValue,
-                                IdDetalleProducto: document.getElementById('miTablaProductosEnTienda').rows[i].cells[9].childNodes[0].nodeValue,
+                                IdDetalleProducto: document.getElementById('miTablaProductosEnTienda').rows[i].cells[13].childNodes[0].nodeValue,
                                 IdTienda: document.getElementById('miTablaProductosEnTienda').rows[i].cells[1].childNodes[0].nodeValue,
-                                IdUsuarioAlta: document.getElementById('miTablaProductosEnTienda').rows[i].cells[11].childNodes[0].nodeValue
+                                IdUsuarioAlta: document.getElementById('miTablaProductosEnTienda').rows[i].cells[17].childNodes[0].nodeValue
                             },
                             MiPeriodoViewModel: {
                                 FechaCaducidad: auxFechaDeCaducidad.GenerarEnSintaxisCadena(),
@@ -213,11 +377,21 @@
                                 Manzana: 'manzana',
                                 Lote: 'lote',
                                 Calle: 'calle',
-                                Nombre: 'nombre'
+                                Nombre: 'nombre',
+                                FechaAlta: objetoFechaAlta,
+                                FechaModificacion: objetoFechaModificacion
                             },
-                            MiProductoViewModel: {
-                                CodigoBarras: '???',
-                                Nombre: '???'
+                            MiProductoJoinProductoConDetallesJoinDetalleProductoViewModel: {
+                                Producto_FechaAlta: objetoDateProductoFechaAlta,
+                                Producto_FechaModificacion: objetoDateProductoFechaModificacion,
+                                ProductoConDetalles_FechaAlta: objetoDateProductoConDetallesFechaAlta,
+                                ProductoConDetalles_FechaModificacion: objetoDateProductoConDetallesFechaModificacion,
+                                DetalleProducto_FechaAlta: objetoDateDetalleProductoFechaAlta,
+                                DetalleProducto_FechaModificacion: objetoDateDetalleProductoFechaModificacion
+                            },
+                            MiAlmacenaViewModel: {
+                                FechaAlta: objetoDateAlmacenaFechaAlta,
+                                FechaModificacion: objetoDateAlmacenaFechaModificacion
                             }
                         };
 
@@ -233,22 +407,40 @@
                     contentType: "application/json;charset=utf-8",
                     dataType: "json",
                     success: function (result) {
-                        $('#imagenWaiting').attr('style', 'display:none');
+                            //https://stackoverflow.com/questions/26605065/jquery-ajax-return-success-error-from-mvc-net-controller
+                            // https://patrickdesjardins.com/blog/returning-a-jsonresult-within-the-error-function-of-jquery-ajax
+                        if (result.success != true) {
+                            //----aqui falta contenido-----
+                            $('#imagenWaiting').attr('style', 'display:none');
+                            $('#tiendasRecuperadas').show();
+                            $('#miTablaProductosEnTienda').show();
+                            EstilizarConDataTables('#miTablaProductosEnTienda');
+                            $('#controlesAdicionales').show();
+                            $('#btnAgregarCaducidad').show();
 
-                        //alert(result);
-                        $('#textoDeModal2 p').text(result);
-                        $('#myModal2').modal('show'); //https://stackoverflow.com/questions/13183630/how-to-open-a-bootstrap-modal-window-using-jquery
+                            $('#textoModal p').text(result.responseText);
+                            $('#myModal').modal('show'); //https://stackoverflow.com/questions/13183630/how-to-open-a-bootstrap-modal-window-using-jquery
+                        }
 
-                        $('#tiendasRecuperadas').show();
-                        RecuperarYMostrarTiendasDeUsuario();
-                        $('#miTablaProductosEnTienda tbody').empty();  //destruyo el contenido
-                        $('#miTablaProductosEnTienda').show();
-                        EstilizarConDataTables('#miTablaProductosEnTienda');
-                        $('#controlesAdicionales').show();
-                        $('#laFechaDeCaducidad').val('');
-                        $('#numeroUnidades').val('');
-                        document.getElementById('tipoUnidad').selectedIndex = '0';
-                        $('#btnAgregarCaducidad').show();
+                        else {
+                            $('#imagenWaiting').attr('style', 'display:none');
+
+                            //alert(result);
+                            $('#textoDeModal2 p').text(result.laRespuesta);
+                            $('#myModal2').modal('show'); //https://stackoverflow.com/questions/13183630/how-to-open-a-bootstrap-modal-window-using-jquery
+
+                            $('#tiendasRecuperadas').show();
+                            RecuperarYMostrarTiendasDeUsuario();
+                            $('#miTablaProductosEnTienda tbody').empty();  //destruyo el contenido
+                            $('#miTablaProductosEnTienda').show();
+                            EstilizarConDataTables('#miTablaProductosEnTienda');
+                            $('#controlesAdicionales').show();
+                            $('#laFechaDeCaducidad').val('');
+                            $('#numeroUnidades').val('');
+                            document.getElementById('tipoUnidad').selectedIndex = '0';
+                            $('#btnAgregarCaducidad').show();
+                        }
+
                     },
                     beforeSend: function () {
                         $('#imagenWaiting').attr('style', '');
@@ -267,62 +459,62 @@
 
         function SubstituirPalabraMesConNumero(texto) {
             if (texto.indexOf('Enero') != -1) {
-                var nuevoTexto = texto.replace('Enero', '01');
+                let nuevoTexto = texto.replace('Enero', '01');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Febrero') != -1) {
-                var nuevoTexto = texto.replace('Febrero', '02');
+                let nuevoTexto = texto.replace('Febrero', '02');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Marzo') != -1) {
-                var nuevoTexto = texto.replace('Marzo', '03');
+                let nuevoTexto = texto.replace('Marzo', '03');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Abril') != -1) {
-                var nuevoTexto = texto.replace('Abril', '04');
+                let nuevoTexto = texto.replace('Abril', '04');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Mayo') != -1) {
-                var nuevoTexto = texto.replace('Mayo', '05');
+                let nuevoTexto = texto.replace('Mayo', '05');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Junio') != -1) {
-                var nuevoTexto = texto.replace('Junio', '06');
+                let nuevoTexto = texto.replace('Junio', '06');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Julio') != -1) {
-                var nuevoTexto = texto.replace('Julio', '07');
+                let nuevoTexto = texto.replace('Julio', '07');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Agosto') != -1) {
-                var nuevoTexto = texto.replace('Agosto', '08');
+                let nuevoTexto = texto.replace('Agosto', '08');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Septiembre') != -1) {
-                var nuevoTexto = texto.replace('Septiembre', '09');
+                let nuevoTexto = texto.replace('Septiembre', '09');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Octubre') != -1) {
-                var nuevoTexto = texto.replace('Octubre', '10');
+                let nuevoTexto = texto.replace('Octubre', '10');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Noviembre') != -1) {
-                var nuevoTexto = texto.replace('Noviembre', '11');
+                let nuevoTexto = texto.replace('Noviembre', '11');
                 return (nuevoTexto);
             }
 
             else if (texto.indexOf('Diciembre') != -1) {
-                var nuevoTexto = texto.replace('Diciembre', '12');
+                let nuevoTexto = texto.replace('Diciembre', '12');
                 return (nuevoTexto);
             }
         }
@@ -330,8 +522,8 @@
 
 
         function ContarCheckBoxesSeleccionados() {
-            var numChkBoxesSeleccionados = 0;
-            var i;
+            let numChkBoxesSeleccionados = 0;
+            let i;
             for (i = 1; i < document.getElementById('miTablaProductosEnTienda').rows.length; i++) {
                 if (document.getElementById('miTablaProductosEnTienda').rows[i].cells[0].childNodes[0].checked) {
                     numChkBoxesSeleccionados++;
@@ -343,10 +535,10 @@
 
 
         function EstaSeleccionadoCheckBoxYEstaElegidaFechaYEstaElegidoNumeroUnidades() {
-            var numeroDeCheckBoxsSeleccionado;
-            var fechaDeCaducidad = $('#laFechaDeCaducidad').val();
-            var numeroDeUnidades = $('#numeroUnidades').val();
-            var posiblesErrores = '';
+            let numeroDeCheckBoxsSeleccionado;
+            let fechaDeCaducidad = $('#laFechaDeCaducidad').val();
+            let numeroDeUnidades = $('#numeroUnidades').val();
+            let posiblesErrores = '';
 
 
             numeroDeCheckBoxsSeleccionado = ContarCheckBoxesSeleccionados();
@@ -380,7 +572,7 @@
 
 
         function QuitarPropsDataTableYVaciar(nomTabla) {  //recuerda que nomTabla debe venir en formato: #nomTabla
-            var objetoDataTable = $(nomTabla).DataTable();
+            let objetoDataTable = $(nomTabla).DataTable();
             objetoDataTable.destroy(); //desconecto la tabla de las propiedades datatabla, paso necesario para modificar la tabla
             $(nomTabla).html('');
         }
@@ -391,18 +583,28 @@
         }
 
 
-    </script>
+</script>
 }
 
 
 @section Contenido
 {
     <h3>Agregar caducidad</h3>
-    <h4>Ahora no muestra los productos de tienda, y en lad tiendas no muestra la fecha de alta y fecha modificacion</h4>
     <div class="row">
         <div class="col-sm-2">
             <h4>Mis tiendas</h4>
-            <div id="tiendasRecuperadas"></div>
+            <div id="tiendasRecuperadas" class="table-responsive">
+                <table id="miTablaDeTiendasRecuperadas" class="table" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Fecha Alta</th> @*decia style="display:none;"    y se ocultaba la columna*@
+                            <th>Fecha Modificacion</th> @*decia style="display:none;" y se ocultaba la columna*@
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
 
         <div class="col-sm-5">
@@ -421,10 +623,16 @@
                             <th>Almacena_FechaModificacion</th>
                             <th>Producto_Id</th> @*era th style="display:none;"*@
                             <th>Producto_CodigoBarras</th>
+                            <th>Producto_FechaAlta</th>
+                            <th>Producto_FechaModificacion</th>
                             <th>ProductoConDetalles_IdProducto</th> @*era th style="display:none;"*@
                             <th>ProductoConDetalles_IdDetalleProducto</th> @*era th style="display:none;"*@
+                            <th>ProductoConDetalles_FechaAlta</th>
+                            <th>ProductoConDetalles_FechaModificacion</th>
                             <th>DetalleProducto_Id</th> @*era th style="display:none;"*@
-                            <th>Producto_Nombre </th>
+                            <th>Producto_Nombre</th>
+                            <th>DetalleProducto_FechaAlta</th>
+                            <th>DetalleProducto_FechaModificacion</th>
                             <th>DetalleProducto_IdUsuarioAlta</th>  @*era th style="display:none;"*@
                         </tr>
                     </thead>

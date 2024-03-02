@@ -20,7 +20,6 @@ namespace ControlCaducidadesPromotor.Controllers
         [Authorize]
         public JsonResult InsertarNuevaCaducidad(List<TiendaJoinCaducidadesViewModel> coleccionViewModel)
         {
-            string respuesta = "No se enlazo";
             if(ModelState.IsValid)
             {
                 using (var client = new HttpClient())
@@ -36,7 +35,7 @@ namespace ControlCaducidadesPromotor.Controllers
                     {
                         Response.Cache.SetCacheability(HttpCacheability.NoCache);
                         Response.Cache.SetNoStore();
-                        return Json("Haz ingresado una nueva caducidad", JsonRequestBehavior.AllowGet);
+                        return Json(new { success = true, laRespuesta = "Haz ingresado una nueva caducidad"}, JsonRequestBehavior.AllowGet);
                     }
 
                     else
@@ -45,19 +44,21 @@ namespace ControlCaducidadesPromotor.Controllers
                         var x = result.Content.ReadAsStringAsync();
                         x.Wait(); //x.Result tiene el resultado
 
-                        ModelState.AddModelError(string.Empty, x.Result);
-                        Response.Cache.SetCacheability(HttpCacheability.NoCache);
-                        Response.Cache.SetNoStore();
-                        return Json(x.Result, JsonRequestBehavior.AllowGet);
+                        //ModelState.AddModelError(string.Empty, x.Result);
+                        //Response.Cache.SetCacheability(HttpCacheability.NoCache);
+                        //Response.Cache.SetNoStore();
+                        //return Json(x.Result, JsonRequestBehavior.AllowGet);
+                        return Json(new { success = false, responseText = x.Result }, JsonRequestBehavior.AllowGet);
                     }
                 }
             }
 
             else
             {
-                Response.Cache.SetCacheability(HttpCacheability.NoCache);
-                Response.Cache.SetNoStore();
-                return Json(respuesta, JsonRequestBehavior.AllowGet);
+                //Response.Cache.SetCacheability(HttpCacheability.NoCache);
+                //Response.Cache.SetNoStore();
+                //return Json(respuesta, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, responseText = "algo anda mal!!, no se pudo enlazar el modelBinder en CaducidadController.InsertarNuevaCaducidad" }, JsonRequestBehavior.AllowGet);
             }
         }
 

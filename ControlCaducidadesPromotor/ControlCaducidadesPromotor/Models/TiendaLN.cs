@@ -686,7 +686,7 @@ namespace ControlCaducidadesPromotor.Models
         public string Post_AgregarNuevaCaducidad(List<TiendaJoinCaducidadesViewModel> coleccionViewModel)
         {
             string respuesta = "Inicializar.";
-            /*
+            
             using (var ctx = new palominoEntities())
             {
                 using (var dbContextTransaction = ctx.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
@@ -708,19 +708,24 @@ namespace ControlCaducidadesPromotor.Models
                         var resumenTiendas = (from s in ctx.Tienda
                                              select new TiendaViewModel { Id = s.Id, Supmza = "", Manzana = "", Lote = "",
                                              Calle = "", Nombre = "", IdUsuarioAlta = 0, IdUsuarioModifico = 0,
-                                             FechaAlta = DateTime.MinValue, FechaModificacion = DateTime.MinValue,
+                                             FechaAlta = s.FechaAlta, FechaModificacion = s.FechaModificacion,
                                              Activo = s.Activo}).ToList();
 
-                        bool esActivaTienda = rulesEngineLN.EsActivaTienda(resumenTiendas, itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdTienda);
+                        ParametroBuscarCaducidadViewModel parametroBuscarCaducidadViewModel = new ParametroBuscarCaducidadViewModel();
+                        parametroBuscarCaducidadViewModel.IdTienda = itemTiendaJoinCaducidadesViewModel.MiCaducaViewModel.IdTienda;
+                        parametroBuscarCaducidadViewModel.FechaAlta = itemTiendaJoinCaducidadesViewModel.MiTiendaViewModel.FechaAlta;
+                        parametroBuscarCaducidadViewModel.FechaModificacion = itemTiendaJoinCaducidadesViewModel.MiTiendaViewModel.FechaModificacion;
+
+                        bool esActivaTienda = rulesEngineLN.EsActivaTienda(resumenTiendas, parametroBuscarCaducidadViewModel);
 
                         var resumenAlmacena = (from s in ctx.Almacena
-                                               select new AlmacenaViewModel { IdTienda = s.IdTienda, IdProducto = s.IdProducto, Activo = s.Activo }).ToList();
+                                               select new AlmacenaViewModel { IdTienda = s.IdTienda, IdProducto = s.IdProducto, FechaAlta = s.FechaAlta, FechaModificacion = s.FechaModificacion, Activo = s.Activo }).ToList();
 
                         bool estanActivosTodosProductosEnTienda = rulesEngineLN.EstanActivosTodosLosProductosEnTienda(coleccionViewModel, resumenAlmacena);
                         
                         var resumenProducto = (from s in ctx.Producto
                                                select new ProductoViewModel { Id = s.Id, CodigoBarras="", Nombre="", IdUsuarioAlta = 0,
-                                                   FechaAlta = DateTime.MinValue, IdUsuarioModifico = 0, FechaModificacion = DateTime.MinValue,
+                                                   FechaAlta = s.FechaAlta, IdUsuarioModifico = 0, FechaModificacion = s.FechaModificacion,
                                                    Activo = s.Activo  }).ToList();
 
                         bool estanActivosTodosProductos = rulesEngineLN.EstanActivosLosProductos(coleccionViewModel, resumenProducto);
@@ -730,6 +735,8 @@ namespace ControlCaducidadesPromotor.Models
                                                           {
                                                               IdProducto = s.IdProducto,
                                                               IdDetalleProducto = s.IdDetalleProducto,
+                                                              FechaAlta = s.FechaAlta,
+                                                              FechaModificacion = s.FechaModificacion,
                                                               Activo = s.Activo
                                                           }).ToList();
 
@@ -737,7 +744,7 @@ namespace ControlCaducidadesPromotor.Models
 
 
                         var resumenDetalleProductoVM = (from s in ctx.DetalleProducto
-                                                         select new DetalleProductoViewModel { Id = s.Id, Activo = s.Activo }).ToList();
+                                                         select new DetalleProductoViewModel { Id = s.Id, FechaAlta = s.FechaAlta, FechaModificacion = s.FechaModificacion, Activo = s.Activo }).ToList();
 
                         bool estanActivosEnDetalleProducto = rulesEngineLN.EstanActivosLosIdDetalleProducto(coleccionViewModel, resumenDetalleProductoVM);
                         
@@ -863,11 +870,11 @@ namespace ControlCaducidadesPromotor.Models
                     catch(Exception ex)
                     {
                         dbContextTransaction.Rollback();
-                        throw new Exception("Excepcion lanzada y cachada en TiendaLN.Post_AgregarNuevaCaducidad", ex);
+                        throw new Exception("Excepcion lanzada y cachada en TiendaLN.Post_AgregarNuevaCaducidad " + ex.Message, ex);
                     }
                 }
             }
-            */
+            
             return (respuesta);
         }
 

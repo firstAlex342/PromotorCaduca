@@ -47,8 +47,10 @@
 
                     if (result.success != true) {
                         let texto = result.elResultado;
-                        //$('#errorSpan').html('<ul><li>' + texto + '</li></ul>'); No creee este span, por ello lo muestro en un alert
-                        alert(texto);
+                        //$('#errorSpan').html('<ul><li>' + texto + '</li></ul>'); No creee este span, por ello lo muestro en un modal
+                        //alert(texto);
+                        $('#textoModal p').text(texto);
+                        $('#myModal').modal('show');
                     }
 
                     else {
@@ -64,8 +66,8 @@
 
                             let miFechaAlta = new Date(parseInt(item.FechaAlta.substr(6)));
                             let miFechaModificacion = new Date(parseInt(item.FechaModificacion.substr(6)));
-                            html += '<td>' + miFechaAlta + '</td>'; @* decia style = "display:none;"    y se ocultaba la columna *@
-                            html += '<td>' + miFechaModificacion + '</td>'; @* decia style = "display:none;"    y se ocultaba la columna *@
+                            html += '<td style="display:none;">' + miFechaAlta + '</td>'; @* decia style = "display:none;"    y se ocultaba la columna *@
+                            html += '<td style="display:none;">' + miFechaModificacion + '</td>'; @* decia style = "display:none;"    y se ocultaba la columna *@
                             html += '</tr>'
                             $('#miTablaDeTiendasRecuperadas tbody').append(html);;
                         });
@@ -77,7 +79,9 @@
                     $('#tiendasRecuperadas').html('');
 
                     DeshabilitarBtnAgregar();
-                    alert(errormessage.responseText);
+                    //alert(errormessage.responseText);
+                    $('#textoModal p').text(errormessage.responseText);
+                    $('#myModal').modal('show');
                 }
             });
         }
@@ -141,7 +145,10 @@
                     if (result.success != true) {
                         let texto = result.laRespuesta;
                         @*$('#errorSpan').html('<ul><li>' + texto + '</li></ul>');  ---no tenemos errorSPan en este cshtml *@
-                        alert(texto);
+                        //Muestro el mensaje de error en un modal en lugar de usar un alert
+                        $('#textoModal p').text(texto);
+                        $('#myModal').modal('show');
+
                         $('#miTablaDeTiendasRecuperadas').show();
 
                         let objetoDataTable = $('#miTablaProductosEnTienda').DataTable();  //Genero un objeto dataTable
@@ -213,7 +220,6 @@
                     $('#imagenWaiting').attr('style', 'display:none');
                 },
                 error: function (errormessage) {
-
                     $('#imagenWaiting').attr('style', 'display:none');
                     @*$('#errorSpan').empty();    --------  No tiene errorSpan esta hoja .cshtml*@
                     QuitarPropsDataTableYVaciar('#miTablaProductosEnTienda');
@@ -221,7 +227,9 @@
                     $('#tiendasRecuperadas').html(''); //deshabilita todo el div en el que se encuentra la tabla
                     $('#controlesAdicionales').hide();
                     DeshabilitarBtnAgregar();
-                    alert(errormessage.responseText);
+                    //Muestro en un modal el error en lugar de usar un alert
+                    $('#textoModal p').text(errormessage.responseText);
+                    $('#myModal').modal('show');
                 }
             })
         }
@@ -237,8 +245,8 @@
                     language: {
                         url: '../Scripts/DataTables/Spanish.json'
                     },
-                    columnDefs: [/*{ visible: false, targets: [1, 2, 3, 4, 5, 7, 8, 9, 11] },*/
-                    { searchable: false, targets: [0, 1, 2, 3, 4, 5, 7, 8, 9, 11] }] //https://datatables.net/reference/option/columns.searchable
+                    columnDefs: [{ visible: false, targets: [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17] },
+                    { searchable: false, targets: [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17] }] //https://datatables.net/reference/option/columns.searchable
                 });
             }
         }
@@ -410,7 +418,6 @@
                             //https://stackoverflow.com/questions/26605065/jquery-ajax-return-success-error-from-mvc-net-controller
                             // https://patrickdesjardins.com/blog/returning-a-jsonresult-within-the-error-function-of-jquery-ajax
                         if (result.success != true) {
-                            //----aqui falta contenido-----
                             $('#imagenWaiting').attr('style', 'display:none');
                             $('#tiendasRecuperadas').show();
                             $('#miTablaProductosEnTienda').show();
@@ -418,6 +425,7 @@
                             $('#controlesAdicionales').show();
                             $('#btnAgregarCaducidad').show();
 
+                            //Muestro el mensaje de error en un modal en lugar de usar un alert
                             $('#textoModal p').text(result.responseText);
                             $('#myModal').modal('show'); //https://stackoverflow.com/questions/13183630/how-to-open-a-bootstrap-modal-window-using-jquery
                         }
@@ -428,9 +436,10 @@
                             //alert(result);
                             $('#textoDeModal2 p').text(result.laRespuesta);
                             $('#myModal2').modal('show'); //https://stackoverflow.com/questions/13183630/how-to-open-a-bootstrap-modal-window-using-jquery
-
+                            
                             $('#tiendasRecuperadas').show();
                             RecuperarYMostrarTiendasDeUsuario();
+                            
                             $('#miTablaProductosEnTienda tbody').empty();  //destruyo el contenido
                             $('#miTablaProductosEnTienda').show();
                             EstilizarConDataTables('#miTablaProductosEnTienda');
@@ -451,7 +460,10 @@
                     },
                     error: function (errormessage) {
                         DeshabilitarBtnAgregar();
-                        alert(errormessage.responseText);
+                        //alert(errormessage.responseText);
+                        //Muestro el mensaje de error en un modal en lugar de usar un alert
+                        $('#textoModal p').text(errormessage.responseText);
+                        $('#myModal').modal('show');
                     }
                 });
             }
@@ -598,8 +610,8 @@
                     <thead>
                         <tr>
                             <th>Nombre</th>
-                            <th>Fecha Alta</th> @*decia style="display:none;"    y se ocultaba la columna*@
-                            <th>Fecha Modificacion</th> @*decia style="display:none;" y se ocultaba la columna*@
+                            <th style="display:none;">Fecha Alta</th> @*decia style="display:none;"    y se ocultaba la columna*@
+                            <th style="display:none;">Fecha Modificacion</th> @*decia style="display:none;" y se ocultaba la columna*@
                         </tr>
                     </thead>
                     <tbody></tbody>
